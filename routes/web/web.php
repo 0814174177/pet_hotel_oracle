@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | Cac trang mac dinh ma moi actor deu co the xem truoc khi dang nhap.
 */
+
 require __DIR__ . '/public/home.php';
 require __DIR__ . '/public/service.php';
 require __DIR__ . '/public/branches.php';
@@ -41,6 +42,12 @@ require __DIR__ . '/authentication/index.php';
 | Cac URL nay khop voi link trong giao dien client da dung san.
 */
 Route::controller(RoomController::class)->prefix('rooms')->name('rooms.')->group(function () {
+    Route::redirect('/normal/dog', '/rooms/small/dog');
+    Route::redirect('/vip/dog', '/rooms/medium/dog');
+    Route::redirect('/luxury/dog', '/rooms/large/dog');
+    Route::redirect('/normal/cat', '/rooms/small/cat');
+    Route::redirect('/vip/cat', '/rooms/medium/cat');
+    Route::redirect('/luxury/cat', '/rooms/large/cat');
     Route::get('/dog', 'dog')->name('dog');
     Route::get('/cat', 'cat')->name('cat');
     Route::get('/{type}/{species}', 'showByTypeAndSpecies')->name('by-type-species');
@@ -51,14 +58,19 @@ Route::get('/type-room/{typeRoomId}', [RoomController::class, 'typeRoom'])->name
 
 Route::controller(BookingController::class)->group(function () {
     Route::get('/booking', 'selectBranch')->name('booking.select');
+    Route::get('/booking/branch/{branchId}/room-types/availability', 'roomTypeAvailability')
+        ->name('booking.branch.room-types.availability');
     Route::get('/booking/branches/{branchId}', 'createFromBranch')->name('booking.create.from-branches');
     Route::get('/booking/branch/{branchId}', 'createFromBranch')->name('booking.create');
-    Route::post('/booking', 'store')->name('booking.store');
-    Route::get('/profile/history-booking', 'index')->name('profile.history-booking.index');
-    Route::get('/booking/{bookingId}', 'show')->name('booking.show');
+
+    Route::middleware(['auth', 'role:customer'])->group(function () {
+        Route::post('/booking', 'store')->name('booking.store');
+        Route::get('/profile/history-booking', 'index')->name('profile.history-booking.index');
+        Route::get('/booking/{bookingId}', 'show')->name('booking.show');
+    });
 });
 
-Route::controller(PaymentController::class)->group(function () {
+Route::controller(PaymentController::class)->middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/payment', 'create')->name('payment.create');
     Route::get('/payment/check-status/{bookingId}', 'checkStatus')->name('payment.check_status');
     Route::get('/payment/booking/{bookingId}', 'show')->name('payment.show');
@@ -68,13 +80,13 @@ Route::controller(PaymentController::class)->group(function () {
     Route::get('/payment/failed', 'failed')->name('payment.failed');
 });
 
-Route::controller(AccountController::class)->group(function () {
+Route::controller(AccountController::class)->middleware(['auth', 'role:customer'])->group(function () {
     Route::get('/profile', 'show')->name('profile.index');
     Route::get('/profile/edit', 'edit')->name('profile.edit');
     Route::post('/profile', 'update')->name('profile.update');
 });
 
-Route::controller(PetController::class)->prefix('pets')->name('pets.')->group(function () {
+Route::controller(PetController::class)->middleware(['auth', 'role:customer'])->prefix('pets')->name('pets.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get('/create', 'create')->name('create');
     Route::post('/', 'store')->name('store');
@@ -82,7 +94,7 @@ Route::controller(PetController::class)->prefix('pets')->name('pets.')->group(fu
     Route::post('/{petId}', 'update')->name('update');
 });
 
-Route::controller(PetController::class)->prefix('profile/pets')->name('profile.pets.')->group(function () {
+Route::controller(PetController::class)->middleware(['auth', 'role:customer'])->prefix('profile/pets')->name('profile.pets.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get('/create', 'create')->name('create');
     Route::post('/', 'store')->name('store');
@@ -98,7 +110,7 @@ Route::controller(PetController::class)->prefix('profile/pets')->name('profile.p
 */
 Route::prefix('customer')
     ->name('customer.')
-    ->middleware('customer.api.token')
+    ->middleware(['auth', 'role:customer'])
     ->group(function () {
         require __DIR__ . '/customer/index.php';
     });
@@ -123,7 +135,7 @@ Route::prefix('ceo')
 |--------------------------------------------------------------------------
 */
 Route::controller(ErrorController::class)->group(function () {
-    
+
     // Xử lý lỗi 403 (Forbidden): Người dùng đăng nhập nhưng sai vai trò (Ví dụ: Khách hàng cố vào trang CEO)
     Route::get('/unauthorized', 'unauthorized')->name('unauthorized');
 
@@ -133,5 +145,4 @@ Route::controller(ErrorController::class)->group(function () {
 
     // Xử lý luồng URL rác (Catch-all): Bắt mọi đường dẫn người dùng gõ bậy trên thanh địa chỉ
     Route::fallback('fallback');
-    
 });

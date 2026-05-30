@@ -7,6 +7,7 @@
     const feedback = document.querySelector("[data-branch-feedback]");
     const mapCount = document.querySelector("[data-branch-map-count]");
     const mapMarkers = document.querySelector("[data-branch-map-markers]");
+    const leafletMapEl = document.getElementById("branchLeafletMap");
 
     if (!form || !keywordInput || !districtSelect || !list) {
         return;
@@ -15,6 +16,8 @@
     const apiUrl = form.dataset.apiUrl;
     let debounceTimer = null;
     let latestRequestId = 0;
+    let leafletMap = null;
+    let leafletLayer = null;
 
     const escapeHtml = function (value) {
         return String(value || "")
@@ -49,6 +52,77 @@
         }
 
         return [branch.open_time, branch.close_time].filter(Boolean).join(" - ") || "Đang cập nhật";
+    };
+
+    const branchCoordinates = function (branch) {
+        const map = branch.map || {};
+        const lat = Number(map.lat);
+        const lng = Number(map.lng);
+
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            return [lat, lng];
+        }
+
+        return null;
+    };
+
+    const initLeafletMap = function () {
+        if (!leafletMapEl || !window.L || leafletMap) {
+            return;
+        }
+
+        leafletMap = window.L.map(leafletMapEl, {
+            scrollWheelZoom: false,
+        }).setView([10.7769, 106.7009], 11);
+
+        window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 18,
+            attribution: "&copy; OpenStreetMap contributors",
+        }).addTo(leafletMap);
+
+        leafletLayer = window.L.layerGroup().addTo(leafletMap);
+        leafletMapEl.classList.add("is-leaflet-ready");
+    };
+
+    const renderLeafletMap = function (branches) {
+        initLeafletMap();
+
+        if (!leafletMap || !leafletLayer || !window.L) {
+            return;
+        }
+
+        leafletLayer.clearLayers();
+
+        const bounds = [];
+
+        branches.forEach(function (branch) {
+            const coordinates = branchCoordinates(branch);
+
+            if (!coordinates) {
+                return;
+            }
+
+            bounds.push(coordinates);
+
+            window.L.marker(coordinates)
+                .addTo(leafletLayer)
+                .bindPopup(`
+                    <div class="branch-leaflet-popup">
+                        <strong>${escapeHtml(branch.name)}</strong>
+                        <span>${escapeHtml(branch.address)}</span>
+                        <span>${escapeHtml(branch.phone)}</span>
+                        <a href="${escapeHtml(branch.detail_url)}">Xem chi tiết</a>
+                    </div>
+                `);
+        });
+
+        if (bounds.length === 1) {
+            leafletMap.setView(bounds[0], 14);
+        } else if (bounds.length > 1) {
+            leafletMap.fitBounds(bounds, { padding: [28, 28] });
+        } else {
+            leafletMap.setView([10.7769, 106.7009], 11);
+        }
     };
 
     const renderBranches = function (branches) {
@@ -98,6 +172,7 @@
         }
 
         if (!mapMarkers) {
+            renderLeafletMap(branches);
             return;
         }
 
@@ -108,6 +183,7 @@
                     <span>Không có địa điểm phù hợp</span>
                 </div>
             `;
+            renderLeafletMap(branches);
             return;
         }
 
@@ -128,6 +204,8 @@
                 </a>
             `;
         }).join("");
+
+        renderLeafletMap(branches);
     };
 
     const fetchBranches = function () {
@@ -210,4 +288,18 @@
             fetchBranches();
         });
     }
+
+    const initialBranches = (() => {
+        if (!leafletMapEl) {
+            return [];
+        }
+
+        try {
+            return JSON.parse(leafletMapEl.dataset.branches || "[]");
+        } catch (error) {
+            return [];
+        }
+    })();
+
+    renderLeafletMap(initialBranches);
 }());

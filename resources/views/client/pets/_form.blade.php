@@ -52,9 +52,6 @@ $petImageUrl = null;
         <option value="" disabled @selected($selectedSpecies==='' )>Chọn loài</option>
         <option value="CAT" @selected($selectedSpecies==='CAT' )>Mèo</option>
         <option value="DOG" @selected($selectedSpecies==='DOG' )>Chó</option>
-        <option value="BIRD" @selected($selectedSpecies==='BIRD' )>Chim</option>
-        <option value="RABBIT" @selected($selectedSpecies==='RABBIT' )>Thỏ</option>
-        <option value="OTHER" @selected($selectedSpecies==='OTHER' )>Khác</option>
       </select>
       <span class="error-msg" id="error-species">@error('species'){{ $message }}@enderror</span>
     </div>

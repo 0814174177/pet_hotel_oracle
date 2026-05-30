@@ -128,9 +128,9 @@ class RoomController extends WebController
     private function typeRoomIdForSlug(string $type): ?int
     {
         return match ($type) {
-            'normal' => 1,
-            'vip' => 2,
-            'luxury' => 3,
+            'small', 'normal' => 1,
+            'medium', 'vip' => 2,
+            'large', 'luxury' => 3,
             default => null,
         };
     }
@@ -138,16 +138,16 @@ class RoomController extends WebController
     private function roomSlugForTypeRoom(string|int $typeRoomId): string
     {
         return match ((int) $typeRoomId) {
-            1 => 'normal',
-            2 => 'vip',
-            3 => 'luxury',
+            1 => 'small',
+            2 => 'medium',
+            3 => 'large',
             default => abort(404),
         };
     }
 
     private function typeRoomPayload(TypeRoom $typeRoom, Collection $rooms, ?string $pet = null, ?Collection $roomRows = null, ?string $typeSlug = null): array
     {
-        $name = $typeSlug ? $this->typeLabel($typeSlug) : $typeRoom->type_name;
+        $name = $typeSlug ? $this->typeLabel($typeSlug) : $this->displayTypeRoomName($typeRoom);
         $petLabel = $this->petLabel($pet);
 
         if ($petLabel !== null) {
@@ -157,7 +157,7 @@ class RoomController extends WebController
         return [
             'id' => $typeRoom->type_room_id,
             'name' => $name,
-            'label' => $typeRoom->type_name,
+            'label' => $this->displayTypeRoomName($typeRoom),
             'price' => 'Từ '.number_format((float) $typeRoom->base_price_per_day, 0, ',', '.').'đ/ngày',
             'price_raw' => (float) $typeRoom->base_price_per_day,
             'area' => 'Đang cập nhật',
@@ -202,9 +202,9 @@ class RoomController extends WebController
     private function typeLabel(string $type): string
     {
         return match ($type) {
-            'normal' => 'Phòng thường',
-            'vip' => 'Phòng VIP',
-            'luxury' => 'Phòng Luxury',
+            'small', 'normal' => 'Phòng nhỏ',
+            'medium', 'vip' => 'Phòng vừa',
+            'large', 'luxury' => 'Phòng lớn',
             default => abort(404),
         };
     }
@@ -213,7 +213,7 @@ class RoomController extends WebController
     {
         return [
             'Mã loại phòng' => (string) $typeRoom->type_room_id,
-            'Tên loại phòng' => $typeRoom->type_name,
+            'Tên loại phòng' => $this->displayTypeRoomName($typeRoom),
             'Giá cơ bản/ngày' => number_format((float) $typeRoom->base_price_per_day, 0, ',', '.').'đ',
             'Số thú cưng tối đa' => $this->capacityText((int) $typeRoom->max_slot),
             'Cân nặng phù hợp' => $this->weightText($typeRoom),
@@ -287,22 +287,14 @@ class RoomController extends WebController
     private function roomPayload(Room $room, TypeRoom $typeRoom, Collection $busyRoomIds, bool $hasDateRange, ?string $checkIn, ?string $checkOut): array
     {
         $isAvailable = $room->status === 'AVAILABLE' && (! $hasDateRange || ! $busyRoomIds->contains($room->room_id));
-        $bookingUrl = url('/booking/branch/'.$room->branch_id);
-
-        if ($hasDateRange) {
-            $bookingUrl .= '?'.http_build_query([
-                'room_id' => $room->room_id,
-                'check_in' => $checkIn,
-                'check_out' => $checkOut,
-            ]);
-        }
+        $bookingUrl = route('booking.select');
 
         return [
             'id' => $room->room_id,
             'number' => $room->room_number,
             'branch_id' => $room->branch_id,
             'branch_name' => $room->branch?->branch_name ?? 'Đang cập nhật',
-            'type_name' => $typeRoom->type_name,
+            'type_name' => $this->displayTypeRoomName($typeRoom),
             'price' => (float) $typeRoom->base_price_per_day,
             'price_text' => number_format((float) $typeRoom->base_price_per_day, 0, ',', '.').'đ/ngày',
             'weight_text' => $this->weightText($typeRoom),
@@ -332,6 +324,16 @@ class RoomController extends WebController
             'assets/client/images/type-room/'.$folder.'/dog',
             'assets/client/images/type-room/'.$folder.'/cat',
         ];
+    }
+
+    private function displayTypeRoomName(TypeRoom $typeRoom): string
+    {
+        return match ((int) $typeRoom->type_room_id) {
+            1 => 'Phòng nhỏ',
+            2 => 'Phòng vừa',
+            3 => 'Phòng lớn',
+            default => $typeRoom->type_name,
+        };
     }
 
     private function typeRoomImages(array $directories): array

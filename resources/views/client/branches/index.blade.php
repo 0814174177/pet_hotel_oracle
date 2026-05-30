@@ -2,6 +2,10 @@
 
 @section('title', 'Hệ thống chi nhánh')
 
+@push('styles')
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+@endpush
+
 @section('content')
 
 <section class="branch-page">
@@ -36,5 +40,6 @@
 @endsection
 
 @push('scripts')
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="{{ asset('assets/client/js/branches.js') }}"></script>
 @endpush

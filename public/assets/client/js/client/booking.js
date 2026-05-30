@@ -39,6 +39,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const bookingForm = document.getElementById("bookingForm");
     const bookingAlert = document.getElementById("bookingAlert");
     const serviceModal = document.getElementById("serviceModal");
+    const bookingErrorModal = document.getElementById("bookingErrorModal");
+    const bookingErrorMessage = document.getElementById("bookingErrorMessage");
     const serviceModalList = document.getElementById("serviceModalList");
     const servicePetName = document.getElementById("servicePetName");
     const saveServiceBtn = document.getElementById("saveServiceBtn");
@@ -152,12 +154,64 @@ document.addEventListener("DOMContentLoaded", function () {
                 state.room.availableRooms = availableRooms;
             }
 
-            const label = card.querySelector("[data-room-availability]");
-
-            if (label) {
-                label.innerHTML = `<i class="fa-solid fa-door-open"></i> Còn ${availableRooms} phòng`;
-            }
         });
+    }
+
+    function petDefaultStatusMessage(pet) {
+        if (pet.isInRoom) {
+            return pet.roomMessage;
+        }
+
+        if (pet.isDateBlocked) {
+            return (
+                pet.dateMessage ||
+                "Thú cưng này đã có booking trong khoảng ngày đã chọn."
+            );
+        }
+
+        return "Chọn bé để kiểm tra điều kiện phòng.";
+    }
+
+    function updatePetAvailability(pets) {
+        const availabilityById = new Map(
+            (Array.isArray(pets) ? pets : []).map((pet) => [
+                String(pet.id ?? pet.pet_id),
+                pet,
+            ]),
+        );
+
+        document.querySelectorAll(".pet-item").forEach((item) => {
+            const availability = availabilityById.get(String(item.dataset.petId));
+
+            if (!availability) {
+                item.dataset.petDateBlocked = "0";
+                item.dataset.petDateMessage = "";
+                return;
+            }
+
+            const isInRoom = Boolean(
+                availability.is_in_room ?? availability.isInRoom,
+            );
+            const isBooked = Boolean(
+                availability.is_booked ?? availability.isBooked,
+            );
+            const message = availability.message || "";
+
+            item.dataset.petInRoom = isInRoom ? "1" : "0";
+
+            if (isInRoom && message) {
+                item.dataset.petRoomMessage = message;
+            }
+
+            item.dataset.petDateBlocked = isBooked ? "1" : "0";
+            item.dataset.petDateMessage = isBooked
+                ? message ||
+                  "Thú cưng này đã có booking trong khoảng ngày đã chọn."
+                : "";
+        });
+
+        resetInvalidPets();
+        updateSummary();
     }
 
     function fetchRoomTypeAvailability() {
@@ -193,6 +247,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 updateRoomAvailabilityCards(Array.isArray(payload.data) ? payload.data : []);
+                updatePetAvailability(Array.isArray(payload.pets) ? payload.pets : []);
                 setAvailabilityStatus("");
             })
             .catch((error) => {
@@ -745,9 +800,13 @@ document.addEventListener("DOMContentLoaded", function () {
             sex: item.dataset.petSex,
             weight: parseNullableNumber(item.dataset.petWeight),
             isInRoom: item.dataset.petInRoom === "1",
+            isDateBlocked: item.dataset.petDateBlocked === "1",
             roomMessage:
                 item.dataset.petRoomMessage ||
                 "Thú cưng này đang ở trong phòng khác.",
+            dateMessage:
+                item.dataset.petDateMessage ||
+                "Thú cưng này đã có booking trong khoảng ngày đã chọn.",
         };
     }
 
@@ -756,6 +815,13 @@ document.addEventListener("DOMContentLoaded", function () {
             return {
                 ok: false,
                 message: pet.roomMessage,
+            };
+        }
+
+        if (pet.isDateBlocked) {
+            return {
+                ok: false,
+                message: pet.dateMessage,
             };
         }
 
@@ -824,13 +890,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const pet = getPetFromItem(item);
 
         if (!checked) {
+            const isBlocked = pet.isInRoom || pet.isDateBlocked;
+
             state.selectedPets.delete(pet.id);
             item.classList.remove("active", "ineligible");
             checkbox.checked = false;
-            item.classList.toggle("ineligible", pet.isInRoom);
-            status.textContent = pet.isInRoom
-                ? pet.roomMessage
-                : "Chọn bé để kiểm tra điều kiện phòng.";
+            checkbox.disabled = isBlocked;
+            item.classList.toggle("ineligible", isBlocked);
+            status.textContent = petDefaultStatusMessage(pet);
             serviceButton.disabled = true;
             clearRoomMessage();
             updateSummary();
@@ -847,6 +914,7 @@ document.addEventListener("DOMContentLoaded", function () {
             item.classList.remove("active");
             item.classList.add("ineligible");
             checkbox.checked = false;
+            checkbox.disabled = pet.isInRoom || pet.isDateBlocked;
             status.textContent = eligibility.message;
             serviceButton.disabled = true;
             showRoomMessage(eligibility.message);
@@ -858,6 +926,7 @@ document.addEventListener("DOMContentLoaded", function () {
         item.classList.add("active");
         item.classList.remove("ineligible");
         checkbox.checked = true;
+        checkbox.disabled = false;
         status.textContent = eligibility.message;
         serviceButton.disabled = false;
         clearRoomMessage();
@@ -867,15 +936,18 @@ document.addEventListener("DOMContentLoaded", function () {
     function resetInvalidPets() {
         document.querySelectorAll(".pet-item").forEach((item) => {
             const pet = getPetFromItem(item);
+            const checkbox = item.querySelector(".pet-checkbox");
+            const serviceButton = item.querySelector(".pet-service-btn");
+            const isBlocked = pet.isInRoom || pet.isDateBlocked;
 
             if (state.selectedPets.has(pet.id)) {
                 togglePet(item, true);
             } else {
-                item.classList.toggle("ineligible", pet.isInRoom);
+                item.classList.toggle("ineligible", isBlocked);
+                checkbox.disabled = isBlocked;
+                serviceButton.disabled = true;
                 item.querySelector(".pet-status").textContent =
-                    pet.isInRoom
-                        ? pet.roomMessage
-                        : "Chọn bé để kiểm tra điều kiện phòng.";
+                    petDefaultStatusMessage(pet);
             }
         });
         clearRoomMessage();
@@ -896,6 +968,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function closeModals() {
         setModalOpen(serviceModal, false);
+        setModalOpen(bookingErrorModal, false);
         state.activePetId = null;
     }
 
@@ -1052,6 +1125,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function showAlert(message) {
+        if (bookingErrorModal && bookingErrorMessage) {
+            bookingErrorMessage.textContent = message;
+            setModalOpen(bookingErrorModal, true);
+            return;
+        }
+
         bookingAlert.textContent = message;
         bookingAlert.hidden = false;
         bookingAlert.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1194,4 +1273,10 @@ document.addEventListener("DOMContentLoaded", function () {
     syncDateInputs();
     updateSummary();
     fetchRoomTypeAvailability();
+
+    const initialError = (root.dataset.initialError || "").trim();
+
+    if (initialError && initialError !== "\"\"") {
+        showAlert(initialError);
+    }
 });

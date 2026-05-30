@@ -96,36 +96,6 @@ $paymentConfig = [
             </span>
           </label>
 
-          <label class="payment-method">
-            <input type="radio" name="payment_method" value="wallet">
-
-            <span class="method-dot"></span>
-
-            <span class="method-icon blue">
-              <i class="fa-regular fa-wallet"></i>
-            </span>
-
-            <span class="method-content">
-              <strong>Ví điện tử (MoMo, ZaloPay)</strong>
-              <small>Ghi nhận phương thức, tích hợp cổng thanh toán sau</small>
-            </span>
-          </label>
-
-          <label class="payment-method">
-            <input type="radio" name="payment_method" value="bank">
-
-            <span class="method-dot"></span>
-
-            <span class="method-icon purple">
-              <i class="fa-regular fa-credit-card"></i>
-            </span>
-
-            <span class="method-content">
-              <strong>Chuyển khoản ngân hàng</strong>
-              <small>Ghi nhận phương thức, nhân viên sẽ xác nhận sau</small>
-            </span>
-          </label>
-
         </div>
       </div>
 

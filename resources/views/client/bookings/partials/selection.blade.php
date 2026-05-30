@@ -66,7 +66,6 @@
                 Không giới hạn kg
               @endif
             </span>
-            <span class="room-availability-count" data-room-availability><i class="fa-solid fa-door-open"></i> Còn {{ $roomType['availableRoomsCount'] ?? 0 }} phòng</span>
           </span>
 
           <span class="room-detail-link">

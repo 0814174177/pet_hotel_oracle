@@ -160,15 +160,12 @@
 
                     <h4>1. Hình thức thanh toán</h4>
                     <ul>
-                        <li>Thanh toán tiền mặt tại chi nhánh.</li>
-                        <li>Thanh toán qua ví điện tử như MoMo, ZaloPay nếu hệ thống hỗ trợ.</li>
-                        <li>Thanh toán bằng thẻ ngân hàng hoặc chuyển khoản theo hướng dẫn của Pet Hotel.</li>
+                        <li>Thanh toán tiền mặt trực tiếp tại chi nhánh khi nhận phòng.</li>
                     </ul>
 
                     <h4>2. Thời điểm thanh toán</h4>
                     <p>
-                        Khách hàng có thể thanh toán sau khi hoàn tất đặt phòng hoặc thanh toán trực tiếp
-                        tại chi nhánh tùy theo phương thức đã chọn.
+                        Khách hàng thanh toán trực tiếp tại chi nhánh theo thông tin đơn đặt phòng đã được xác nhận.
                     </p>
 
                     <h4>3. Mã giảm giá</h4>

@@ -83,7 +83,7 @@
 
 .branch-filter {
     display: grid;
-    grid-template-columns: minmax(220px, 1fr) 190px auto auto;
+    grid-template-columns: minmax(360px, 1fr) 190px auto;
     gap: 12px;
     align-items: center;
     background: #f8fafc;
@@ -407,6 +407,47 @@
         linear-gradient(90deg, rgba(255, 255, 255, 0.56) 1px, transparent 1px) 0 0 / 64px 64px,
         linear-gradient(0deg, rgba(255, 255, 255, 0.56) 1px, transparent 1px) 0 0 / 64px 64px,
         #fff7df;
+}
+
+.branch-map.is-leaflet-ready {
+    background: #e5e7eb;
+}
+
+.branch-map.is-leaflet-ready::before,
+.branch-map.is-leaflet-ready::after,
+.branch-map.is-leaflet-ready [data-branch-map-markers],
+.branch-map.is-leaflet-ready .map-current {
+    display: none;
+}
+
+.branch-map .leaflet-container,
+.branch-map .leaflet-pane,
+.branch-map .leaflet-control-container {
+    font-family: inherit;
+}
+
+.branch-leaflet-popup {
+    display: grid;
+    gap: 4px;
+    min-width: 190px;
+}
+
+.branch-leaflet-popup strong {
+    color: #0f172a;
+    font-size: 14px;
+}
+
+.branch-leaflet-popup span {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.branch-leaflet-popup a {
+    color: #f59e0b;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
 }
 
 .branch-map::before,

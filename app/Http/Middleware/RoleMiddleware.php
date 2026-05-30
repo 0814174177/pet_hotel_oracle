@@ -19,15 +19,12 @@ class RoleMiddleware
 
     public function handle(Request $request, Closure $next, string ...$allowedRoles): Response
     {
-        if (app()->environment(['local', 'testing']) && config('app.middleware_bypass.role')) {
-            return $next($request);
-        }
 
         $user = $request->user();
 
         $expectsJson = $request->expectsJson() || $request->is('api/*');
 
-        if (! $user || ! $user->role) {
+        if (! $user || ! $user->role || ! $user->is_active) {
             if (! $expectsJson) {
                 return redirect()->route('login');
             }
@@ -39,7 +36,7 @@ class RoleMiddleware
         }
 
         $normalizedAllowedRoles = array_map(
-            fn (string $role): string => self::ROLE_ALIASES[strtolower($role)] ?? $role,
+            fn(string $role): string => self::ROLE_ALIASES[strtolower($role)] ?? $role,
             $allowedRoles
         );
 

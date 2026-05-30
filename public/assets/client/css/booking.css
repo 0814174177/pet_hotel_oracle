@@ -538,10 +538,6 @@ body:has(.booking-page-v2) {
     color: #be123c;
 }
 
-.booking-room-card-v2.is-updating-availability .room-availability-count {
-    opacity: 0.62;
-}
-
 /* =========================
    Stay Calendar
 ========================= */
@@ -1199,6 +1195,10 @@ body.booking-modal-open {
     overflow-y: auto;
     padding: 22px;
     width: min(100%, 560px);
+}
+
+.booking-modal-panel--compact {
+    max-width: 440px;
 }
 
 .booking-modal-head {

@@ -117,6 +117,12 @@ interface BookingRepositoryInterface
         ?string $checkOut = null
     ): array;
 
+    public function petAvailabilityForUser(
+        ?User $user,
+        ?string $checkIn = null,
+        ?string $checkOut = null
+    ): array;
+
     /**
      * Lấy danh sách lịch sử đặt phòng của một khách hàng cụ thể.
      *

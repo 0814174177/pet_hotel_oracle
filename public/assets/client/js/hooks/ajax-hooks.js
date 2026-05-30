@@ -1,6 +1,4 @@
 (function () {
-    const TOKEN_KEYS = ["pet_hotel_token", "access_token", "api_token", "token"];
-
     class ApiHookError extends Error {
         constructor(message, status, payload) {
             super(message);
@@ -40,36 +38,15 @@
     }
 
     function getAuthToken() {
-        const metaToken = readMeta("api-token");
-
-        if (metaToken) {
-            return metaToken;
-        }
-
-        for (const key of TOKEN_KEYS) {
-            const token = window.localStorage.getItem(key) || window.sessionStorage.getItem(key);
-
-            if (token) {
-                return token;
-            }
-        }
-
         return "";
     }
 
-    function setAuthToken(token, storage = "local") {
-        const targetStorage = storage === "session" ? window.sessionStorage : window.localStorage;
-
-        if (token) {
-            targetStorage.setItem(TOKEN_KEYS[0], token);
-        }
+    function setAuthToken() {
+        return "";
     }
 
     function clearAuthToken() {
-        TOKEN_KEYS.forEach((key) => {
-            window.localStorage.removeItem(key);
-            window.sessionStorage.removeItem(key);
-        });
+        return "";
     }
 
     function isFormData(payload) {
@@ -77,7 +54,6 @@
     }
 
     function buildHeaders(extraHeaders = {}, payload = null) {
-        const token = getAuthToken();
         const csrfToken = readMeta("csrf-token");
         const headers = {
             Accept: "application/json",
@@ -90,10 +66,6 @@
 
         if (csrfToken && !headers["X-CSRF-TOKEN"]) {
             headers["X-CSRF-TOKEN"] = csrfToken;
-        }
-
-        if (token && !headers.Authorization) {
-            headers.Authorization = `Bearer ${token}`;
         }
 
         return headers;
@@ -254,7 +226,7 @@
         };
     }
 
-    window.PetHotelApi = {
+    window.PetHotelAjax = {
         request,
         useGetData,
         useSendData,

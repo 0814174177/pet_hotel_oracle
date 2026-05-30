@@ -58,7 +58,7 @@ class PetController extends WebController
 
         $validated = $request->validate([
             'pet_name' => ['required', 'string', 'max:60'],
-            'species' => ['required', Rule::in(['DOG', 'CAT', 'BIRD', 'RABBIT', 'OTHER'])],
+            'species' => ['required', Rule::in(['DOG', 'CAT'])],
             'gender' => ['nullable', Rule::in(['MALE', 'FEMALE', 'UNKNOWN'])],
             'breed' => ['nullable', 'string', 'max:50'],
             'weight_kg' => ['nullable', 'numeric', 'min:0.1', 'max:999.99'],
@@ -154,7 +154,7 @@ class PetController extends WebController
 
         $validated = $request->validate([
             'pet_name' => ['required', 'string', 'max:60'],
-            'species' => ['required', Rule::in(['DOG', 'CAT', 'BIRD', 'RABBIT', 'OTHER'])],
+            'species' => ['required', Rule::in(['DOG', 'CAT'])],
             'gender' => ['nullable', Rule::in(['MALE', 'FEMALE', 'UNKNOWN'])],
             'breed' => ['nullable', 'string', 'max:50'],
             'weight_kg' => ['nullable', 'numeric', 'min:0.1', 'max:999.99'],

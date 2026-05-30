@@ -113,6 +113,11 @@ class BookingController extends WebController
                 $request->input('check_in'),
                 $request->input('check_out')
             ),
+            'pets' => $this->bookings->petAvailabilityForUser(
+                Auth::user(),
+                $request->input('check_in'),
+                $request->input('check_out')
+            ),
         ]);
     }
 
