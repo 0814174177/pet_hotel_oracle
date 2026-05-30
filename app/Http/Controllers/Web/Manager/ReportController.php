@@ -11,7 +11,7 @@ class ReportController extends WebController
 {
     public function index(): View
     {
-        return $this->placeholder('Bao cao doanh thu', 'Manager', 'Bao cao doanh thu chi nhanh.');
+        return view('pages.manager.branch-revenue-reports');
     }
 
     public function export(Request $request): RedirectResponse

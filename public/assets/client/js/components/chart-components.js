@@ -156,7 +156,7 @@
                         borderColor: color,
                         backgroundColor: color,
                         borderWidth: 3,
-                        tension: 0.35,
+                        tension: 0,
                         pointRadius: 4,
                         pointHoverRadius: 8,
                         fill: false,

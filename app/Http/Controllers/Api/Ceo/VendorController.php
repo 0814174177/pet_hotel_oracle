@@ -2,19 +2,27 @@
 
 namespace App\Http\Controllers\Api\Ceo;
 
-use App\Http\Controllers\Controller;
-use App\Models\Product;
+use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\ReportFilterRequest;
+use App\Repositories\Contracts\Ceo\CeoVendorRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 
-class VendorController extends Controller
+class VendorController extends ApiController
 {
-    public function index(): JsonResponse
+    public function __construct(
+        protected CeoVendorRepositoryInterface $vendors
+    ) {
+    }
+
+    public function index(ReportFilterRequest $request): JsonResponse
     {
         return response()->json([
-            'data' => [
-                'message' => 'Danh sach doi tac/nha cung cap se duoc gan voi module supplier sau.',
-                'products' => Product::orderBy('product_name')->limit(20)->get(),
-            ],
+            'data' => $this->vendors->getVendors($this->filters($request)),
         ]);
+    }
+
+    private function filters(ReportFilterRequest $request): array
+    {
+        return $request->reportFilters();
     }
 }

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Api\Manager;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
 
-class ReportController extends Controller
+class ReportController extends ApiController
 {
     public function index(): JsonResponse
     {

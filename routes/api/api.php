@@ -21,3 +21,6 @@ require __DIR__.'/authentication/index.php';
 require __DIR__.'/customer/main.php';
 require __DIR__.'/manager/main.php';
 require __DIR__.'/ceo/api.php';
+require __DIR__.'/branch/service-management.php';
+require __DIR__.'/branch/revenue-report.php';
+require __DIR__.'/branch/inventory-materials.php';

@@ -1,0 +1,326 @@
+.branch-service-page {
+    min-height: 100vh;
+}
+
+.branch-service-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.branch-service-main {
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    padding: 24px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.branch-service-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.branch-service-search {
+    flex: 1;
+}
+
+.branch-service-search input {
+    width: 100%;
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    outline: none;
+}
+
+.branch-service-search input:focus {
+    border-color: #0ea5e9;
+}
+
+.branch-service-filters {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.branch-service-filters select {
+    height: 42px;
+    min-width: 180px;
+    padding: 0 12px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    outline: none;
+}
+
+.branch-service-sync-btn {
+    height: 42px;
+    padding: 0 16px;
+    border: 1px solid #0ea5e9;
+    background: #0ea5e9;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    white-space: nowrap;
+}
+
+.branch-service-sync-btn:hover {
+    background: #0284c7;
+    border-color: #0284c7;
+}
+
+.branch-service-grid-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+}
+
+.branch-service-grid-header,
+.branch-service-grid-row {
+    display: grid;
+    grid-template-columns: 1.5fr 180px 180px 1.2fr;
+    min-width: 980px;
+}
+
+.branch-service-grid-header {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 900;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.branch-service-grid-header > div,
+.branch-service-grid-row > div {
+    padding: 16px;
+    border-right: 1px solid #e5e7eb;
+}
+
+.branch-service-grid-header > div:last-child,
+.branch-service-grid-row > div:last-child {
+    border-right: none;
+}
+
+.branch-service-grid-row {
+    align-items: center;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    color: #334155;
+    font-size: 14px;
+}
+
+.branch-service-grid-row:last-child {
+    border-bottom: none;
+}
+
+.branch-service-grid-row:hover {
+    background: #f8fafc;
+}
+
+.branch-service-grid-row--disabled {
+    background: #f1f5f9;
+    opacity: 0.72;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.branch-service-name-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.branch-service-name {
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.branch-service-code {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.branch-service-group {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ceo-lock-badge {
+    width: fit-content;
+    margin-top: 4px;
+    padding: 4px 8px;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.branch-service-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+}
+
+.branch-service-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.branch-service-switch span {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #cbd5e1;
+    transition: 0.2s ease;
+}
+
+.branch-service-switch span::before {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    left: 3px;
+    top: 3px;
+    background: #ffffff;
+    transition: 0.2s ease;
+}
+
+.branch-service-switch input:checked + span {
+    background: #10b981;
+}
+
+.branch-service-switch input:checked + span::before {
+    transform: translateX(24px);
+}
+
+.branch-service-switch input:disabled + span {
+    cursor: not-allowed;
+    background: #e5e7eb;
+}
+
+.branch-service-pause-btn {
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid #f59e0b;
+    background: #fffbeb;
+    color: #b45309;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    white-space: nowrap;
+}
+
+.branch-service-pause-btn--active {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.branch-service-pause-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.branch-service-price-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.branch-service-base-price {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.branch-service-local-price {
+    width: fit-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.branch-service-edit-icon {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.branch-service-empty {
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    padding: 48px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.branch-service-empty-icon {
+    font-size: 44px;
+    margin-bottom: 14px;
+}
+
+@media (max-width: 1200px) {
+    .branch-service-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .branch-service-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .branch-service-filters {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .branch-service-filters select,
+    .branch-service-sync-btn {
+        flex: 1;
+    }
+}
+
+@media (max-width: 576px) {
+    .branch-service-main {
+        padding: 16px;
+    }
+
+    .branch-service-filters {
+        flex-direction: column;
+    }
+
+    .branch-service-filters select,
+    .branch-service-sync-btn {
+        width: 100%;
+    }
+}

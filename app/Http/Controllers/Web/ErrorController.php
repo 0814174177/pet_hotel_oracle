@@ -39,6 +39,12 @@ class ErrorController extends WebController
 
     private function errorPage(string $title, string $section, string $description, int $status): Response
     {
-        return response()->view('pages.placeholder', compact('title', 'section', 'description'), $status);
+        $view = match ($status) {
+            Response::HTTP_FORBIDDEN => 'errors.403',
+            Response::HTTP_NOT_FOUND => 'errors.404',
+            default => 'errors.500',
+        };
+
+        return response()->view($view, compact('title', 'section', 'description'), $status);
     }
 }

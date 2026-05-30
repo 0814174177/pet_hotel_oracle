@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api\Manager;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Models\BranchInventory;
 use Illuminate\Http\JsonResponse;
 
-class InventoryController extends Controller
+class InventoryController extends ApiController
 {
     public function index(): JsonResponse
     {

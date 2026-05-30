@@ -11,7 +11,7 @@ class FinanceController extends WebController
 {
     public function index(): View
     {
-        return $this->placeholder('Bao cao tai chinh', 'CEO', 'Bao cao tai chinh toan he thong.');
+        return view('pages.ceo.finance-analytics');
     }
 
     public function export(Request $request): RedirectResponse

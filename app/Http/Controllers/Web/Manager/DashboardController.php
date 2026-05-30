@@ -11,7 +11,7 @@ class DashboardController extends WebController
 {
     public function index(): View
     {
-        return $this->placeholder('Manager Dashboard', 'Manager', 'Tong quan van hanh chi nhanh.');
+        return view('pages.manager.branch-dashboard');
     }
 
     public function filter(Request $request): RedirectResponse

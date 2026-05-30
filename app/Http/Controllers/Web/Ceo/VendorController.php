@@ -11,7 +11,7 @@ class VendorController extends WebController
 {
     public function index(): View
     {
-        return $this->placeholder('Doi tac va nha cung cap', 'CEO', 'Danh sach doi tac va nha cung cap.');
+        return view('pages.ceo.partner-vendor-management');
     }
 
     public function store(Request $request): RedirectResponse
