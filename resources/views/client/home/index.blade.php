@@ -18,6 +18,22 @@
  $homeLuxuryRoomImage = $randomRoomImage('luxury', 'dog');
  @endphp
 
+ @if (request()->boolean('registered'))
+ <div class="home-success-modal" id="homeSuccessModal" role="dialog" aria-modal="true" aria-labelledby="homeSuccessTitle">
+   <div class="home-success-card">
+     <button type="button" class="home-success-close" aria-label="Đóng thông báo" data-close-register-modal>
+       <i class="fa-solid fa-xmark"></i>
+     </button>
+     <span class="home-success-icon">
+       <i class="fa-solid fa-check"></i>
+     </span>
+     <h2 id="homeSuccessTitle">Đăng ký thành công</h2>
+     <p>Tài khoản của bạn đã sẵn sàng. Bạn có thể bắt đầu chọn chi nhánh và đặt phòng cho thú cưng.</p>
+     <a href="{{ route('booking.select') }}">Đặt phòng ngay</a>
+   </div>
+ </div>
+ @endif
+
  {{-- Hero section --}}
  <section class="home-hero" style="background-image: url('{{ $homeHeroImage }}')">
    <div class="hero-overlay"></div>
@@ -167,11 +183,11 @@
 
      <div class="room-list">
        <div class="room-card">
-         <img src="{{ $homeNormalRoomImage }}" alt="Phòng Thường">
+         <img src="{{ $homeNormalRoomImage }}" alt="Phòng nhỏ">
 
          <div class="room-content">
-           <h3>Phòng Thường</h3>
-           <p>Sinh hoạt chung, tiêu chuẩn cơ bản, phù hợp cho lưu trú ngắn hạn</p>
+           <h3>Phòng nhỏ</h3>
+           <p>Phù hợp cho chó/mèo nhỏ dưới 10kg, tối đa 2 bé.</p>
 
            <a href="{{ route('type-room.show', 1) }}" class="room-btn">
              Xem chi tiết
@@ -180,11 +196,11 @@
        </div>
 
        <div class="room-card">
-         <img src="{{ $homeVipRoomImage }}" alt="Phòng VIP">
+         <img src="{{ $homeVipRoomImage }}" alt="Phòng vừa">
 
          <div class="room-content">
-           <h3>Phòng VIP</h3>
-           <p>Có camera riêng, đồ chơi cao cấp, không gian riêng tư</p>
+           <h3>Phòng vừa</h3>
+           <p>Phù hợp thú cưng từ 10kg đến 25kg, không gian thoải mái hơn.</p>
 
            <a href="{{ route('type-room.show', 2) }}" class="room-btn">
              Xem chi tiết
@@ -193,11 +209,11 @@
        </div>
 
        <div class="room-card">
-         <img src="{{ $homeLuxuryRoomImage }}" alt="Phòng Luxury">
+         <img src="{{ $homeLuxuryRoomImage }}" alt="Phòng lớn">
 
          <div class="room-content">
-           <h3>Phòng Luxury</h3>
-           <p>Không gian rộng rãi, bãi cỏ riêng, dịch vụ cao cấp</p>
+           <h3>Phòng lớn</h3>
+           <p>Phòng rộng cho thú cưng lớn, mỗi phòng 1 bé.</p>
 
            <a href="{{ route('type-room.show', 3) }}" class="room-btn">
              Xem chi tiết
@@ -209,3 +225,29 @@
  </section>
 
  @endsection
+
+ @push('scripts')
+ <script>
+   document.addEventListener('DOMContentLoaded', function () {
+     const modal = document.getElementById('homeSuccessModal');
+
+     if (!modal) {
+       return;
+     }
+
+     const closeModal = function () {
+       modal.hidden = true;
+     };
+
+     modal.addEventListener('click', function (event) {
+       if (event.target === modal) {
+         closeModal();
+       }
+     });
+
+     document.querySelectorAll('[data-close-register-modal]').forEach(function (button) {
+       button.addEventListener('click', closeModal);
+     });
+   });
+ </script>
+ @endpush

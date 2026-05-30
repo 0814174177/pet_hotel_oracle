@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\WebController;
 use App\Models\TypeRoom;
 use App\Services\PublicBranchService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Throwable;
@@ -55,6 +56,24 @@ class BranchController extends WebController
         ]);
     }
 
+    public function filter(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'keyword' => ['nullable', 'string', 'max:100'],
+            'district' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $keyword = trim((string) ($validated['keyword'] ?? ''));
+        $district = trim((string) ($validated['district'] ?? 'all')) ?: 'all';
+        $data = $this->branches->filter($keyword, $district);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'total' => $data->count(),
+        ]);
+    }
+
     private function branchRoomTypes(int $branchId): Collection
     {
         try {
@@ -87,7 +106,7 @@ class BranchController extends WebController
     {
         return [
             'id' => (int) $typeRoom->type_room_id,
-            'name' => $typeRoom->type_name,
+            'name' => $this->displayTypeRoomName($typeRoom),
             'description' => $typeRoom->notes ?: 'Thông tin loại phòng đang được cập nhật.',
             'capacity' => $this->capacityText((int) $typeRoom->max_slot),
             'weight' => $this->weightText($typeRoom->pet_weight_min_kg, $typeRoom->pet_weight_max_kg),
@@ -139,6 +158,16 @@ class BranchController extends WebController
                 'detailUrl' => route('type-room.show', 3),
             ],
         ]);
+    }
+
+    private function displayTypeRoomName(TypeRoom $typeRoom): string
+    {
+        return match ((int) $typeRoom->type_room_id) {
+            1 => 'Phòng nhỏ',
+            2 => 'Phòng vừa',
+            3 => 'Phòng lớn',
+            default => $typeRoom->type_name,
+        };
     }
 
     private function capacityText(int $maxSlot): string

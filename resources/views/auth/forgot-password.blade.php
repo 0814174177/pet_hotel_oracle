@@ -21,6 +21,18 @@
           Nhập email đã đăng ký để nhận liên kết đặt lại mật khẩu.
         </p>
 
+        @if (session('status'))
+          <div class="auth-alert auth-alert--success">
+            {{ session('status') }}
+          </div>
+        @endif
+
+        @if ($errors->any())
+          <div class="auth-alert">
+            {{ $errors->first() }}
+          </div>
+        @endif
+
         <div class="form-group">
           <label for="email">Email</label>
           <input type="email" id="email" name="email" value="{{ old('email') }}" required>

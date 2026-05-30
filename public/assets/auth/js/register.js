@@ -25,39 +25,39 @@ document.addEventListener("DOMContentLoaded", function () {
         switch (fieldName) {
             case "name":
                 if (!value.trim()) {
-                    error = "Ho va ten khong duoc de trong";
+                    error = "Họ và tên không được để trống";
                 }
                 break;
             case "phone": {
                 const phoneRegex = /(84|0[3|5|7|8|9])+([0-9]{8})\b/;
                 if (!value.trim()) {
-                    error = "So dien thoai khong duoc de trong";
+                    error = "Số điện thoại không được để trống";
                 } else if (!phoneRegex.test(value)) {
-                    error = "So dien thoai khong hop le";
+                    error = "Số điện thoại không hợp lệ";
                 }
                 break;
             }
             case "email": {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!value.trim()) {
-                    error = "Email khong duoc de trong";
+                    error = "Email không được để trống";
                 } else if (!emailRegex.test(value)) {
-                    error = "Email khong hop le";
+                    error = "Email không hợp lệ";
                 }
                 break;
             }
             case "password":
                 if (!value) {
-                    error = "Mat khau khong duoc de trong";
+                    error = "Mật khẩu không được để trống";
                 } else if (value.length < 8) {
-                    error = "Mat khau phai tu 8 ky tu";
+                    error = "Mật khẩu phải từ 8 ký tự";
                 }
                 break;
             case "password_confirmation":
                 if (!value) {
-                    error = "Vui long xac nhan mat khau";
+                    error = "Vui lòng xác nhận mật khẩu";
                 } else if (value !== formState.password) {
-                    error = "Mat khau khong khop";
+                    error = "Mật khẩu không khớp";
                 }
                 break;
         }
@@ -149,7 +149,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         submitBtn.disabled = true;
-        submitBtn.innerHTML = "Dang xu ly...";
 
         try {
             const formData = new FormData(form);
@@ -194,7 +193,6 @@ document.addEventListener("DOMContentLoaded", function () {
             window.location.href = "/500"; // Có thể điều hướng về trang 500 nếu rớt mạng
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = "Đăng kí";
         }
     });
 

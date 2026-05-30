@@ -89,11 +89,11 @@ class PublicBranchService
     private function branchMeta(string $district, int $index): array
     {
         $districtMeta = [
-            'Quận 7' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.8', 'review_count' => 127, 'map' => ['x' => 72, 'y' => 68]],
-            'Quận 1' => ['open_time' => '7:30', 'close_time' => '21:00', 'rating' => '4.6', 'review_count' => 89, 'map' => ['x' => 34, 'y' => 34]],
-            'Bình Thạnh' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.7', 'review_count' => 203, 'map' => ['x' => 49, 'y' => 48]],
-            'Thủ Đức' => ['open_time' => '8:00', 'close_time' => '19:00', 'rating' => '4.5', 'review_count' => 61, 'map' => ['x' => 72, 'y' => 28]],
-            'Gò Vấp' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.5', 'review_count' => 73, 'map' => ['x' => 42, 'y' => 42]],
+            'Quận 7' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.8', 'review_count' => 127, 'map' => ['x' => 72, 'y' => 68, 'lat' => 10.738, 'lng' => 106.721]],
+            'Quận 1' => ['open_time' => '7:30', 'close_time' => '21:00', 'rating' => '4.6', 'review_count' => 89, 'map' => ['x' => 34, 'y' => 34, 'lat' => 10.7758, 'lng' => 106.7009]],
+            'Bình Thạnh' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.7', 'review_count' => 203, 'map' => ['x' => 49, 'y' => 48, 'lat' => 10.8077, 'lng' => 106.707]],
+            'Thủ Đức' => ['open_time' => '8:00', 'close_time' => '19:00', 'rating' => '4.5', 'review_count' => 61, 'map' => ['x' => 72, 'y' => 28, 'lat' => 10.849, 'lng' => 106.753]],
+            'Gò Vấp' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.5', 'review_count' => 73, 'map' => ['x' => 42, 'y' => 42, 'lat' => 10.838, 'lng' => 106.665]],
         ];
 
         return $districtMeta[$district] ?? [
@@ -104,6 +104,8 @@ class PublicBranchService
             'map' => [
                 'x' => 28 + (($index * 17) % 48),
                 'y' => 30 + (($index * 19) % 42),
+                'lat' => 10.7769 + (($index % 5) - 2) * 0.018,
+                'lng' => 106.7009 + (($index % 4) - 1.5) * 0.018,
             ],
         ];
     }

@@ -8,7 +8,7 @@ $selectedDistrict = $filters['district'] ?? 'all';
   method="GET"
   action="{{ route('branches.index') }}"
   data-branch-filter
-  data-api-url="{{ route('api.public.branches.filter') }}"
+  data-api-url="{{ route('branches.filter') }}"
 >
   <div class="branch-search">
     <i class="fa-solid fa-magnifying-glass"></i>

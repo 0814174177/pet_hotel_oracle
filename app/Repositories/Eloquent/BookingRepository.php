@@ -64,7 +64,7 @@ class BookingRepository implements BookingRepositoryInterface
                 'branch' => $selectedBranch,
                 'branches' => $branches,
                 'roomTypes' => $this->bookingRoomTypes((string) $selectedBranch['id']),
-                'roomTypeAvailabilityUrl' => url('/api/booking/branch/'.$selectedBranch['id'].'/room-types/availability'),
+                'roomTypeAvailabilityUrl' => route('booking.branch.room-types.availability', $selectedBranch['id']),
                 'pets' => $this->customerPets($this->customerForUser($user)),
                 'services' => $this->bookingServices(),
                 'availability' => $this->bookingAvailability((string) $selectedBranch['id']),
@@ -125,11 +125,11 @@ class BookingRepository implements BookingRepositoryInterface
                     'id' => (string) $typeRoom->type_room_id,
                     'type_room_id' => (int) $typeRoom->type_room_id,
                     'branch_id' => (int) $branchId,
-                    'name' => $typeRoom->type_name,
+                    'name' => $this->displayTypeRoomName($typeRoom),
                     'description' => $typeRoom->notes,
                     'detail' => $typeRoom->notes ?: sprintf(
                         'Phòng %s với sức chứa tối đa %d thú cưng.',
-                        $typeRoom->type_name,
+                        $this->displayTypeRoomName($typeRoom),
                         $maxPets
                     ),
                     'price' => (float) $typeRoom->base_price_per_day,
@@ -144,7 +144,7 @@ class BookingRepository implements BookingRepositoryInterface
                     'available_rooms' => $availableRooms,
                     'availableRooms' => $availableRooms,
                     'availableRoomsCount' => $availableRooms,
-                    'availabilityText' => 'Còn '.$availableRooms.' phòng',
+                    'availabilityText' => $availableRooms > 0 ? 'Còn chỗ' : 'Hết chỗ',
                     'iconClass' => $this->roomIconClass($typeRoom),
                     'is_sold_out' => $availableRooms === 0,
                 ];
@@ -237,6 +237,55 @@ class BookingRepository implements BookingRepositoryInterface
         return $pets->every(fn (Pet $pet): bool => Gate::forUser($user)->allows('book', $pet));
     }
 
+    public function petAvailabilityForUser(
+        ?User $user,
+        ?string $checkIn = null,
+        ?string $checkOut = null
+    ): array {
+        $customer = $this->customerForUser($user);
+
+        if (! $customer) {
+            return [];
+        }
+
+        $pets = Pet::where('customer_id', $customer->customer_id)
+            ->orderBy('pet_name')
+            ->get();
+
+        if ($pets->isEmpty()) {
+            return [];
+        }
+
+        $hasDateRange = filled($checkIn) && filled($checkOut);
+        $conflicts = $hasDateRange
+            ? $this->petConflictsForDateRange(
+                $pets->pluck('pet_id')->map(fn ($petId): int => (int) $petId)->all(),
+                (string) $checkIn,
+                (string) $checkOut
+            )
+            : collect();
+
+        return $pets
+            ->map(function (Pet $pet) use ($conflicts, $hasDateRange): array {
+                $isInRoom = $this->petIsCurrentlyInRoom($pet);
+                $conflict = $hasDateRange ? $conflicts->get((string) $pet->pet_id) : null;
+                $isBooked = $conflict !== null;
+
+                return [
+                    'id' => (string) $pet->pet_id,
+                    'pet_id' => (int) $pet->pet_id,
+                    'is_available' => ! $isInRoom && ! $isBooked,
+                    'is_in_room' => $isInRoom,
+                    'is_booked' => $isBooked,
+                    'message' => $isInRoom
+                        ? 'Thú cưng này đang ở trong phòng khác.'
+                        : ($isBooked ? $this->petConflictDisplayMessage($conflict) : ''),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
     private function petBookingConflictMessage(array $petIds, string $checkin, string $checkout): ?string
     {
         $uniquePetIds = collect($petIds)
@@ -312,6 +361,59 @@ class BookingRepository implements BookingRepositoryInterface
             '%s đang có booking khác trong khoảng %s. Vui lòng chọn thú cưng hoặc ngày lưu trú khác.',
             $petNames,
             $conflictRange
+        );
+    }
+
+    private function petConflictsForDateRange(array $petIds, string $checkin, string $checkout)
+    {
+        $uniquePetIds = collect($petIds)
+            ->map(fn ($petId): int => (int) $petId)
+            ->unique()
+            ->values();
+
+        if ($uniquePetIds->isEmpty()) {
+            return collect();
+        }
+
+        $checkinAt = Carbon::parse($checkin)->startOfDay();
+        $checkoutAt = Carbon::parse($checkout)->startOfDay();
+
+        return DB::table('booking_room_pet')
+            ->join('booking_room', 'booking_room_pet.booking_room_id', '=', 'booking_room.booking_room_id')
+            ->join('booking', 'booking_room.booking_id', '=', 'booking.booking_id')
+            ->leftJoin('branch', 'booking.branch_id', '=', 'branch.branch_id')
+            ->whereIn('booking_room_pet.pet_id', $uniquePetIds->all())
+            ->whereIn('booking.status', self::ROOM_HOLDING_STATUSES)
+            ->where('booking.checkin_expected_at', '<', $checkoutAt->toDateTimeString())
+            ->where('booking.checkout_expected_at', '>', $checkinAt->toDateTimeString())
+            ->select([
+                'booking.booking_id',
+                'booking.branch_id',
+                'branch.branch_name',
+                'booking.checkin_expected_at',
+                'booking.checkout_expected_at',
+                'booking_room_pet.pet_id',
+            ])
+            ->orderBy('booking.checkin_expected_at')
+            ->get()
+            ->unique('pet_id')
+            ->keyBy(fn ($conflict): string => (string) $conflict->pet_id);
+    }
+
+    private function petConflictDisplayMessage(object $conflict): string
+    {
+        $branchName = filled($conflict->branch_name ?? null)
+            ? ' tại '.$conflict->branch_name
+            : '';
+
+        return sprintf(
+            'Thú cưng này đã có booking #%s%s trong khoảng %s.',
+            $conflict->booking_id,
+            $branchName,
+            $this->formatConflictDateRange(
+                $conflict->checkin_expected_at,
+                $conflict->checkout_expected_at
+            )
         );
     }
 
@@ -622,8 +724,8 @@ class BookingRepository implements BookingRepositoryInterface
                 'booking_room_id' => $bookingRoom->booking_room_id,
                 'booking_service_pet_id' => null,
                 'title' => sprintf(
-                    'Phong %s (%d dem)',
-                    $typeRoom?->type_name ?: $room?->room_number ?: 'da dat',
+                    'Phòng %s (%d đêm)',
+                    $typeRoom ? $this->displayTypeRoomName($typeRoom) : ($room?->room_number ?: 'đã đặt'),
                     $nights
                 ),
                 'quantity' => $nights,
@@ -643,7 +745,7 @@ class BookingRepository implements BookingRepositoryInterface
                 'order_id' => $order->order_id,
                 'booking_room_id' => null,
                 'booking_service_pet_id' => $bookingServicePet->booking_service_pet_id,
-                'title' => trim(($service?->service_name ?: 'Dich vu') . ($petName ? ' - '.$petName : '')),
+                'title' => trim(($service?->service_name ?: 'Dịch vụ') . ($petName ? ' - '.$petName : '')),
                 'quantity' => 1,
                 'unit_price' => $unitPrice,
                 'line_total' => $unitPrice,
@@ -793,7 +895,7 @@ class BookingRepository implements BookingRepositoryInterface
     private function bookingRoomTypesFor(Booking $booking): array
     {
         return $booking->bookingRooms
-            ->map(fn ($bookingRoom) => $bookingRoom->room?->typeRoom?->type_name)
+            ->map(fn ($bookingRoom) => $bookingRoom->room?->typeRoom ? $this->displayTypeRoomName($bookingRoom->room->typeRoom) : null)
             ->filter()
             ->unique()
             ->values()
@@ -805,7 +907,7 @@ class BookingRepository implements BookingRepositoryInterface
         return $booking->bookingRooms
             ->map(fn ($bookingRoom) => [
                 'room_number' => $bookingRoom->room?->room_number ?: 'Chưa phân phòng',
-                'type' => $bookingRoom->room?->typeRoom?->type_name ?: 'Chưa phân loại',
+                'type' => $bookingRoom->room?->typeRoom ? $this->displayTypeRoomName($bookingRoom->room->typeRoom) : 'Chưa phân loại',
                 'price' => (float) ($bookingRoom->room?->typeRoom?->base_price_per_day ?: 0),
                 'assigned_at' => $this->formatDateTime($bookingRoom->assigned_at),
             ])
@@ -989,7 +1091,7 @@ class BookingRepository implements BookingRepositoryInterface
                 $start = $today->copy();
             }
 
-            for ($date = $start->copy(); $date->lt($end); $date->addDay()) {
+            for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
                 $bookedRoomsByDate[$date->toDateString()][(string) $bookingRoom->room_id] = true;
             }
         }
@@ -1047,6 +1149,16 @@ class BookingRepository implements BookingRepositoryInterface
             2 => 'yellow',
             0 => 'purple',
             default => 'gray',
+        };
+    }
+
+    private function displayTypeRoomName(TypeRoom $typeRoom): string
+    {
+        return match ((int) $typeRoom->type_room_id) {
+            1 => 'Phòng nhỏ',
+            2 => 'Phòng vừa',
+            3 => 'Phòng lớn',
+            default => $typeRoom->type_name,
         };
     }
 

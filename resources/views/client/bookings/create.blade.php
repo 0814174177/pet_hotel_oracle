@@ -10,13 +10,14 @@
     $pets = $bookingData['pets'];
 @endphp
 
-<section class="booking-page-v2" id="booking-app" data-booking='@json($bookingData)'>
-    @if ($errors->any())
-        <div class="booking-alert">
-            {{ $errors->first() }}
-        </div>
+<section
+    class="booking-page-v2"
+    id="booking-app"
+    data-booking='@json($bookingData)'
+    @if ($errors->any() && trim((string) $errors->first()) !== '')
+        data-initial-error="{{ $errors->first() }}"
     @endif
-
+>
     <div class="booking-wrapper">
         @include('client.bookings.partials.selection', [
             'branch' => $branch,

@@ -175,53 +175,6 @@
   </div>
 </section>
 
-<section class="dog-section">
-  <div class="dog-container">
-    <h2 class="dog-section-title">Danh sach phong tu database</h2>
-
-    <div class="rd-table-wrap">
-      <table class="rd-table">
-        <thead>
-          <tr>
-            <th>Ma phong</th>
-            <th>Chi nhanh</th>
-            <th>Loai phong</th>
-            <th>Gia</th>
-            <th>Can nang</th>
-            <th>Suc chua</th>
-            <th>Trang thai</th>
-            <th>Thao tac</th>
-          </tr>
-        </thead>
-        <tbody>
-          @forelse ($roomRows as $room)
-            <tr>
-              <td>{{ $room['number'] }}</td>
-              <td>{{ $room['branch_name'] }}</td>
-              <td>{{ $room['type_name'] }}</td>
-              <td>{{ $room['price_text'] }}</td>
-              <td>{{ $room['weight_text'] }}</td>
-              <td>{{ $room['capacity_text'] }}</td>
-              <td>
-                <span class="rd-status {{ $room['is_available'] ? 'rd-status--available' : 'rd-status--busy' }}">
-                  {{ $room['availability_text'] }}
-                </span>
-              </td>
-              <td>
-                <a class="rd-table-book" href="{{ $room['booking_url'] }}">Dat phong</a>
-              </td>
-            </tr>
-          @empty
-            <tr>
-              <td colspan="8">Dang cap nhat</td>
-            </tr>
-          @endforelse
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
 </div>
 
 @endsection

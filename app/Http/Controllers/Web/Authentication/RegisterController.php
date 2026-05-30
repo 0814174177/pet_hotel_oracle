@@ -80,7 +80,7 @@ class RegisterController extends WebController
             return response()->json([
                 'status' => 'success',
                 'message' => 'Đăng ký tài khoản thành công.',
-                'redirect_url' => url('/') 
+                'redirect_url' => url('/?registered=1')
             ], 200);
 
         } catch (\Exception $e) {

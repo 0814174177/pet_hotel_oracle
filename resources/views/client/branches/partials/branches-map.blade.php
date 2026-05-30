@@ -7,7 +7,7 @@
         <strong data-branch-map-count>{{ $branches->count() }}</strong>
     </div>
 
-    <div class="branch-map">
+    <div class="branch-map branch-map--leaflet" id="branchLeafletMap" data-branches='@json($branches->values())'>
         <div data-branch-map-markers>
             @forelse ($branches as $branch)
                 <a
