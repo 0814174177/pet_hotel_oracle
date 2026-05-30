@@ -11,7 +11,7 @@ class InventoryController extends WebController
 {
     public function index(): View
     {
-        return $this->placeholder('Quan ly ton kho', 'Manager', 'Danh sach ton kho chi nhanh.');
+        return view('pages.manager.inventory-management');
     }
 
     public function store(Request $request): RedirectResponse

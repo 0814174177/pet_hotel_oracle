@@ -1,0 +1,39 @@
+<div class="manager-sidebar-inner">
+    <div class="manager-sidebar-header">
+        <div class="manager-sidebar-logo">
+            <span class="manager-sidebar-logo-icon">🐾</span>
+            <span class="manager-sidebar-logo-text">Pet Hotel</span>
+        </div>
+
+        <button type="button" class="manager-sidebar-toggle" onclick="toggleManagerSidebar()">
+            ☰
+        </button>
+    </div>
+
+    <nav class="manager-sidebar-nav">
+        <a href="{{ route('manager.dashboard') }}" class="manager-sidebar-link">
+            <span class="manager-sidebar-link-icon">📊</span>
+            <span class="manager-sidebar-link-text">Dashboard</span>
+        </a>
+
+        <a href="{{ route('manager.reports') }}" class="manager-sidebar-link">
+            <span class="manager-sidebar-link-icon">📈</span>
+            <span class="manager-sidebar-link-text">Doanh thu</span>
+        </a>
+
+        <a href="{{ route('manager.service') }}" class="manager-sidebar-link">
+            <span class="manager-sidebar-link-icon">🧼</span>
+            <span class="manager-sidebar-link-text">Dịch vụ</span>
+        </a>
+
+        <a href="{{ route('manager.inventory') }}" class="manager-sidebar-link">
+            <span class="manager-sidebar-link-icon">📦</span>
+            <span class="manager-sidebar-link-text">Vật tư</span>
+        </a>
+    </nav>
+
+    <div class="manager-sidebar-footer">
+        <span class="manager-sidebar-link-icon">👤</span>
+        <span class="manager-sidebar-link-text">Branch Manager</span>
+    </div>
+</div>

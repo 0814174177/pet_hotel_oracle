@@ -11,7 +11,7 @@ class ServiceController extends WebController
 {
     public function index(): View
     {
-        return $this->placeholder('Quan ly dich vu chi nhanh', 'Manager', 'Danh sach dich vu tai chi nhanh.');
+        return view('pages.manager.branch-service-management');
     }
 
     public function store(Request $request): RedirectResponse

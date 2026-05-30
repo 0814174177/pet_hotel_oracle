@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             BookingSeeder::class,
             OrderSeeder::class,
             AuditLogSeeder::class,
+            ReportDemoDataSeeder::class,
             OracleSequenceSeeder::class,
         ]);
     }

@@ -11,7 +11,7 @@ class BranchController extends WebController
 {
     public function index(): View
     {
-        return $this->placeholder('Quan ly chi nhanh', 'CEO', 'Danh sach chi nhanh toan he thong.');
+        return view('pages.ceo.branch-management');
     }
 
     public function store(Request $request): RedirectResponse
