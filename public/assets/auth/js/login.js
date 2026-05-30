@@ -108,7 +108,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!isValid) return;
 
         submitBtn.disabled = true;
-        submitBtn.innerHTML = "Đang xử lý...";
 
         try {
             const formData = new FormData(form);
@@ -155,7 +154,6 @@ document.addEventListener("DOMContentLoaded", function () {
             generalError.style.display = "block";
         } finally {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = "Đăng nhập";
         }
     });
 

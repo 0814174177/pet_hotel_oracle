@@ -2,17 +2,11 @@
 $speciesLabels = [
   'DOG' => 'Chó',
   'CAT' => 'Mèo',
-  'BIRD' => 'Chim',
-  'RABBIT' => 'Thỏ',
-  'OTHER' => 'Khác',
 ];
 
 $speciesIcons = [
   'DOG' => 'fa-solid fa-dog',
   'CAT' => 'fa-solid fa-cat',
-  'BIRD' => 'fa-solid fa-dove',
-  'RABBIT' => 'fa-solid fa-paw',
-  'OTHER' => 'fa-solid fa-paw',
 ];
 @endphp
 
@@ -20,8 +14,16 @@ $speciesIcons = [
   @forelse ($pets as $pet)
     @php
       $species = strtoupper((string) $pet->species);
-      $speciesLabel = $speciesLabels[$species] ?? $speciesLabels['OTHER'];
-      $speciesIcon = $speciesIcons[$species] ?? $speciesIcons['OTHER'];
+      $speciesLabel = $speciesLabels[$species] ?? 'Thú cưng';
+      $speciesIcon = $speciesIcons[$species] ?? 'fa-solid fa-paw';
+      $rawImage = $pet->pet_image ?? null;
+      $petImageUrl = null;
+
+      if (filled($rawImage)) {
+        $petImageUrl = str_starts_with($rawImage, 'http')
+          ? $rawImage
+          : asset('storage/'.$rawImage);
+      }
       $isInRoom = (bool) ($pet->is_in_room ?? false);
       $details = collect([
         $speciesLabel,
@@ -34,8 +36,12 @@ $speciesIcons = [
 
     <div class="pet-card">
       <div class="pet-card-top">
-        <div class="pet-icon">
-          <i class="{{ $speciesIcon }}"></i>
+        <div class="pet-icon {{ $petImageUrl ? 'pet-icon--image' : '' }}">
+          @if ($petImageUrl)
+            <img src="{{ $petImageUrl }}" alt="{{ $pet->pet_name }}">
+          @else
+            <i class="{{ $speciesIcon }}"></i>
+          @endif
         </div>
 
         <div class="pet-info">

@@ -110,18 +110,18 @@
     {{-- Room 1 --}}
     <div class="dog-room-card">
       <div class="dog-room-image">
-        <img src="{{ $dogStandardRoomImage }}" alt="Phòng Thường">
+        <img src="{{ $dogStandardRoomImage }}" alt="Phòng nhỏ">
       </div>
 
       <div class="dog-room-content">
         <div class="dog-room-header">
           <div>
-            <h3>Phòng Thường</h3>
-            <p class="room-area">Diện tích: 3m²</p>
+            <h3>Phòng nhỏ</h3>
+            <p class="room-area">Diện tích: khoảng 3m²</p>
           </div>
 
           <div class="room-price">
-            <strong>200.000đ</strong>
+            <strong>150.000đ</strong>
             <span>/ngày</span>
           </div>
         </div>
@@ -142,9 +142,9 @@
         <div class="room-description">
           <h4>Mô tả chi tiết</h4>
           <p>
-            Phòng Thường phù hợp với các bé chó cần không gian nghỉ ngơi cơ bản,
-            sạch sẽ và an toàn. Mỗi bé được bố trí khu vực riêng, có giường nằm,
-            bát ăn cá nhân và được nhân viên theo dõi thường xuyên trong ngày.
+            Phòng nhỏ phù hợp với các bé chó nhỏ dưới 10kg, tối đa 2 bé/phòng.
+            Không gian được vệ sinh thường xuyên, có giường nằm, bát ăn riêng
+            và nhân viên theo dõi trong ngày.
           </p>
         </div>
 
@@ -157,25 +157,25 @@
           </p>
         </div>
 
-        <a href="{{ route('rooms.by-type-species', ['type' => 'normal', 'species' => 'dog']) }}" class="dog-room-btn">Xem chi tiết</a>
+        <a href="{{ route('rooms.by-type-species', ['type' => 'small', 'species' => 'dog']) }}" class="dog-room-btn">Xem chi tiết</a>
       </div>
     </div>
 
     {{-- Room 2 --}}
     <div class="dog-room-card reverse">
       <div class="dog-room-image">
-        <img src="{{ $dogVipRoomImage }}" alt="Phòng Cao cấp">
+        <img src="{{ $dogVipRoomImage }}" alt="Phòng vừa">
       </div>
 
       <div class="dog-room-content">
         <div class="dog-room-header">
           <div>
-            <h3>Phòng Cao cấp</h3>
-            <p class="room-area">Diện tích: 5m²</p>
+            <h3>Phòng vừa</h3>
+            <p class="room-area">Diện tích: khoảng 5m²</p>
           </div>
 
           <div class="room-price">
-            <strong>350.000đ</strong>
+            <strong>220.000đ</strong>
             <span>/ngày</span>
           </div>
         </div>
@@ -196,9 +196,9 @@
         <div class="room-description">
           <h4>Mô tả chi tiết</h4>
           <p>
-            Phòng Cao cấp dành cho các bé chó cần không gian rộng hơn và chế độ chăm sóc
-            kỹ hơn. Bé được vui chơi trong khu vực riêng, có đồ chơi cao cấp,
-            chế độ ăn linh hoạt và lịch sinh hoạt được ghi chú theo thói quen của chủ nuôi.
+            Phòng vừa dành cho các bé chó từ 10kg đến 25kg, cần không gian rộng hơn
+            và lịch chăm sóc ổn định. Bé được bố trí khu vực riêng, đồ chơi phù hợp
+            và chế độ ăn theo ghi chú của chủ nuôi.
           </p>
         </div>
 
@@ -211,25 +211,25 @@
           </p>
         </div>
 
-        <a href="{{ route('rooms.by-type-species', ['type' => 'vip', 'species' => 'dog']) }}" class="dog-room-btn">Xem chi tiết</a>
+        <a href="{{ route('rooms.by-type-species', ['type' => 'medium', 'species' => 'dog']) }}" class="dog-room-btn">Xem chi tiết</a>
       </div>
     </div>
 
     {{-- Room 3 --}}
     <div class="dog-room-card">
       <div class="dog-room-image">
-        <img src="{{ $dogLuxuryRoomImage }}" alt="Phòng Sang trọng">
+        <img src="{{ $dogLuxuryRoomImage }}" alt="Phòng lớn">
       </div>
 
       <div class="dog-room-content">
         <div class="dog-room-header">
           <div>
-            <h3>Phòng Sang trọng</h3>
-            <p class="room-area">Diện tích: 8m²</p>
+            <h3>Phòng lớn</h3>
+            <p class="room-area">Diện tích: khoảng 8m²</p>
           </div>
 
           <div class="room-price">
-            <strong>500.000đ</strong>
+            <strong>350.000đ</strong>
             <span>/ngày</span>
           </div>
         </div>
@@ -250,9 +250,8 @@
         <div class="room-description">
           <h4>Mô tả chi tiết</h4>
           <p>
-            Phòng Sang trọng là lựa chọn cao cấp nhất, phù hợp với các bé cần sự riêng tư,
-            không gian lớn và chăm sóc cá nhân hóa. Bé có khu vui chơi riêng,
-            thực đơn đặc biệt, dịch vụ chăm sóc thư giãn hằng ngày và nhân viên theo dõi sát sao.
+            Phòng lớn phù hợp với các bé chó từ 25kg đến 50kg hoặc các bé cần không gian riêng.
+            Mỗi phòng nhận 1 bé để đảm bảo an toàn, thoải mái và dễ theo dõi sức khỏe.
           </p>
         </div>
 
@@ -265,7 +264,7 @@
           </p>
         </div>
 
-        <a href="{{ route('rooms.by-type-species', ['type' => 'luxury', 'species' => 'dog']) }}" class="dog-room-btn">Xem chi tiết</a>
+        <a href="{{ route('rooms.by-type-species', ['type' => 'large', 'species' => 'dog']) }}" class="dog-room-btn">Xem chi tiết</a>
       </div>
     </div>
   </div>

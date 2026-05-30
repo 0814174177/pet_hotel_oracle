@@ -106,18 +106,18 @@
 
     <div class="cat-room-card">
       <div class="cat-room-image">
-        <img src="{{ $catStandardRoomImage }}" alt="Phòng Thường cho mèo">
+        <img src="{{ $catStandardRoomImage }}" alt="Phòng nhỏ cho mèo">
       </div>
 
       <div class="cat-room-content">
         <div class="cat-room-header">
           <div>
-            <h3>Phòng Thường</h3>
-            <p>Diện tích: 2m²</p>
+            <h3>Phòng nhỏ</h3>
+            <p>Diện tích: khoảng 2m²</p>
           </div>
 
           <div class="cat-room-price">
-            <strong>180.000đ</strong>
+            <strong>150.000đ</strong>
             <span>/ngày</span>
           </div>
         </div>
@@ -138,9 +138,9 @@
         <div class="cat-room-description">
           <h4>Mô tả chi tiết</h4>
           <p>
-            Phòng Thường phù hợp với các bé mèo cần không gian nghỉ ngơi cơ bản,
-            sạch sẽ và yên tĩnh. Mỗi bé có khu vực riêng, khay cát riêng, bát ăn
-            cá nhân và được nhân viên theo dõi tình trạng ăn uống mỗi ngày.
+            Phòng nhỏ phù hợp với mèo nhỏ dưới 10kg, tối đa 2 bé/phòng.
+            Mỗi bé có khu vực nghỉ ngơi, khay cát và bát ăn riêng,
+            được nhân viên theo dõi tình trạng ăn uống mỗi ngày.
           </p>
         </div>
 
@@ -153,7 +153,7 @@
           </p>
         </div>
 
-        <a href="{{ route('rooms.by-type-species', ['type' => 'normal', 'species' => 'cat']) }}" class="cat-room-btn">
+        <a href="{{ route('rooms.by-type-species', ['type' => 'small', 'species' => 'cat']) }}" class="cat-room-btn">
           Xem chi tiết
         </a>
       </div>
@@ -161,18 +161,18 @@
 
     <div class="cat-room-card reverse">
       <div class="cat-room-image">
-        <img src="{{ $catVipRoomImage }}" alt="Phòng Cao cấp cho mèo">
+        <img src="{{ $catVipRoomImage }}" alt="Phòng vừa cho mèo">
       </div>
 
       <div class="cat-room-content">
         <div class="cat-room-header">
           <div>
-            <h3>Phòng Cao cấp</h3>
-            <p>Diện tích: 4m²</p>
+            <h3>Phòng vừa</h3>
+            <p>Diện tích: khoảng 4m²</p>
           </div>
 
           <div class="cat-room-price">
-            <strong>320.000đ</strong>
+            <strong>220.000đ</strong>
             <span>/ngày</span>
           </div>
         </div>
@@ -193,9 +193,9 @@
         <div class="cat-room-description">
           <h4>Mô tả chi tiết</h4>
           <p>
-            Phòng Cao cấp dành cho các bé mèo cần không gian thoải mái hơn, có khu vực leo trèo,
-            trụ cào móng và đồ chơi riêng. Nhân viên sẽ ghi chú thói quen sinh hoạt,
-            khẩu phần ăn và mức độ tương tác phù hợp với từng bé.
+            Phòng vừa dành cho mèo từ 10kg đến 25kg hoặc các bé cần không gian thoải mái hơn,
+            có khu vực leo trèo, trụ cào móng và đồ chơi riêng. Nhân viên ghi chú
+            thói quen sinh hoạt và khẩu phần ăn phù hợp với từng bé.
           </p>
         </div>
 
@@ -208,7 +208,7 @@
           </p>
         </div>
 
-        <a href="{{ route('rooms.by-type-species', ['type' => 'vip', 'species' => 'cat']) }}" class="cat-room-btn">
+        <a href="{{ route('rooms.by-type-species', ['type' => 'medium', 'species' => 'cat']) }}" class="cat-room-btn">
           Xem chi tiết
         </a>
       </div>
@@ -216,18 +216,18 @@
 
     <div class="cat-room-card">
       <div class="cat-room-image">
-        <img src="{{ $catLuxuryRoomImage }}" alt="Phòng Sang trọng cho mèo">
+        <img src="{{ $catLuxuryRoomImage }}" alt="Phòng lớn cho mèo">
       </div>
 
       <div class="cat-room-content">
         <div class="cat-room-header">
           <div>
-            <h3>Phòng Sang trọng</h3>
-            <p>Diện tích: 6m²</p>
+            <h3>Phòng lớn</h3>
+            <p>Diện tích: khoảng 6m²</p>
           </div>
 
           <div class="cat-room-price">
-            <strong>450.000đ</strong>
+            <strong>350.000đ</strong>
             <span>/ngày</span>
           </div>
         </div>
@@ -248,9 +248,8 @@
         <div class="cat-room-description">
           <h4>Mô tả chi tiết</h4>
           <p>
-            Phòng Sang trọng là lựa chọn cao cấp nhất cho các bé mèo cần sự riêng tư và chăm sóc
-            cá nhân hóa. Không gian rộng, có khu leo trèo riêng, đồ chơi, khay cát riêng
-            và chế độ chăm sóc phù hợp theo tính cách từng bé.
+            Phòng lớn phù hợp với mèo lớn hoặc các bé cần không gian riêng tư.
+            Mỗi phòng nhận 1 bé để đảm bảo yên tĩnh, dễ theo dõi và chăm sóc theo tính cách từng bé.
           </p>
         </div>
 
@@ -263,7 +262,7 @@
           </p>
         </div>
 
-        <a href="{{ route('rooms.by-type-species', ['type' => 'luxury', 'species' => 'cat']) }}" class="cat-room-btn">
+        <a href="{{ route('rooms.by-type-species', ['type' => 'large', 'species' => 'cat']) }}" class="cat-room-btn">
           Xem chi tiết
         </a>
       </div>

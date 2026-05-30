@@ -19,8 +19,8 @@ Route::prefix('authentication')
         Route::get('/forgot-password', [ForgotPasswordController::class, 'show'])->name('forgot-password');
         Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->name('forgot-password.store');
 
-        Route::get('/reset-password', [ResetPasswordController::class, 'show'])->name('reset-password');
-        Route::post('/reset-password', [ResetPasswordController::class, 'store'])->name('reset-password.store');
+        Route::get('/reset-password/{token}', [ResetPasswordController::class, 'show'])->name('reset-password');
+        Route::post('/reset-password.store', [ResetPasswordController::class, 'store'])->name('reset-password.store');
     });
 
 Route::post('/authentication/logout', [LoginController::class, 'destroy'])

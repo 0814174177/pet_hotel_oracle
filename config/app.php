@@ -43,23 +43,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Local Middleware Bypass
-    |--------------------------------------------------------------------------
-    |
-    | These flags are intended only for local UI testing. The middleware still
-    | checks the application environment before allowing any bypass.
-    |
-    */
-
-    'middleware_bypass' => [
-        'auth' => (bool) env('BYPASS_AUTH_MIDDLEWARE', false),
-        'guest' => (bool) env('BYPASS_GUEST_MIDDLEWARE', false),
-        'customer_api_token' => (bool) env('BYPASS_CUSTOMER_API_TOKEN', false),
-        'role' => (bool) env('BYPASS_ROLE_MIDDLEWARE', false),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Application URL
     |--------------------------------------------------------------------------
     |

@@ -626,11 +626,7 @@ class PaymentRepository implements PaymentRepositoryInterface
 
     private function databasePaymentMethod(string $paymentMethod): string
     {
-        return match ($paymentMethod) {
-            'bank' => 'BANK_TRANSFER',
-            'wallet' => 'MOMO',
-            default => 'CASH',
-        };
+        return 'CASH';
     }
 
     private function ensurePendingPaymentForOrder(Order $order): void
@@ -740,11 +736,7 @@ class PaymentRepository implements PaymentRepositoryInterface
 
     private function paymentMethodLabel(string $paymentMethod): string
     {
-        return match (strtoupper($paymentMethod)) {
-            'BANK_TRANSFER' => 'Chuyển khoản ngân hàng',
-            'MOMO' => 'Ví điện tử',
-            default => 'Tiền mặt khi nhận phòng',
-        };
+        return 'Tiền mặt khi nhận phòng';
     }
 
     private function bookingRelations(): array

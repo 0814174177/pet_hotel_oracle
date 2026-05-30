@@ -17,7 +17,7 @@
     background-color: var(--cream);
     min-height: 100vh;
     padding: 48px 16px 80px;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-sans);
 }
 
 .ps-hero {
@@ -71,7 +71,7 @@
 }
 
 .ps-hero-title {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-sans);
     font-size: 2rem;
     color: var(--warm-brown);
     margin: 0 0 8px;
@@ -170,7 +170,7 @@
 }
 
 .ps-card-header-title {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-sans);
     color: white;
     font-size: 1.05rem;
     font-weight: 500;
@@ -331,7 +331,7 @@
 }
 
 .ps-total-amount {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-sans);
     font-size: 1.6rem;
     color: var(--warm-brown);
     font-weight: 700;

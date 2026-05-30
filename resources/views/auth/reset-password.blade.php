@@ -15,8 +15,7 @@
       <form action="{{ route('authentication.reset-password.store') }}" method="POST" class="auth-form reset-form">
         @csrf
 
-        {{-- Nếu sau này dùng token thật thì mở dòng này --}}
-        {{-- <input type="hidden" name="token" value="{{ $token ?? '' }}"> --}}
+        <input type="hidden" name="token" value="{{ $token ?? '' }}">
 
         <h1>Đặt lại mật khẩu</h1>
 
@@ -24,9 +23,15 @@
           Vui lòng nhập mật khẩu mới cho tài khoản của bạn.
         </p>
 
+        @if ($errors->any())
+          <div class="auth-alert">
+            {{ $errors->first() }}
+          </div>
+        @endif
+
         <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" name="email" value="{{ old('email') }}" required>
+          <input type="email" id="email" name="email" value="{{ old('email', $email ?? '') }}" required>
         </div>
 
         <div class="form-group">

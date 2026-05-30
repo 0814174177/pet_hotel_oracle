@@ -20,6 +20,12 @@
 
         <h1>Chào mừng trở lại</h1>
 
+        @if (session('status'))
+          <div class="auth-alert auth-alert--success">
+            {{ session('status') }}
+          </div>
+        @endif
+
         <div id="general-error" class="auth-alert"
           style="display: none; color: red; margin-bottom: 15px; font-size: 14px;"></div>
 
@@ -51,11 +57,6 @@
         <button type="submit" id="submitBtn" class="login-submit">
           Đăng nhập
         </button>
-
-        <a href="#" class="google-btn">
-          <span class="google-icon">G</span>
-          <span>Tiếp tục với Google</span>
-        </a>
 
         <div class="register-row">
           <span>Chưa có tài khoản?</span>

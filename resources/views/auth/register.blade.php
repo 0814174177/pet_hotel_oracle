@@ -63,11 +63,6 @@
 
         <button type="submit" class="login-submit register-submit" id="submitBtn">Đăng kí</button>
 
-        <a href="#" class="google-btn">
-          <span class="google-icon">G</span>
-          <span>Tiếp tục với Google</span>
-        </a>
-
         <div class="register-row login-row">
           <span>Đã có tài khoản?</span>
           <a href="{{ route('authentication.login') }}">Đăng nhập</a>

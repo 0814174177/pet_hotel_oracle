@@ -303,10 +303,7 @@
 .site-footer {
     background-color: var(--footer-bg);
     color: var(--footer-text-main);
-    font-family:
-        system-ui,
-        -apple-system,
-        sans-serif;
+    font-family: var(--font-sans);
     padding: 3rem 1.5rem 0;
     line-height: 1.5;
 }

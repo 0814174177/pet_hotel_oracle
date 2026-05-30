@@ -6,6 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Pet Hotel')</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     {{-- CSS chính của client --}}
     <link rel="stylesheet" href="{{ asset('assets/client/css/style.css') }}">
 
@@ -44,6 +48,7 @@
 
     {{-- CSS footer client --}}
     <link rel="stylesheet" href="{{ asset('assets/client/css/partials/footer.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/shared/css/fonts.css') }}">
 
     {{-- Font Awesome để dùng icon mũi tên dropdown --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -61,7 +66,7 @@
     @include('partials.client.footer')
 
     <script src="{{ asset('assets/client/js/main.js') }}"></script>
-    <script src="{{ asset('assets/client/js/hooks/api-hooks.js') }}"></script>
+    <script src="{{ asset('assets/client/js/hooks/ajax-hooks.js') }}"></script>
     <script src="{{ asset('assets/client/js/partials/navbar.js') }}"></script>
 
     @stack('scripts')
