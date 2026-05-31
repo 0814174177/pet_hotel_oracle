@@ -36,5 +36,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/client/js/booking.js') }}"></script>
+    <script src="{{ asset('assets/client/js/client/booking.js') }}"></script>
 @endpush

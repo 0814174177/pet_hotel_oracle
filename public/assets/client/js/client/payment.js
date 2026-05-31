@@ -70,7 +70,7 @@
     const couponCode = input.value.trim();
 
     if (!couponCode) {
-      showCouponMessage('Nhap ma giam gia truoc khi ap dung.', 'error');
+      showCouponMessage('Nhập mã giảm giá trước khi áp dụng.', 'error');
       input.focus();
       return;
     }
@@ -98,30 +98,30 @@
       });
 
       if (response.status === 401) {
-        reloadPaymentPage('Phien dang nhap da het han. Trang se duoc tai lai.');
+        reloadPaymentPage('Phiên đăng nhập đã hết hạn. Trang sẽ được tải lại.');
         return;
       }
 
       if (response.status === 404 || (data && data.exists === false)) {
-        redirectToHistory(config, 'Don hang khong con ton tai tren he thong.');
+        redirectToHistory(config, 'Đơn hàng không còn tồn tại trên hệ thống.');
         return;
       }
 
       if (response.status === 422) {
-        showCouponMessage(firstValidationMessage(data) || 'Ma giam gia khong hop le.', 'error');
+        showCouponMessage(firstValidationMessage(data) || 'Mã giảm giá không hợp lệ.', 'error');
         return;
       }
 
       if (!response.ok || !data || data.exists !== true || !data.payment) {
-        showCouponMessage('Khong the ap dung ma giam gia. Vui long thu lai.', 'error');
+        showCouponMessage('Không thể áp dụng mã giảm giá. Vui lòng thử lại.', 'error');
         return;
       }
 
       updatePaymentTotals(data.payment);
-      showCouponMessage(data.payment.message || 'Ma giam gia da duoc ap dung.', 'success');
+      showCouponMessage(data.payment.message || 'Mã giảm giá đã được áp dụng.', 'success');
     } catch (error) {
       console.error('Coupon preview error:', error);
-      showCouponMessage('Khong the ket noi may chu. Vui long thu lai.', 'error');
+      showCouponMessage('Không thể kết nối máy chủ. Vui lòng thử lại.', 'error');
     } finally {
       setCouponLoading(button, false);
     }
@@ -167,7 +167,7 @@
   function setCouponLoading(button, isLoading) {
     button.disabled = isLoading;
     button.dataset.originalText = button.dataset.originalText || button.textContent;
-    button.textContent = isLoading ? 'Dang ap dung...' : button.dataset.originalText;
+    button.textContent = isLoading ? 'Đang áp dụng...' : button.dataset.originalText;
   }
 
   function startStatusPolling(config) {
@@ -214,14 +214,14 @@
         });
 
         if (response.status === 401) {
-          reloadPaymentPage('Phien dang nhap da het han. Trang se duoc tai lai.');
+          reloadPaymentPage('Phiên đăng nhập đã hết hạn. Trang sẽ được tải lại.');
           return;
         }
 
         if (response.status === 404 || (data && data.exists === false)) {
           stopPolling();
           lockPaymentForm();
-          redirectToHistory(config, 'Don hang khong con ton tai tren he thong.');
+          redirectToHistory(config, 'Đơn hàng không còn tồn tại trên hệ thống.');
           return;
         }
 
@@ -230,14 +230,14 @@
         }
 
         if (String(data.status || '') !== currentStatus) {
-          reloadPaymentPage('Trang thai don hang da thay doi. Trang se tai lai de cap nhat.');
+          reloadPaymentPage('Trạng thái đơn hàng đã thay đổi. Trang sẽ tải lại để cập nhật.');
           return;
         }
 
         const nextTotal = Number(data.grand_total);
 
         if (!Number.isNaN(nextTotal) && Math.abs(nextTotal - serverGrandTotal) >= 0.01) {
-          reloadPaymentPage('Tong tien don hang vua duoc cap nhat. Vui long kiem tra lai truoc khi thanh toan.');
+          reloadPaymentPage('Tổng tiền đơn hàng vừa được cập nhật. Vui lòng kiểm tra lại trước khi thanh toán.');
         }
       } catch (error) {
         console.error('Payment status polling error:', error);

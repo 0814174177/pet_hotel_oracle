@@ -150,5 +150,5 @@ $profileDefaults = $profile['defaults'] ?? [];
 @endpush
 
 @push('scripts')
-<script src="{{ asset('assets/client/js/profile-edit.js') }}"></script>
+<script src="{{ asset('assets/client/js/client/profile-edit.js') }}"></script>
 @endpush

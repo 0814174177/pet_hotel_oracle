@@ -204,5 +204,5 @@ $paymentConfig = [
 <script type="application/json" id="payment-page-config">
 @json($paymentConfig)
 </script>
-<script src="{{ asset('assets/client/js/payment.js') }}"></script>
+<script src="{{ asset('assets/client/js/client/payment.js') }}"></script>
 @endpush

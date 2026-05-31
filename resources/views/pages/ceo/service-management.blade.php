@@ -92,9 +92,9 @@
     </header>
 
     <x-global-control-panel
-        title="Quáº£n trá»‹ Danh má»¥c Dá»‹ch vá»¥"
-        period="thÃ¡ng"
-        lastUpdate="14:58 - Cáº­p nháº­t thÃ nh cÃ´ng"
+        title="Quản trị Danh mục Dịch vụ"
+        period="tháng"
+        lastUpdate="14:58 - Cập nhật thành công"
     />
 
     <section class="ceo-service-stats">

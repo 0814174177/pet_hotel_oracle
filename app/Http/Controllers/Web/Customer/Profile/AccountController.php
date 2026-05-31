@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Customer\Profile;
 
 use App\Http\Controllers\Web\WebController;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class AccountController extends WebController
 {
     public function show(): View|RedirectResponse
     {
-        $user = Auth::user();
+        $user = $this->currentUser();
 
         if (! $user) {
             return $this->redirectToLogin('Vui lòng đăng nhập để xem hồ sơ cá nhân.');
@@ -29,7 +30,7 @@ class AccountController extends WebController
 
     public function edit(): View|RedirectResponse
     {
-        $user = Auth::user();
+        $user = $this->currentUser();
 
         if (! $user) {
             return $this->redirectToLogin('Vui lòng đăng nhập để chỉnh sửa hồ sơ cá nhân.');
@@ -42,7 +43,7 @@ class AccountController extends WebController
 
     public function update(Request $request): RedirectResponse
     {
-        $user = Auth::user();
+        $user = $this->currentUser();
 
         if (! $user) {
             return $this->redirectToLogin('Vui lòng đăng nhập để cập nhật hồ sơ cá nhân.');
@@ -113,7 +114,14 @@ class AccountController extends WebController
             ->with('status', 'Đã cập nhật thông tin cá nhân.');
     }
 
-    private function profilePayload($user): array
+    private function currentUser(): ?User
+    {
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
+    }
+
+    private function profilePayload(User $user): array
     {
         $user->loadMissing(['customer', 'employee.branch']);
 

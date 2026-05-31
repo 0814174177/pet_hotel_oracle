@@ -54,7 +54,7 @@ class PublicBranchService
     {
         $branchId = (int) $branch->branch_id;
         $district = $this->districtFrom($branch->branch_name.' '.$branch->address);
-        $meta = $this->branchMeta($district, $index);
+        $meta = $this->branchMeta($branch, $district, $index);
         $openTime = $branch->getAttribute('open_time');
         $closeTime = $branch->getAttribute('close_time');
         $rating = $branch->getAttribute('rating');
@@ -86,17 +86,17 @@ class PublicBranchService
         ];
     }
 
-    private function branchMeta(string $district, int $index): array
+    private function branchMeta(Branch $branch, string $district, int $index): array
     {
         $districtMeta = [
-            'Quận 7' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.8', 'review_count' => 127, 'map' => ['x' => 72, 'y' => 68, 'lat' => 10.738, 'lng' => 106.721]],
-            'Quận 1' => ['open_time' => '7:30', 'close_time' => '21:00', 'rating' => '4.6', 'review_count' => 89, 'map' => ['x' => 34, 'y' => 34, 'lat' => 10.7758, 'lng' => 106.7009]],
+            'Quận 1' => ['open_time' => '7:30', 'close_time' => '21:00', 'rating' => '4.6', 'review_count' => 89, 'map' => ['x' => 34, 'y' => 34, 'lat' => 10.7731, 'lng' => 106.7043]],
+            'Thủ Đức' => ['open_time' => '8:00', 'close_time' => '19:00', 'rating' => '4.5', 'review_count' => 61, 'map' => ['x' => 72, 'y' => 28, 'lat' => 10.8509, 'lng' => 106.7716]],
+            'Quận 7' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.8', 'review_count' => 127, 'map' => ['x' => 72, 'y' => 68, 'lat' => 10.7381, 'lng' => 106.7067]],
+            'Gò Vấp' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.5', 'review_count' => 73, 'map' => ['x' => 42, 'y' => 42, 'lat' => 10.8281, 'lng' => 106.6781]],
             'Bình Thạnh' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.7', 'review_count' => 203, 'map' => ['x' => 49, 'y' => 48, 'lat' => 10.8077, 'lng' => 106.707]],
-            'Thủ Đức' => ['open_time' => '8:00', 'close_time' => '19:00', 'rating' => '4.5', 'review_count' => 61, 'map' => ['x' => 72, 'y' => 28, 'lat' => 10.849, 'lng' => 106.753]],
-            'Gò Vấp' => ['open_time' => '8:00', 'close_time' => '20:00', 'rating' => '4.5', 'review_count' => 73, 'map' => ['x' => 42, 'y' => 42, 'lat' => 10.838, 'lng' => 106.665]],
         ];
 
-        return $districtMeta[$district] ?? [
+        $meta = $districtMeta[$district] ?? [
             'open_time' => '8:00',
             'close_time' => '20:00',
             'rating' => '4.5',
@@ -107,6 +107,34 @@ class PublicBranchService
                 'lat' => 10.7769 + (($index % 5) - 2) * 0.018,
                 'lng' => 106.7009 + (($index % 4) - 1.5) * 0.018,
             ],
+        ];
+
+        $coordinates = $this->coordinatesFromDatabase($branch);
+
+        if ($coordinates !== null) {
+            $meta['map']['lat'] = $coordinates['lat'];
+            $meta['map']['lng'] = $coordinates['lng'];
+        }
+
+        return $meta;
+    }
+
+    private function coordinatesFromDatabase(Branch $branch): ?array
+    {
+        $lat = $branch->getAttribute('latitude')
+            ?? $branch->getAttribute('lat')
+            ?? $branch->getAttribute('map_lat');
+        $lng = $branch->getAttribute('longitude')
+            ?? $branch->getAttribute('lng')
+            ?? $branch->getAttribute('map_lng');
+
+        if (! is_numeric($lat) || ! is_numeric($lng)) {
+            return null;
+        }
+
+        return [
+            'lat' => (float) $lat,
+            'lng' => (float) $lng,
         ];
     }
 
