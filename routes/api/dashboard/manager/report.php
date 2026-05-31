@@ -1,19 +1,24 @@
 <?php
 
-\Illuminate\Support\Facades\Route::middleware('role:manager')->get(
-    '/revenue',
-    [\App\Http\Controllers\Api\Manager\ReportController::class, 'index']
-)->name('revenue');
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Manager\ReportController;
+use App\Http\Controllers\Api\Branch\BranchRevenueReportController;
 
-\Illuminate\Support\Facades\Route::middleware('role:manager,ceo')
+// Báo cáo doanh thu chuỗi (Dành riêng cho Manager)
+Route::middleware('role:manager')
+    ->get('/revenue', [ReportController::class, 'index'])
+    ->name('revenue');
+
+// Báo cáo doanh thu chi nhánh (Dành cho Manager và CEO)
+Route::middleware('role:manager,ceo')
     ->prefix('branches/{branchId}/revenue-report')
     ->name('branches.revenue-report.')
-    ->controller(\App\Http\Controllers\Api\Branch\BranchRevenueReportController::class)
+    ->controller(BranchRevenueReportController::class)
     ->group(function () {
-        \Illuminate\Support\Facades\Route::get('/', 'index')->name('index');
-        \Illuminate\Support\Facades\Route::get('/target-progress', 'targetProgress')->name('target-progress');
-        \Illuminate\Support\Facades\Route::get('/revenue-comparison', 'revenueComparison')->name('revenue-comparison');
-        \Illuminate\Support\Facades\Route::get('/service-mix', 'serviceMix')->name('service-mix');
-        \Illuminate\Support\Facades\Route::get('/employee-performance', 'employeePerformance')->name('employee-performance');
-        \Illuminate\Support\Facades\Route::get('/customer-retention', 'customerRetention')->name('customer-retention');
+        Route::get('/', 'index')->name('index');
+        Route::get('/target-progress', 'targetProgress')->name('target-progress');
+        Route::get('/revenue-comparison', 'revenueComparison')->name('revenue-comparison');
+        Route::get('/service-mix', 'serviceMix')->name('service-mix');
+        Route::get('/employee-performance', 'employeePerformance')->name('employee-performance');
+        Route::get('/customer-retention', 'customerRetention')->name('customer-retention');
     });

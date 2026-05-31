@@ -1,21 +1,26 @@
 <?php
 
-\Illuminate\Support\Facades\Route::middleware('role:manager')->get(
-    '/inventory',
-    [\App\Http\Controllers\Api\Manager\InventoryController::class, 'index']
-)->name('inventory');
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Manager\InventoryController;
+use App\Http\Controllers\Api\Branch\BranchInventoryMaterialController;
 
-\Illuminate\Support\Facades\Route::middleware('role:manager,ceo')
+// Quản lý kho tổng (Dành riêng cho Manager)
+Route::middleware('role:manager')
+    ->get('/inventory', [InventoryController::class, 'index'])
+    ->name('inventory');
+
+// Quản lý vật tư tại chi nhánh (Dành cho Manager và CEO)
+Route::middleware('role:manager,ceo')
     ->prefix('branches/{branchId}/inventory/materials')
     ->name('branches.inventory.materials.')
-    ->controller(\App\Http\Controllers\Api\Branch\BranchInventoryMaterialController::class)
+    ->controller(BranchInventoryMaterialController::class)
     ->group(function () {
-        \Illuminate\Support\Facades\Route::get('/', 'index')->name('index');
-        \Illuminate\Support\Facades\Route::get('/kpi', 'kpi')->name('kpi');
-        \Illuminate\Support\Facades\Route::get('/list', 'materials')->name('list');
-        \Illuminate\Support\Facades\Route::get('/{materialId}', 'show')->name('show');
-        \Illuminate\Support\Facades\Route::post('/', 'store')->name('store');
-        \Illuminate\Support\Facades\Route::put('/{materialId}', 'update')->name('update');
-        \Illuminate\Support\Facades\Route::patch('/{materialId}/stop-import', 'stopImport')->name('stop-import');
-        \Illuminate\Support\Facades\Route::patch('/{materialId}/resume-import', 'resumeImport')->name('resume-import');
+        Route::get('/', 'index')->name('index');
+        Route::get('/kpi', 'kpi')->name('kpi');
+        Route::get('/list', 'materials')->name('list');
+        Route::get('/{materialId}', 'show')->name('show');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{materialId}', 'update')->name('update');
+        Route::patch('/{materialId}/stop-import', 'stopImport')->name('stop-import');
+        Route::patch('/{materialId}/resume-import', 'resumeImport')->name('resume-import');
     });

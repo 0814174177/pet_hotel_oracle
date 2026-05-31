@@ -17,7 +17,7 @@
     }
 
     function formatCurrency(value) {
-        return `${formatNumber(value, { maximumFractionDigits: 0 })} d`;
+        return `${formatNumber(value, { maximumFractionDigits: 0 })} đ`;
     }
 
     function formatPercent(value) {
@@ -62,7 +62,7 @@
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",
-        }).format(new Date())} - Cap nhat thanh cong`;
+        }).format(new Date())} - Cập nhật thành công`;
     }
 
     function renderKpi(id, value, changePercent, options = {}) {
@@ -90,7 +90,7 @@
         if (changePercent === null || typeof changePercent === "undefined") {
             trendNode.className = "kpi-card__trend kpi-card__trend--neutral";
             arrowNode.textContent = "=";
-            trendValueNode.textContent = "Chua co du lieu ky truoc";
+            trendValueNode.textContent = "Chưa có dữ liệu kỳ trước";
             return;
         }
 
@@ -170,7 +170,7 @@
         );
 
         if (detailNode) {
-            detailNode.textContent = `${formatNumber(data.occupied_room)} phong dang su dung / ${formatNumber(data.usable_room)} phong kha dung`;
+            detailNode.textContent = `${formatNumber(data.occupied_room)} phòng đang sử dụng / ${formatNumber(data.usable_room)} phòng khả dụng`;
         }
     }
 
@@ -200,7 +200,7 @@
         );
 
         if (detailNode) {
-            detailNode.textContent = `Doanh thu phong: ${formatCurrency(data.current?.total_room_revenue)}`;
+            detailNode.textContent = `Doanh thu phòng: ${formatCurrency(data.current?.total_room_revenue)}`;
         }
     }
 
@@ -272,6 +272,37 @@
         });
     }
 
+    /**
+     * Render estimated salary and service material cost structure.
+     *
+     * Input:
+     * - API rows with cost_group, cost_amount, and cost_percent.
+     *
+     * Output:
+     * - Updates the #costStructureChart doughnut chart.
+     */
+    function renderCostStructure(data) {
+        renderChart("costStructureChart", {
+            type: "doughnut",
+            data: {
+                labels: data.map(
+                    (row) =>
+                        `${row.cost_group} (${formatPercent(row.cost_percent)})`,
+                ),
+                datasets: [
+                    {
+                        label: "Chi phí ước tính",
+                        data: data.map((row) => toNumber(row.cost_amount)),
+                        backgroundColor: ["#f97316", "#8b5cf6"],
+                        borderColor: "#ffffff",
+                        borderWidth: 3,
+                    },
+                ],
+            },
+            options: { ...baseChartOptions(formatCurrency), cutout: "62%" },
+        });
+    }
+
     function renderRevenueCogsTrend(data) {
         renderChart("revenueCogsTrendChart", {
             type: "line",
@@ -305,7 +336,7 @@
                 labels: data.map((row) => row.branch_name),
                 datasets: [
                     {
-                        label: "Doanh thu (trieu VND)",
+                        label: "Doanh thu (triệu VND)",
                         data: data.map((row) =>
                             toNumber(row.revenue_million_vnd),
                         ),
@@ -354,12 +385,12 @@
                       (service) => `
                 <li>
                     <span>${escapeHtml(service.rank_no)}. ${escapeHtml(service.service_name)}</span>
-                    <strong>${escapeHtml(formatNumber(service.usage_count))} luot</strong>
+                    <strong>${escapeHtml(formatNumber(service.usage_count))} lượt</strong>
                 </li>
             `,
                   )
                   .join("")
-            : '<li class="dashboard-board-card__placeholder">Chua co dich vu phat sinh.</li>';
+            : '<li class="dashboard-board-card__placeholder">Chưa có dịch vụ phát sinh.</li>';
     }
 
     function renderRiskAlerts(data) {
@@ -407,8 +438,8 @@
             box.className = "alert-box alert-box--warning";
             title.textContent = "Không có cảnh báo vận hành";
             message.textContent =
-                "Cac chi so van hanh trong ky chua vuot nguong canh bao.";
-            setStatus("Du lieu dashboard da duoc cap nhat.", "success");
+                "Các chỉ số vận hành trong kỳ chưa vượt ngưỡng cảnh báo.";
+            setStatus("Dữ liệu dashboard đã được cập nhật.", "success");
             updateLastRefresh();
             return;
         }
@@ -416,12 +447,12 @@
         box.className = `alert-box alert-box--${operational.alert_level === "HIGH" ? "danger" : "warning"}`;
         title.textContent = operational.title;
         message.textContent = operational.warning_text;
-        setStatus("Du lieu dashboard da duoc cap nhat.", "success");
+        setStatus("Dữ liệu dashboard đã được cập nhật.", "success");
         updateLastRefresh();
     }
 
     $(document).ready(function () {
-        setStatus("Dang tai du lieu bao cao...");
+        setStatus("Đang tải dữ liệu báo cáo...");
 
         DashboardEngine.run([
             {
@@ -444,6 +475,10 @@
             {
                 url: root.dataset.estimatedCogsUrl,
                 onSuccess: renderEstimatedCogs,
+            },
+            {
+                url: root.dataset.costStructureUrl,
+                onSuccess: renderCostStructure,
             },
             { url: root.dataset.revenueMixUrl, onSuccess: renderRevenueMix },
             {

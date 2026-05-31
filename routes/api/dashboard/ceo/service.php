@@ -1,40 +1,26 @@
 <?php
 
-\Illuminate\Support\Facades\Route::prefix('services')
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Ceo\ServiceAnalyticsController;
+use App\Http\Controllers\Api\Ceo\ServiceController;
+
+Route::prefix('services')
     ->name('services.')
     ->group(function () {
-        \Illuminate\Support\Facades\Route::get(
-            '/analytics/kpi',
-            [\App\Http\Controllers\Api\Ceo\ServiceAnalyticsController::class, 'kpi']
-        )->name('analytics.kpi');
+        
+        // Nhóm định tuyến Phân tích dữ liệu (Analytics)
+        Route::controller(ServiceAnalyticsController::class)->group(function () {
+            Route::get('/analytics/kpi', 'kpi')->name('analytics.kpi');
+            Route::get('/analytics', 'index')->name('analytics');
+        });
 
-        \Illuminate\Support\Facades\Route::get(
-            '/analytics',
-            [\App\Http\Controllers\Api\Ceo\ServiceAnalyticsController::class, 'index']
-        )->name('analytics');
+        // Nhóm định tuyến Quản lý dịch vụ (Service)
+        Route::controller(ServiceController::class)->group(function () {
+            Route::get('/summary', 'summary')->name('summary');
+            Route::get('/highest-revenue', 'highestRevenue')->name('highest-revenue');
+            Route::get('/lowest-revenue', 'lowestRevenue')->name('lowest-revenue');
+            Route::get('/revenue-analysis', 'index')->name('revenue-analysis');
+            Route::get('/', 'catalog')->name('index');
+        });
 
-        \Illuminate\Support\Facades\Route::get(
-            '/summary',
-            [\App\Http\Controllers\Api\Ceo\ServiceController::class, 'summary']
-        )->name('summary');
-
-        \Illuminate\Support\Facades\Route::get(
-            '/highest-revenue',
-            [\App\Http\Controllers\Api\Ceo\ServiceController::class, 'highestRevenue']
-        )->name('highest-revenue');
-
-        \Illuminate\Support\Facades\Route::get(
-            '/lowest-revenue',
-            [\App\Http\Controllers\Api\Ceo\ServiceController::class, 'lowestRevenue']
-        )->name('lowest-revenue');
-
-        \Illuminate\Support\Facades\Route::get(
-            '/revenue-analysis',
-            [\App\Http\Controllers\Api\Ceo\ServiceController::class, 'index']
-        )->name('revenue-analysis');
-
-        \Illuminate\Support\Facades\Route::get(
-            '/',
-            [\App\Http\Controllers\Api\Ceo\ServiceController::class, 'catalog']
-        )->name('index');
     });

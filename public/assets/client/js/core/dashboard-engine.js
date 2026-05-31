@@ -36,6 +36,10 @@
                     // Lặp qua từng cấu hình API
                     if (!config || !config.url) return;
 
+                    if (typeof config.onBefore === "function") {
+                        config.onBefore(payload);
+                    }
+
                     const requestUrl = `${config.url}?${queryString}`; // Kết hợp URL với query string
 
                     fetch(requestUrl, {
@@ -63,6 +67,8 @@
                                     data,
                                 );
                                 config.onSuccess(data.data);
+                            } else if (typeof config.onError === "function") {
+                                config.onError(data);
                             }
                         })
                         .catch((error) => {
@@ -71,6 +77,10 @@
                                 config.url,
                                 error,
                             );
+
+                            if (typeof config.onError === "function") {
+                                config.onError(error);
+                            }
                         });
                 });
             };

@@ -25,7 +25,7 @@
             'period' => $period,
         ],
         [
-            'title' => 'Tổng Chi phí (Vận hành & Nhập kho)',
+            'title' => 'Tổng Chi phí ước tính',
             'value' => number_format(1800000000, 0, ',', '.') . ' ₫',
             'trend' => '4.2%',
             'isPositive' => false,
@@ -35,6 +35,13 @@
             'title' => 'Lợi Nhuận Ròng (Net Profit)',
             'value' => number_format(700000000, 0, ',', '.') . ' ₫',
             'trend' => '15.8%',
+            'isPositive' => true,
+            'period' => $period,
+        ],
+        [
+            'title' => 'Biên lợi nhuận ước tính',
+            'value' => '0%',
+            'trend' => '0%',
             'isPositive' => true,
             'period' => $period,
         ],
@@ -216,6 +223,11 @@
     class="finance-page"
     id="ceoFinancePage"
     data-finance-url="{{ route('api.dashboard.ceo.finance') }}"
+    data-estimated-cost-url="{{ route('api.dashboard.ceo.finance.estimated-total-cost') }}"
+    data-estimated-profit-url="{{ route('api.dashboard.ceo.finance.estimated-profit') }}"
+    data-estimated-margin-url="{{ route('api.dashboard.ceo.finance.estimated-margin') }}"
+    data-finance-trend-url="{{ route('api.dashboard.ceo.finance.trend') }}"
+    data-finance-monthly-trend-url="{{ route('api.dashboard.ceo.finance.monthly-trend') }}"
 >
 
     <x-global-control-panel
@@ -231,7 +243,7 @@
             <p>Theo dõi doanh thu, chi phí và lợi nhuận ròng của toàn chuỗi.</p>
         </div>
 
-        <div class="finance-kpi-grid finance-kpi-grid--three">
+        <div class="finance-kpi-grid finance-kpi-grid--three finance-kpi-grid--four">
             @foreach ($plKpis as $item)
                 <x-kpi-card
                     :title="$item['title']"
@@ -245,11 +257,26 @@
         </div>
 
         <div class="finance-card">
-            <h3>Biểu đồ so sánh Doanh thu và Chi phí theo {{ $period }}</h3>
+            <h3>Xu hướng Doanh thu - Chi phí - Lợi nhuận theo ngày</h3>
 
             <div class="finance-chart-area">
                 <x-chart.line
                     id="financeRevenueCostChart"
+                    :data="$plChartData"
+                    xAxisKey="time"
+                    :lineConfigs="$plLineConfigs"
+                    yAxisFormatter="raw"
+                    height="320px"
+                />
+            </div>
+        </div>
+
+        <div class="finance-card">
+            <h3>Xu hướng Doanh thu - Chi phí - Lợi nhuận theo tháng</h3>
+
+            <div class="finance-chart-area">
+                <x-chart.line
+                    id="financeMonthlyTrendChart"
                     :data="$plChartData"
                     xAxisKey="time"
                     :lineConfigs="$plLineConfigs"

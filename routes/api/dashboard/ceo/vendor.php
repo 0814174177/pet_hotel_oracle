@@ -1,6 +1,6 @@
 <?php
 
-\Illuminate\Support\Facades\Route::get(
-    '/vendors',
-    [\App\Http\Controllers\Api\Ceo\VendorController::class, 'index']
-)->name('vendors');
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Ceo\VendorController;
+
+Route::get('/vendors', [VendorController::class, 'index'])->name('vendors');
