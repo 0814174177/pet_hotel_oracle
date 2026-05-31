@@ -16,6 +16,7 @@
     data-customer-trend-url="{{ route('api.dashboard.ceo.customer-trend') }}"
     data-total-revenue-url="{{ route('api.dashboard.ceo.revenue') }}"
     data-estimated-cogs-url="{{ route('api.dashboard.ceo.estimated-cogs') }}"
+    data-cost-structure-url="{{ route('api.dashboard.ceo.cost-structure') }}"
     data-revenue-mix-url="{{ route('api.dashboard.ceo.revenue-mix') }}"
     data-revenue-cogs-trend-url="{{ route('api.dashboard.ceo.revenue-and-cogs-trend') }}"
     data-branch-revenue-url="{{ route('api.dashboard.ceo.branch-revenue') }}"
@@ -139,6 +140,13 @@
                 <h3>Tỷ trọng doanh thu Grooming & Spa và Hotel</h3>
                 <div class="dashboard-chart-area">
                     <canvas id="revenueMixChart" aria-label="Biểu đồ tỷ trọng doanh thu"></canvas>
+                </div>
+            </div>
+
+            <div class="dashboard-chart-card">
+                <h3>Cơ cấu chi phí ước tính</h3>
+                <div class="dashboard-chart-area">
+                    <canvas id="costStructureChart" aria-label="Biểu đồ cơ cấu chi phí ước tính"></canvas>
                 </div>
             </div>
 

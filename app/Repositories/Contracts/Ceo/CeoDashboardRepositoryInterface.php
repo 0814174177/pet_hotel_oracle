@@ -32,6 +32,8 @@ interface CeoDashboardRepositoryInterface
 
     public function getTotalInventoryImportCost(array $filters = []): array;
 
+    public function getCostStructure(array $filters = []): array;
+
     public function getRevenueMix(array $filters = []): array;
 
     public function getRevenueAndCogsTrend(array $filters = []): array;

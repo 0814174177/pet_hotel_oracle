@@ -14,9 +14,6 @@ class DashboardController extends ApiController
     ) {
     }
 
-    /**
-     * Hàm trả response chuẩn cho toàn bộ dashboard.
-     */
     private function respondData(mixed $data): JsonResponse
     {
         return response()->json([
@@ -25,9 +22,6 @@ class DashboardController extends ApiController
         ]);
     }
 
-    /**
-     * 1.1. Tỷ lệ lấp đầy phòng hiện tại theo trạng thái ROOM.
-     */
     public function currentHotelOccupancy(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -35,9 +29,6 @@ class DashboardController extends ApiController
         );
     }
 
-    /**
-     * 1.2. Tỷ lệ lấp đầy phòng theo kỳ và so sánh kỳ trước.
-     */
     public function occupancyRate(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -45,9 +36,6 @@ class DashboardController extends ApiController
         );
     }
 
-    /**
-     * 1.3. RevPAR - doanh thu trên mỗi phòng khả dụng.
-     */
     public function revpar(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -55,9 +43,6 @@ class DashboardController extends ApiController
         );
     }
 
-    /**
-     * 1.4. Xu hướng lượng khách theo thời gian.
-     */
     public function customerTrend(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -65,9 +50,6 @@ class DashboardController extends ApiController
         );
     }
 
-    /**
-     * 2.1. Tổng doanh thu toàn chuỗi và % tăng giảm so với kỳ trước.
-     */
     public function chainRevenue(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -75,9 +57,6 @@ class DashboardController extends ApiController
         );
     }
 
-    /**
-     * 2.2. COGS ước tính / chi phí vật tư tiêu hao ước tính.
-     */
     public function estimatedCogs(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -86,8 +65,21 @@ class DashboardController extends ApiController
     }
 
     /**
-     * 2.3. Tỷ trọng doanh thu Hotel và Grooming/Spa.
+     * Get the estimated cost structure chart for the selected date range.
+     *
+     * Input:
+     * - DateRangeFilterRequest provides start_date and end_date.
+     *
+     * Output:
+     * - JSON response through respondData().
      */
+    public function costStructure(DateRangeFilterRequest $request): JsonResponse
+    {
+        return $this->respondData(
+            $this->dashboardRepository->getCostStructure($request->getFiltersArray())
+        );
+    }
+
     public function revenueMix(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -95,9 +87,6 @@ class DashboardController extends ApiController
         );
     }
 
-    /**
-     * 2.4. Xu hướng doanh thu và COGS ước tính theo thời gian.
-     */
     public function revenueAndCogsTrend(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -105,9 +94,6 @@ class DashboardController extends ApiController
         );
     }
 
-    /**
-     * 3.1. Doanh thu theo từng chi nhánh.
-     */
     public function branchRevenue(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -115,9 +101,6 @@ class DashboardController extends ApiController
         );
     }
 
-    /**
-     * 3.2. Top 3 chi nhánh có doanh thu cao nhất.
-     */
     public function branchRanking(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -125,9 +108,6 @@ class DashboardController extends ApiController
         );
     }
 
-    /**
-     * 3.3. Top 5 dịch vụ được sử dụng nhiều nhất.
-     */
     public function topUsedServices(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -135,24 +115,10 @@ class DashboardController extends ApiController
         );
     }
 
-    /**
-     * 4.5. Tổng hợp tất cả cảnh báo rủi ro.
-     */
     public function riskAlerts(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
             $this->dashboardRepository->getRiskAlerts($request->getFiltersArray())
-        );
-    }
-
-    /**
-     * 5. Query tổng hợp nhanh cho backend debug.
-     * Không nên dùng cho UI production.
-     */
-    public function debugSummary(DateRangeFilterRequest $request): JsonResponse
-    {
-        return $this->respondData(
-            $this->dashboardRepository->getDebugSummary($request->getFiltersArray())
         );
     }
 }

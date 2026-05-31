@@ -1,19 +1,24 @@
 <?php
 
-\Illuminate\Support\Facades\Route::middleware('role:manager')->get(
-    '/services',
-    [\App\Http\Controllers\Api\Manager\ServiceController::class, 'index']
-)->name('services');
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Manager\ServiceController;
+use App\Http\Controllers\Api\Branch\BranchServiceManagementController;
 
-\Illuminate\Support\Facades\Route::middleware('role:manager,ceo')
+// Danh sách dịch vụ tổng (Dành riêng cho Manager)
+Route::middleware('role:manager')
+    ->get('/services', [ServiceController::class, 'index'])
+    ->name('services');
+
+// Quản lý dịch vụ tại chi nhánh (Dành cho Manager và CEO)
+Route::middleware('role:manager,ceo')
     ->prefix('branches/{branchId}/services')
     ->name('branches.services.')
-    ->controller(\App\Http\Controllers\Api\Branch\BranchServiceManagementController::class)
+    ->controller(BranchServiceManagementController::class)
     ->group(function () {
-        \Illuminate\Support\Facades\Route::get('/management', 'index')->name('management.index');
-        \Illuminate\Support\Facades\Route::get('/management/kpi', 'kpi')->name('management.kpi');
-        \Illuminate\Support\Facades\Route::get('/', 'services')->name('index');
-        \Illuminate\Support\Facades\Route::patch('/{serviceId}/website-visibility', 'updateWebsiteVisibility')->name('website-visibility.update');
-        \Illuminate\Support\Facades\Route::patch('/{serviceId}/emergency-lock', 'updateEmergencyLock')->name('emergency-lock.update');
-        \Illuminate\Support\Facades\Route::patch('/{serviceId}/price-override', 'updatePriceOverride')->name('price-override.update');
+        Route::get('/management', 'index')->name('management.index');
+        Route::get('/management/kpi', 'kpi')->name('management.kpi');
+        Route::get('/', 'services')->name('index');
+        Route::patch('/{serviceId}/website-visibility', 'updateWebsiteVisibility')->name('website-visibility.update');
+        Route::patch('/{serviceId}/emergency-lock', 'updateEmergencyLock')->name('emergency-lock.update');
+        Route::patch('/{serviceId}/price-override', 'updatePriceOverride')->name('price-override.update');
     });
