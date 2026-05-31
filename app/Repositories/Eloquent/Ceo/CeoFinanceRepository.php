@@ -5,9 +5,11 @@ namespace App\Repositories\Eloquent\Ceo;
 use App\Models\Service;
 use App\Repositories\Contracts\Ceo\CeoFinanceRepositoryInterface;
 use Carbon\Carbon;
+use DateTimeInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class CeoFinanceRepository implements CeoFinanceRepositoryInterface
 {
@@ -68,16 +70,16 @@ class CeoFinanceRepository implements CeoFinanceRepositoryInterface
 
     private function resolvePeriodRange(
         string $period,
-        ?string $date = null,
-        ?string $startDate = null,
-        ?string $endDate = null
+        mixed $date = null,
+        mixed $startDate = null,
+        mixed $endDate = null
     ): array
     {
         $period = in_array($period, ['day', 'month', 'year'], true) ? $period : 'month';
 
         if ($startDate || $endDate) {
-            $start = $startDate ? Carbon::parse($startDate)->startOfDay() : now()->startOfMonth();
-            $end = $endDate ? Carbon::parse($endDate)->endOfDay() : now()->endOfDay();
+            $start = $this->carbonDate($startDate)?->startOfDay() ?? now()->startOfMonth();
+            $end = $this->carbonDate($endDate)?->endOfDay() ?? now()->endOfDay();
 
             return [
                 'period' => $period,
@@ -88,7 +90,7 @@ class CeoFinanceRepository implements CeoFinanceRepositoryInterface
         }
 
         if ($date) {
-            $selectedDate = Carbon::parse($date);
+            $selectedDate = $this->carbonDate($date) ?? now();
 
             return match ($period) {
                 'day' => [
@@ -112,26 +114,14 @@ class CeoFinanceRepository implements CeoFinanceRepositoryInterface
             };
         }
 
-        return match ($period) {
-            'day' => [
-                'period' => 'day',
-                'group_by' => 'hour',
-                'start' => now()->startOfDay(),
-                'end' => now()->endOfDay(),
-            ],
-            'year' => [
-                'period' => 'year',
-                'group_by' => 'month',
-                'start' => now()->startOfYear(),
-                'end' => now()->endOfYear(),
-            ],
-            default => [
-                'period' => 'month',
-                'group_by' => 'day',
-                'start' => now()->startOfMonth(),
-                'end' => now()->endOfMonth(),
-            ],
-        };
+        $bounds = $this->financeDateBounds();
+
+        return [
+            'period' => 'all',
+            'group_by' => 'month',
+            'start' => $bounds['start'],
+            'end' => $bounds['end'],
+        ];
     }
 
     private function groupByFor(string $period): string
@@ -369,7 +359,7 @@ class CeoFinanceRepository implements CeoFinanceRepositoryInterface
 
     private function bucketKey(mixed $value, string $groupBy): string
     {
-        $date = $value instanceof Carbon ? $value : Carbon::parse($value);
+        $date = $value instanceof Carbon ? $value : (Carbon::make($value) ?? now());
 
         return match ($groupBy) {
             'hour' => $date->format('Y-m-d H'),
@@ -393,8 +383,49 @@ class CeoFinanceRepository implements CeoFinanceRepositoryInterface
             : $rounded;
     }
 
-    private function rowValue(object $row, string $key): mixed
+    private function rowValue(?object $row, string $key): mixed
     {
+        if ($row === null) {
+            return null;
+        }
+
         return $row->{$key} ?? $row->{strtoupper($key)} ?? null;
+    }
+
+    private function carbonDate(mixed $value): ?Carbon
+    {
+        if ($value instanceof Carbon) {
+            return $value->copy();
+        }
+
+        if ($value instanceof DateTimeInterface) {
+            return Carbon::instance($value);
+        }
+
+        return filled($value) ? Carbon::make($value) : null;
+    }
+
+    private function financeDateBounds(): array
+    {
+        $start = null;
+        $end = null;
+
+        try {
+            $row = DB::table('orders')
+                ->whereNotNull('paid_at')
+                ->selectRaw('MIN(paid_at) as start_date, MAX(paid_at) as end_date')
+                ->first();
+
+            $start = $this->carbonDate($this->rowValue($row, 'start_date') ?? null);
+            $end = $this->carbonDate($this->rowValue($row, 'end_date') ?? null);
+        } catch (Throwable) {
+            $start = null;
+            $end = null;
+        }
+
+        return [
+            'start' => ($start ?? now()->startOfMonth())->startOfDay(),
+            'end' => ($end ?? now()->endOfMonth())->endOfDay(),
+        ];
     }
 }

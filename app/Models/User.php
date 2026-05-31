@@ -64,7 +64,7 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'ADMIN';
+        return in_array($this->role, ['ADMIN', 'CEO'], true);
     }
 
     public function isManager(): bool
@@ -86,6 +86,7 @@ class User extends Authenticatable
     {
         return in_array($this->role, [
             'ADMIN',
+            'CEO',
             'MANAGER',
             'RECEPTIONIST',
             'GROOMER',

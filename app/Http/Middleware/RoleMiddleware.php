@@ -39,8 +39,9 @@ class RoleMiddleware
             fn(string $role): string => self::ROLE_ALIASES[strtolower($role)] ?? $role,
             $allowedRoles
         );
+        $normalizedUserRole = self::ROLE_ALIASES[strtolower((string) $user->role)] ?? (string) $user->role;
 
-        if (! in_array((string) $user->role, $normalizedAllowedRoles, true)) {
+        if (! in_array($normalizedUserRole, $normalizedAllowedRoles, true)) {
             if (! $expectsJson) {
                 return redirect()->route('unauthorized');
             }

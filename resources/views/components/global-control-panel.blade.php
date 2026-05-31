@@ -1,53 +1,56 @@
 @props([
-    'title' => 'Dashboard',
-    'period' => 'tháng',
-    'lastUpdate' => '08:30 - Cập nhật thành công',
+'title' => 'Dashboard',
+'period' => 'month', // Chuyển giá trị mặc định sang key tiếng Anh
+'lastUpdate' => '08:30 - Cập nhật thành công',
 ])
 
+{{-- Load CSS --}}
 @once
-    @push('styles')
-        <link rel="stylesheet" href="{{ asset('assets/client/css/components/global-control-panel.css') }}?v={{ time() }}">
-    @endpush
+@push('styles')
+{{-- Khuyến nghị dùng Vite hoặc Mix thay vì time() cho dự án thực tế --}}
+<link rel="stylesheet" href="{{ asset('assets/client/css/components/global-control-panel.css') }}">
+@endpush
+@endonce
+
+{{-- Load JS --}}
+@once
+@push('scripts')
+{{-- Hàm asset() sẽ tự động tạo URL tuyệt đối trỏ vào thư mục public của dự án --}}
+@endpush
 @endonce
 
 @php
-    $periods = ['ngày' => 'Ngày', 'tháng' => 'Tháng', 'năm' => 'Năm'];
+// Bước 1: Chuẩn hóa key theo tiêu chuẩn Backend Enum
+$periods = [
+'day' => 'Ngày',
+'month' => 'Tháng',
+'year' => 'Năm'
+];
 @endphp
 
 <div {{ $attributes->merge(['class' => 'global-control-panel']) }}>
-    <div>
-        <h1 class="global-control-panel__title">{{ $title }}</h1>
+  <div>
+    <h1 class="global-control-panel__title">{{ $title }}</h1>
 
-        <p class="global-control-panel__last-update">
-            <span class="global-control-panel__clock">⏱</span>
-            <span>{{ $lastUpdate }}</span>
-        </p>
+    <p class="global-control-panel__last-update">
+      <span class="global-control-panel__clock">⏱</span>
+      <span>{{ $lastUpdate }}</span>
+    </p>
+  </div>
+
+  <div class="global-control-panel__period-group">
+    <span class="global-control-panel__period-label">Kỳ báo cáo:</span>
+
+    <div class="global-control-panel__date-picker-group">
+      <input type="date" class="js-start-date global-control-panel__date-input" name="start_date">
+
+      <span class="global-control-panel__date-separator">-</span>
+
+      <input type="date" class="js-end-date global-control-panel__date-input" name="end_date">
+
+      <button type="button" class="js-apply-filter global-control-panel__apply-btn">
+        Lọc
+      </button>
     </div>
-
-    <div class="global-control-panel__controls">
-        <div class="global-control-panel__period-group">
-            <span class="global-control-panel__period-label">Kỳ báo cáo:</span>
-
-            <div class="global-control-panel__period-selector">
-                @foreach ($periods as $key => $label)
-                    <button
-                        type="button"
-                        class="global-control-panel__period-btn {{ $period === $key ? 'global-control-panel__period-btn--active' : '' }}"
-                    >
-                        {{ $label }}
-                    </button>
-                @endforeach
-            </div>
-        </div>
-
-        <button type="button" class="global-control-panel__export-btn">
-            <span class="global-control-panel__export-icon">⇩</span>
-            <span>Xuất báo cáo</span>
-        </button>
-
-        <button type="button" class="global-control-panel__refresh-btn">
-            <span class="global-control-panel__refresh-icon">↻</span>
-            <span>Làm mới</span>
-        </button>
-    </div>
+  </div>
 </div>

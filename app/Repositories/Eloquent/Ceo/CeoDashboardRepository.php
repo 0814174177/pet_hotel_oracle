@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent\Ceo;
 
 use App\Repositories\Contracts\Ceo\CeoDashboardRepositoryInterface;
 use Carbon\CarbonImmutable;
+use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 
 class CeoDashboardRepository implements CeoDashboardRepositoryInterface
@@ -13,6 +14,8 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
      */
     public function getDashboard(array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
+
         return [
             'filters' => $filters,
             'operation_overview' => $this->getOperationOverview($filters),
@@ -58,6 +61,8 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
 
     public function getTotalRevenue(array $filters): array
     {
+        $filters = $this->normalizeFilters($filters);
+
         $sql = "
             WITH cur AS (
                 SELECT SUM(o.grand_total) AS total_revenue
@@ -156,6 +161,7 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
      */
     public function getOccupancyRate(array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
         $periodFilters = $this->getPreviousPeriodFilters($filters);
 
         $sql = "
@@ -276,6 +282,7 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
      */
     public function getRevpar(array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
         $periodFilters = $this->getPreviousPeriodFilters($filters);
 
         $sql = "
@@ -411,6 +418,8 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
      */
     public function getCustomerTrend(array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
+
         $sql = "
             WITH report_params AS (
                 SELECT
@@ -489,6 +498,7 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
      */
     public function getTotalInventoryImportCost(array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
         $periodFilters = $this->getPreviousPeriodFilters($filters);
 
         $sql = "
@@ -573,6 +583,8 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
      */
     public function getRevenueMix(array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
+
         $sql = "
             SELECT
                 NVL(SUM(CASE
@@ -633,6 +645,8 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
      */
     public function getRevenueAndCogsTrend(array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
+
         $sql = "
             WITH report_params AS (
                 SELECT
@@ -721,6 +735,8 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
      */
     public function getBranchRevenue(array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
+
         $sql = "
             SELECT
                 b.branch_id,
@@ -786,6 +802,8 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
      */
     public function getTopUsedServices(array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
+
         $sql = "
             WITH report_params AS (
                 SELECT
@@ -900,6 +918,7 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
      */
     public function getRiskAlerts(array $filters = []): array
     {
+        $filters = $this->normalizeFilters($filters);
         $periodFilters = $this->riskAlertPeriodFilters($filters);
         $cancelRateThreshold = (float) ($filters['cancel_rate_threshold'] ?? 15);
         $highCancelAmount = (float) ($filters['high_cancel_amount'] ?? 1000000);
@@ -933,13 +952,13 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
     ): array {
         if ($startDate !== null && $endDate !== null) {
             return [
-                'start_date' => CarbonImmutable::parse($startDate)->toDateString(),
-                'end_date' => CarbonImmutable::parse($endDate)->toDateString(),
+                'start_date' => $this->dateString($startDate) ?? $this->dashboardDateBounds()['start_date'],
+                'end_date' => $this->dateString($endDate) ?? $this->dashboardDateBounds()['end_date'],
             ];
         }
 
         if ($date !== null) {
-            $resolvedDate = CarbonImmutable::parse($date)->toDateString();
+            $resolvedDate = $this->dateString($date) ?? $this->dashboardDateBounds()['end_date'];
 
             return [
                 'start_date' => $resolvedDate,
@@ -951,7 +970,7 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
             $period = trim($period);
 
             if (preg_match('/^\d{4}-\d{1,2}-\d{1,2}$/', $period) === 1) {
-                $resolvedDate = CarbonImmutable::parse($period)->toDateString();
+                $resolvedDate = $this->dateString($period) ?? $this->dashboardDateBounds()['end_date'];
 
                 return [
                     'start_date' => $resolvedDate,
@@ -960,7 +979,7 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
             }
 
             if (preg_match('/^\d{4}-\d{1,2}$/', $period) === 1) {
-                $resolvedDate = CarbonImmutable::parse($period . '-01');
+                $resolvedDate = $this->dateFromString($period . '-01');
 
                 return [
                     'start_date' => $resolvedDate->startOfMonth()->toDateString(),
@@ -969,7 +988,7 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
             }
 
             if (preg_match('/^\d{4}$/', $period) === 1) {
-                $resolvedDate = CarbonImmutable::parse($period . '-01-01');
+                $resolvedDate = $this->dateFromString($period . '-01-01');
 
                 return [
                     'start_date' => $resolvedDate->startOfYear()->toDateString(),
@@ -1344,15 +1363,7 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
 
     private function riskAlertPeriodFilters(array $filters): array
     {
-        if (! isset($filters['start_date'], $filters['end_date'])) {
-            $filters = array_merge($filters, $this->resolvePeriodRange());
-        }
-
-        if (! isset($filters['prev_start_date'], $filters['prev_end_date'])) {
-            $filters = array_merge($filters, $this->getPreviousPeriodFilters($filters));
-        }
-
-        return $filters;
+        return $this->normalizeFilters($filters);
     }
 
     private function sortRiskAlerts(array $alerts): array
@@ -1384,8 +1395,8 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
 
     private function getPreviousPeriodFilters(array $filters): array
     {
-        $startDate = CarbonImmutable::parse($filters['start_date']);
-        $endDate = CarbonImmutable::parse($filters['end_date']);
+        $startDate = $this->dateFromString($filters['start_date']);
+        $endDate = $this->dateFromString($filters['end_date']);
         $daysInPeriod = abs((int) $startDate->diffInDays($endDate)) + 1;
         $previousEndDate = $startDate->subDay();
         $previousStartDate = $previousEndDate->subDays($daysInPeriod - 1);
@@ -1414,5 +1425,84 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
     private function nullableFloat(mixed $value): ?float
     {
         return $value === null ? null : (float) $value;
+    }
+
+    private function normalizeFilters(array $filters = []): array
+    {
+        $startDate = $this->dateString($filters['start_date'] ?? null);
+        $endDate = $this->dateString($filters['end_date'] ?? null);
+
+        if ($startDate === null || $endDate === null) {
+            $bounds = $this->dashboardDateBounds();
+            $startDate ??= $bounds['start_date'];
+            $endDate ??= $bounds['end_date'];
+        }
+
+        $filters['start_date'] = $startDate;
+        $filters['end_date'] = $endDate;
+
+        if (! isset($filters['prev_start_date'], $filters['prev_end_date'])) {
+            $filters = array_merge($filters, $this->getPreviousPeriodFilters($filters));
+        }
+
+        return $filters;
+    }
+
+    private function dateString(mixed $value): ?string
+    {
+        if ($value instanceof DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        if (! filled($value)) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        if (preg_match('/^\d{4}-\d{1,2}-\d{1,2}/', $value) === 1) {
+            return CarbonImmutable::createFromFormat('!Y-m-d', substr($value, 0, 10))
+                ->toDateString();
+        }
+
+        return CarbonImmutable::make($value)?->toDateString();
+    }
+
+    private function dateFromString(mixed $value): CarbonImmutable
+    {
+        $date = $this->dateString($value) ?? CarbonImmutable::today(config('app.timezone'))->toDateString();
+
+        return CarbonImmutable::createFromFormat('!Y-m-d', $date, config('app.timezone'));
+    }
+
+    private function dashboardDateBounds(): array
+    {
+        try {
+            $row = array_change_key_case((array) DB::selectOne("
+                SELECT
+                    TO_CHAR(MIN(report_date), 'YYYY-MM-DD') AS start_date,
+                    TO_CHAR(MAX(report_date), 'YYYY-MM-DD') AS end_date
+                FROM (
+                    SELECT paid_at AS report_date FROM orders WHERE paid_at IS NOT NULL
+                    UNION ALL
+                    SELECT checkin_expected_at AS report_date FROM booking WHERE checkin_expected_at IS NOT NULL
+                    UNION ALL
+                    SELECT created_at AS report_date FROM booking WHERE created_at IS NOT NULL
+                    UNION ALL
+                    SELECT scheduled_at AS report_date FROM booking_service_pet WHERE scheduled_at IS NOT NULL
+                    UNION ALL
+                    SELECT changed_at AS report_date FROM audit_log WHERE changed_at IS NOT NULL
+                )
+            "), CASE_LOWER);
+        } catch (\Throwable) {
+            $row = [];
+        }
+
+        $today = CarbonImmutable::today(config('app.timezone'));
+
+        return [
+            'start_date' => (string) ($row['start_date'] ?? $today->startOfMonth()->toDateString()),
+            'end_date' => (string) ($row['end_date'] ?? $today->endOfMonth()->toDateString()),
+        ];
     }
 }

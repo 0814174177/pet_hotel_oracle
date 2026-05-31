@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
+
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'CEO Dashboard')</title>
@@ -18,47 +19,52 @@
 
     {{-- CSS riêng của từng page --}}
     @stack('styles')
-</head>
+  </head>
 
-<body>
+  <body>
 
-<div class="ceo-layout" id="ceoLayout">
-    <aside class="ceo-sidebar" id="ceoSidebar">
+    <div class="ceo-layout" id="ceoLayout">
+      <aside class="ceo-sidebar" id="ceoSidebar">
         @include('partials.ceo.ceo-sidebar')
-    </aside>
+      </aside>
 
-    <main class="ceo-main-content" id="ceoMainContent">
+      <main class="ceo-main-content" id="ceoMainContent">
         <div class="ceo-main-inner">
-            @yield('content')
+          @yield('content')
         </div>
-    </main>
-</div>
+      </main>
+    </div>
 
-<script>
+    <script>
     function toggleCeoSidebar() {
-        const layout = document.getElementById('ceoLayout');
+      const layout = document.getElementById('ceoLayout');
 
-        if (!layout) {
-            return;
-        }
+      if (!layout) {
+        return;
+      }
 
-        layout.classList.toggle('ceo-layout--collapsed');
+      layout.classList.toggle('ceo-layout--collapsed');
 
-        const isCollapsed = layout.classList.contains('ceo-layout--collapsed');
-        localStorage.setItem('ceoSidebarCollapsed', isCollapsed ? '1' : '0');
+      const isCollapsed = layout.classList.contains('ceo-layout--collapsed');
+      localStorage.setItem('ceoSidebarCollapsed', isCollapsed ? '1' : '0');
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const layout = document.getElementById('ceoLayout');
-        const savedState = localStorage.getItem('ceoSidebarCollapsed');
+    document.addEventListener('DOMContentLoaded', function() {
+      const layout = document.getElementById('ceoLayout');
+      const savedState = localStorage.getItem('ceoSidebarCollapsed');
 
-        if (layout && savedState === '1') {
-            layout.classList.add('ceo-layout--collapsed');
-        }
+      if (layout && savedState === '1') {
+        layout.classList.add('ceo-layout--collapsed');
+      }
     });
-</script>
+    </script>
 
-@stack('scripts')
+    {{-- Bổ sung thư viện jQuery để xử lý AJAX --}}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ asset('assets/client/js/core/dashboard-engine.js') }}?v={{ time() }}"></script>
 
-</body>
+    @stack('scripts')
+
+  </body>
+
 </html>

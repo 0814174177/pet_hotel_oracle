@@ -12,52 +12,27 @@ interface BranchInventoryMaterialRepositoryInterface
     /**
      * Get inventory material KPI cards for the selected branch and period.
      */
-    public function getKpiCards(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array;
+    public function getKpiCards(int|string $branchId, array $filters = []): array;
 
     /**
      * Get total material type count for the selected branch and period.
      */
-    public function getTotalMaterialCount(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array;
+    public function getTotalMaterialCount(int|string $branchId, array $filters = []): array;
 
     /**
      * Get out-of-stock material count for the selected branch and period.
      */
-    public function getOutOfStockCount(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array;
+    public function getOutOfStockCount(int|string $branchId, array $filters = []): array;
 
     /**
      * Get low-stock material count for the selected branch and period.
      */
-    public function getLowStockCount(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array;
+    public function getLowStockCount(int|string $branchId, array $filters = []): array;
 
     /**
      * Get inventory capital value for the selected branch and period.
      */
-    public function getInventoryCapitalValue(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array;
+    public function getInventoryCapitalValue(int|string $branchId, array $filters = []): array;
 
     /**
      * Get inventory material list for the selected branch.
@@ -97,7 +72,7 @@ interface BranchInventoryMaterialRepositoryInterface
     /**
      * Resolve a report period into a date range.
      */
-    public function resolvePeriodRange(string $period, ?string $startDate = null, ?string $endDate = null): array;
+    public function resolvePeriodRange(array $filters = []): array;
 
     /**
      * Resolve material status from stock, warning threshold, and import status.

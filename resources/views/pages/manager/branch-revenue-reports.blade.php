@@ -9,6 +9,8 @@
 @section('content')
 
 @php
+    $managerBranchId = auth()->user()?->employee?->branch_id ?? 1;
+
     /*
     |--------------------------------------------------------------------------
     | DATA MẪU: GROWTH TRACKING
@@ -154,7 +156,15 @@
     }
 @endphp
 
-<div class="branch-revenue-page">
+<div
+    class="branch-revenue-page"
+    id="managerRevenueReportPage"
+    data-target-progress-url="{{ route('api.dashboard.manager.branches.revenue-report.target-progress', ['branchId' => $managerBranchId]) }}"
+    data-revenue-comparison-url="{{ route('api.dashboard.manager.branches.revenue-report.revenue-comparison', ['branchId' => $managerBranchId]) }}"
+    data-service-mix-url="{{ route('api.dashboard.manager.branches.revenue-report.service-mix', ['branchId' => $managerBranchId]) }}"
+    data-employee-performance-url="{{ route('api.dashboard.manager.branches.revenue-report.employee-performance', ['branchId' => $managerBranchId]) }}"
+    data-customer-retention-url="{{ route('api.dashboard.manager.branches.revenue-report.customer-retention', ['branchId' => $managerBranchId]) }}"
+>
 
     <x-global-control-panel
         title="Chi nhánh Quận 1"
@@ -174,13 +184,13 @@
                     </div>
 
                     <h2>
-                        {{ number_format($currentRevenue, 0, ',', '.') }}
+                        <span data-target-current>{{ number_format($currentRevenue, 0, ',', '.') }}</span>
                         <small>/ {{ number_format($targetRevenue, 0, ',', '.') }}tr</small>
                     </h2>
                 </div>
 
                 <div class="{{ $progress >= 80 ? 'progress-badge progress-badge--good' : ($progress >= 50 ? 'progress-badge progress-badge--warning' : 'progress-badge progress-badge--danger') }}">
-                    {{ number_format($progress, 1) }}%
+                    <span data-target-progress>{{ number_format($progress, 1) }}%</span>
                 </div>
             </div>
 
@@ -236,13 +246,13 @@
             <div class="service-insight-row">
                 <div class="service-insight-card service-insight-card--hotel">
                     <div class="service-insight-label">🏨 Hotel</div>
-                    <strong>{{ number_format($hotelShare, 1) }}%</strong>
+                    <strong data-hotel-share>{{ number_format($hotelShare, 1) }}%</strong>
                     <small>Chó + Mèo</small>
                 </div>
 
                 <div class="service-insight-card service-insight-card--spa">
                     <div class="service-insight-label">✂️ Spa</div>
-                    <strong>{{ number_format($spaShare, 1) }}%</strong>
+                    <strong data-spa-share>{{ number_format($spaShare, 1) }}%</strong>
                     <small>Grooming</small>
                 </div>
             </div>
@@ -419,3 +429,7 @@
 </div>
 
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('assets/client/js/manager/branch-revenue-reports.js') }}?v={{ time() }}"></script>
+@endpush

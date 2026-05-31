@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api\Branch;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Branch\InventoryMaterialIndexRequest;
 use App\Http\Requests\Branch\StopImportInventoryMaterialRequest;
 use App\Http\Requests\Branch\StoreInventoryMaterialRequest;
 use App\Http\Requests\Branch\UpdateInventoryMaterialRequest;
+use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Branch\BranchInventoryMaterialRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,29 +18,30 @@ class BranchInventoryMaterialController extends Controller
     ) {
     }
 
-    public function index(InventoryMaterialIndexRequest $request, int|string $branchId): JsonResponse
+    public function index(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view inventory materials for this branch.
         return response()->json([
-            'data' => $this->branchInventoryMaterialRepository->getDashboard($branchId, $request->validated()),
+            'success' => true,
+            'data' => $this->branchInventoryMaterialRepository->getDashboard($branchId, $this->filters($request)),
         ]);
     }
 
-    public function kpi(InventoryMaterialIndexRequest $request, int|string $branchId): JsonResponse
+    public function kpi(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view inventory material KPI cards for this branch.
-        [$period, $startDate, $endDate] = $this->reportFilters($request);
-
         return response()->json([
-            'data' => $this->branchInventoryMaterialRepository->getKpiCards($branchId, $period, $startDate, $endDate),
+            'success' => true,
+            'data' => $this->branchInventoryMaterialRepository->getKpiCards($branchId, $this->filters($request)),
         ]);
     }
 
-    public function materials(InventoryMaterialIndexRequest $request, int|string $branchId): JsonResponse
+    public function materials(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view inventory material list data for this branch.
         return response()->json([
-            'data' => $this->branchInventoryMaterialRepository->getMaterialList($branchId, $request->validated()),
+            'success' => true,
+            'data' => $this->branchInventoryMaterialRepository->getMaterialList($branchId, $this->filters($request)),
         ]);
     }
 
@@ -109,14 +110,14 @@ class BranchInventoryMaterialController extends Controller
         ]);
     }
 
-    private function reportFilters(InventoryMaterialIndexRequest $request): array
+    private function filters(DateRangeFilterRequest $request): array
     {
-        $validated = $request->validated();
-
-        return [
-            (string) ($validated['period'] ?? 'month'),
-            $validated['start_date'] ?? $validated['date'] ?? null,
-            $validated['end_date'] ?? null,
-        ];
+        return array_merge($request->getFiltersArray(), $request->validate([
+            'period' => ['nullable', 'string', 'in:day,month,year'],
+            'date' => ['nullable', 'date'],
+            'search' => ['nullable', 'string', 'max:255'],
+            'group' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', 'string', 'max:255'],
+        ]));
     }
 }

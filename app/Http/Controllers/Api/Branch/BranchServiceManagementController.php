@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Branch;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Branch\BranchServiceManagementRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,32 +15,35 @@ class BranchServiceManagementController extends Controller
     ) {
     }
 
-    public function index(Request $request, int|string $branchId): JsonResponse
+    public function index(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view service management data for this branch.
         $filters = $this->validateFilters($request);
 
         return response()->json([
+            'success' => true,
             'data' => $this->branchServiceManagementRepository->getOverview($branchId, $filters),
         ]);
     }
 
-    public function kpi(Request $request, int|string $branchId): JsonResponse
+    public function kpi(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view KPI cards for this branch.
-        $period = $this->validatePeriod($request);
+        $filters = $this->validatePeriod($request);
 
         return response()->json([
-            'data' => $this->branchServiceManagementRepository->getKpiCards($branchId, $period),
+            'success' => true,
+            'data' => $this->branchServiceManagementRepository->getKpiCards($branchId, $filters),
         ]);
     }
 
-    public function services(Request $request, int|string $branchId): JsonResponse
+    public function services(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view service list data for this branch.
         $filters = $this->validateFilters($request);
 
         return response()->json([
+            'success' => true,
             'data' => $this->branchServiceManagementRepository->getServiceList($branchId, $filters),
         ]);
     }
@@ -90,22 +94,22 @@ class BranchServiceManagementController extends Controller
         ]);
     }
 
-    private function validateFilters(Request $request): array
+    private function validateFilters(DateRangeFilterRequest $request): array
     {
-        return $request->validate([
+        return array_merge($request->getFiltersArray(), $request->validate([
             'period_type' => ['nullable', 'in:day,month,year'],
             'date' => ['nullable', 'date'],
             'search' => ['nullable', 'string', 'max:255'],
             'service_group' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'max:255'],
-        ]);
+        ]));
     }
 
-    private function validatePeriod(Request $request): array
+    private function validatePeriod(DateRangeFilterRequest $request): array
     {
-        return $request->validate([
+        return array_merge($request->getFiltersArray(), $request->validate([
             'period_type' => ['nullable', 'in:day,month,year'],
             'date' => ['nullable', 'date'],
-        ]);
+        ]));
     }
 }

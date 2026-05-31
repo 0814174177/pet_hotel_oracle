@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api\Manager;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Manager\ManagerDashboardRepositoryInterface;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class DashboardController extends ApiController
 {
@@ -14,19 +14,19 @@ class DashboardController extends ApiController
     ) {
     }
 
-    public function index(Request $request): JsonResponse
+    public function index(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->overview($request);
     }
 
-    public function overview(Request $request): JsonResponse
+    public function overview(DateRangeFilterRequest $request): JsonResponse
     {
-        // TODO: Validate Manager dashboard filters before real business logic is implemented.
-        $filters = $this->validateWithTimeFilters($request, [
+        $filters = array_merge($request->getFiltersArray(), $request->validate([
             'branch_id' => ['nullable'],
-        ]);
+        ]));
 
         return response()->json([
+            'success' => true,
             'data' => $this->dashboardRepository->getOverview($filters),
         ]);
     }

@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web/web.php',
+        api: __DIR__ . '/../routes/api/api.php',
+        apiPrefix: 'api',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
@@ -24,7 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo('/login');
         $middleware->redirectUsersTo(function (): string {
             return match (Auth::user()?->role) {
-                'ADMIN' => '/ceo/dashboard',
+                'ADMIN', 'CEO' => '/ceo/dashboard',
                 'MANAGER', 'RECEPTIONIST', 'GROOMER' => '/manager/dashboard',
                 default => '/',
             };

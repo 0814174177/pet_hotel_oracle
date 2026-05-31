@@ -42,7 +42,7 @@ return new class extends Migration
             $table->index('last_activity', 'idx_sessions_activity');
         });
 
-        DB::statement("ALTER TABLE users ADD CONSTRAINT ck_users_role CHECK (role IN ('CUSTOMER','RECEPTIONIST','GROOMER','MANAGER','ADMIN'))");
+        DB::statement("ALTER TABLE users ADD CONSTRAINT ck_users_role CHECK (role IN ('CUSTOMER','RECEPTIONIST','GROOMER','MANAGER','ADMIN','CEO'))");
         DB::statement('ALTER TABLE users ADD CONSTRAINT ck_users_active CHECK (is_active IN (0,1))');
     }
 

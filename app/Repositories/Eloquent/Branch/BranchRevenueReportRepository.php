@@ -25,12 +25,8 @@ class BranchRevenueReportRepository implements BranchRevenueReportRepositoryInte
     /**
      * Get revenue target progress for the selected branch and period.
      */
-    public function getTargetProgress(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getTargetProgress(int|string $branchId, array $filters = []): array
+    {
         // TODO: Load actual branch revenue, target revenue, completion rate, remaining amount, daily required amount, and guard division by zero.
         return [];
     }
@@ -38,12 +34,8 @@ class BranchRevenueReportRepository implements BranchRevenueReportRepositoryInte
     /**
      * Get current-period and previous-period revenue comparison data.
      */
-    public function getRevenueComparison(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getRevenueComparison(int|string $branchId, array $filters = []): array
+    {
         // TODO: Normalize current and previous periods, return labels and both revenue series, and count only valid transactions.
         return [];
     }
@@ -51,12 +43,8 @@ class BranchRevenueReportRepository implements BranchRevenueReportRepositoryInte
     /**
      * Get service revenue mix and average order value data.
      */
-    public function getServiceMixAndAov(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getServiceMixAndAov(int|string $branchId, array $filters = []): array
+    {
         // TODO: Load service revenue mix, current AOV, previous AOV, valid order count, and highest order value when required.
         return [
             'service_mix' => [],
@@ -67,12 +55,8 @@ class BranchRevenueReportRepository implements BranchRevenueReportRepositoryInte
     /**
      * Get service revenue mix grouped by service category.
      */
-    public function getServiceRevenueMix(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getServiceRevenueMix(int|string $branchId, array $filters = []): array
+    {
         // TODO: Group revenue by service category, calculate each category share, and guard division by zero.
         return [];
     }
@@ -80,12 +64,8 @@ class BranchRevenueReportRepository implements BranchRevenueReportRepositoryInte
     /**
      * Get average order value data for the selected branch and period.
      */
-    public function getAverageOrderValue(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getAverageOrderValue(int|string $branchId, array $filters = []): array
+    {
         // TODO: Calculate AOV as total valid revenue divided by valid order count, excluding cancelled, refunded, and pending orders.
         return [];
     }
@@ -93,12 +73,8 @@ class BranchRevenueReportRepository implements BranchRevenueReportRepositoryInte
     /**
      * Get employee performance by revenue and upsell activity.
      */
-    public function getEmployeePerformance(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getEmployeePerformance(int|string $branchId, array $filters = []): array
+    {
         // TODO: Load revenue by employee, calculate upsell rate by employee, and prepare anomaly warning data filtered by branch and period.
         return [];
     }
@@ -106,12 +82,8 @@ class BranchRevenueReportRepository implements BranchRevenueReportRepositoryInte
     /**
      * Get customer retention, new customer, and loyal customer metrics.
      */
-    public function getCustomerRetention(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getCustomerRetention(int|string $branchId, array $filters = []): array
+    {
         // TODO: Calculate returning customer rate, new customers, and loyal customers using valid transactions only.
         return [];
     }
@@ -119,7 +91,7 @@ class BranchRevenueReportRepository implements BranchRevenueReportRepositoryInte
     /**
      * Resolve the selected report period into a date range.
      */
-    public function resolvePeriodRange(string $period, ?string $startDate = null, ?string $endDate = null): array
+    public function resolvePeriodRange(array $filters = []): array
     {
         // TODO: Resolve day, month, or year into a start date, end date, and report grouping rule.
         return [];
@@ -128,7 +100,7 @@ class BranchRevenueReportRepository implements BranchRevenueReportRepositoryInte
     /**
      * Resolve the previous comparable report period into a date range.
      */
-    public function resolvePreviousPeriodRange(string $period, ?string $startDate = null, ?string $endDate = null): array
+    public function resolvePreviousPeriodRange(array $filters = []): array
     {
         // TODO: Resolve the comparable previous day, month, or year range based on the selected report period.
         return [];
