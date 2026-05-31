@@ -7,30 +7,15 @@
         <strong data-branch-map-count>{{ $branches->count() }}</strong>
     </div>
 
-    <div class="branch-map branch-map--leaflet" id="branchLeafletMap" data-branches='@json($branches->values())'>
-        <div data-branch-map-markers>
-            @forelse ($branches as $branch)
-                <a
-                    href="{{ $branch['detailUrl'] }}"
-                    class="map-marker"
-                    style="--marker-x: {{ $branch['map']['x'] }}%; --marker-y: {{ $branch['map']['y'] }}%;"
-                    aria-label="{{ $branch['name'] }}"
-                >
-                    <span class="marker-label">{{ $branch['name'] }}</span>
-                    <span class="marker-dot">{{ $loop->iteration }}</span>
-                </a>
-            @empty
-                <div class="map-empty">
-                    <i class="fa-regular fa-map"></i>
-                    <span>Không có địa điểm phù hợp</span>
-                </div>
-            @endforelse
-        </div>
-
-        <div class="map-current">
-            <i class="fa-solid fa-location-crosshairs"></i>
-            <h3>TP.HCM</h3>
-            <p>Pet Hotel</p>
+    <div
+        class="branch-map branch-map--leaflet"
+        id="branchLeafletMap"
+        data-branches='@json($branches->values())'
+        aria-label="Bản đồ vị trí chi nhánh Pet Hotel"
+    >
+        <div class="map-loading" data-branch-map-placeholder>
+            <i class="fa-regular fa-map"></i>
+            <span>Đang tải bản đồ...</span>
         </div>
     </div>
 </aside>

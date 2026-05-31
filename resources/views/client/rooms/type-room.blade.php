@@ -142,5 +142,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('assets/client/js/type-room.js') }}"></script>
+<script src="{{ asset('assets/client/js/client/type-room.js') }}"></script>
 @endpush

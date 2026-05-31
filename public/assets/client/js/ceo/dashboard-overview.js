@@ -386,13 +386,13 @@
                                 ${escapeHtml(alert.title)}
                             </h4>
                             <p class="alert-box__message">${escapeHtml(alert.warning_text)}</p>
-                            <p class="dashboard-alert-meta">${escapeHtml(alert.alert_level)} - ${escapeHtml(alert.created_at || "Khong co thoi gian")}</p>
+                            <p class="dashboard-alert-meta">${escapeHtml(alert.alert_level)} - ${escapeHtml(alert.created_at || "Không có thời gian")}</p>
                         </div>
                     </div>
                 `,
                       )
                       .join("")
-                : '<div class="dashboard-alert-empty">Khong co canh bao rui ro trong ky bao cao.</div>';
+                : '<div class="dashboard-alert-empty">Không có cảnh báo rủi ro trong kỳ báo cáo.</div>';
         }
 
         if (!operationalAlert) {
@@ -405,7 +405,7 @@
 
         if (!operational) {
             box.className = "alert-box alert-box--warning";
-            title.textContent = "Khong co canh bao van hanh";
+            title.textContent = "Không có cảnh báo vận hành";
             message.textContent =
                 "Cac chi so van hanh trong ky chua vuot nguong canh bao.";
             setStatus("Du lieu dashboard da duoc cap nhat.", "success");

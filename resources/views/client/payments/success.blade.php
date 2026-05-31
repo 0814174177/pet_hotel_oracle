@@ -166,5 +166,5 @@ $successTrackingData = [
 @json($successTrackingData)
 </script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<script src="{{ asset('assets/client/js/payment-success.js') }}"></script>
+<script src="{{ asset('assets/client/js/client/payment-success.js') }}"></script>
 @endpush

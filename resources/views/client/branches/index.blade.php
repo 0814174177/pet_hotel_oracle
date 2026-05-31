@@ -41,5 +41,5 @@
 
 @push('scripts')
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="{{ asset('assets/client/js/branches.js') }}"></script>
+  <script src="{{ asset('assets/client/js/client/branches.js') }}"></script>
 @endpush

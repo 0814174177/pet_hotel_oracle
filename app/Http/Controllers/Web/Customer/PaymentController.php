@@ -19,14 +19,14 @@ class PaymentController extends WebController
 
     public function create(Request $request): View|RedirectResponse
     {
-        if ($redirect = $this->redirectIfGuest('Vui long dang nhap truoc khi thanh toan.')) { // Kiểm tra đăng nhập trước khi hiển thị trang thanh toán
+        if ($redirect = $this->redirectIfGuest('Vui lòng đăng nhập trước khi thanh toán.')) {
             return $redirect;
         }
 
-        $bookingId = $request->query('booking_id'); // Lấy booking_id từ query parameter để hiển thị trang thanh toán cho booking đó
+        $bookingId = $request->query('booking_id');
 
-        if (! $bookingId) { // Nếu không có booking_id trong query parameter, chuyển hướng về trang lịch sử đặt phòng với thông báo lỗi
-            return $this->missingPaymentRedirect('Khong tim thay thong tin booking can thanh toan.');
+        if (! $bookingId) {
+            return $this->missingPaymentRedirect('Không tìm thấy thông tin booking cần thanh toán.');
         }
 
         return $this->paymentViewForBooking((string) $bookingId);
@@ -34,7 +34,7 @@ class PaymentController extends WebController
 
     public function show(string $bookingId): View|RedirectResponse
     {
-        if ($redirect = $this->redirectIfGuest('Vui long dang nhap truoc khi thanh toan.')) {
+        if ($redirect = $this->redirectIfGuest('Vui lòng đăng nhập trước khi thanh toán.')) {
             return $redirect;
         }
 
@@ -43,7 +43,7 @@ class PaymentController extends WebController
 
     public function process(Request $request, string $bookingId): RedirectResponse
     {
-        if ($redirect = $this->redirectIfGuest('Vui long dang nhap truoc khi thanh toan.')) {
+        if ($redirect = $this->redirectIfGuest('Vui lòng đăng nhập trước khi thanh toán.')) {
             return $redirect;
         }
 
@@ -61,19 +61,19 @@ class PaymentController extends WebController
                 'max:255',
                 Rule::unique('users', 'email')->ignore(Auth::id()),
             ],
-            'payment_method' => ['required', 'in:cod,wallet,bank'],
+            'payment_method' => ['required', Rule::in(['cod'])],
             'coupon_code' => ['nullable', 'string', 'max:50'],
         ], [
-            'customer_name.required' => 'Vui long nhap ho va ten.',
-            'customer_name.max' => 'Ho va ten khong duoc vuot qua 100 ky tu.',
-            'customer_phone.required' => 'Vui long nhap so dien thoai.',
-            'customer_phone.unique' => 'So dien thoai nay da duoc su dung.',
-            'customer_email.required' => 'Vui long nhap email.',
-            'customer_email.email' => 'Email khong hop le.',
-            'customer_email.unique' => 'Email nay da duoc su dung.',
-            'payment_method.required' => 'Vui long chon phuong thuc thanh toan.',
-            'payment_method.in' => 'Phuong thuc thanh toan khong hop le.',
-            'coupon_code.max' => 'Ma giam gia khong duoc vuot qua 50 ky tu.',
+            'customer_name.required' => 'Vui lòng nhập họ và tên.',
+            'customer_name.max' => 'Họ và tên không được vượt quá 100 ký tự.',
+            'customer_phone.required' => 'Vui lòng nhập số điện thoại.',
+            'customer_phone.unique' => 'Số điện thoại này đã được sử dụng.',
+            'customer_email.required' => 'Vui lòng nhập email.',
+            'customer_email.email' => 'Email không hợp lệ.',
+            'customer_email.unique' => 'Email này đã được sử dụng.',
+            'payment_method.required' => 'Vui lòng chọn phương thức thanh toán.',
+            'payment_method.in' => 'Pet Hotel hiện chỉ hỗ trợ thanh toán trực tiếp khi nhận phòng.',
+            'coupon_code.max' => 'Mã giảm giá không được vượt quá 50 ký tự.',
         ]);
 
         $booking = $this->payments->confirmBookingPaymentForUser(
@@ -89,12 +89,12 @@ class PaymentController extends WebController
         );
 
         if (! $booking) {
-            return $this->missingPaymentRedirect('Don booking khong ton tai hoac khong thuoc tai khoan cua ban.');
+            return $this->missingPaymentRedirect('Đơn booking không tồn tại hoặc không thuộc tài khoản của bạn.');
         }
 
         return redirect()
             ->route('payment.success', ['booking_id' => $booking->booking_id])
-            ->with('status', 'Thanh toan thanh cong. Cam on ban da su dung dich vu cua Pet Hotel.');
+            ->with('status', 'Thanh toán thành công. Cảm ơn bạn đã sử dụng dịch vụ của Pet Hotel.');
     }
 
     public function applyCoupon(Request $request, string $bookingId): JsonResponse
@@ -102,14 +102,14 @@ class PaymentController extends WebController
         if (! Auth::check()) {
             return response()->json([
                 'exists' => false,
-                'message' => 'Ban chua dang nhap.',
+                'message' => 'Bạn chưa đăng nhập.',
             ], 401);
         }
 
         $validated = $request->validate([
             'coupon_code' => ['nullable', 'string', 'max:50'],
         ], [
-            'coupon_code.max' => 'Ma giam gia khong duoc vuot qua 50 ky tu.',
+            'coupon_code.max' => 'Mã giảm giá không được vượt quá 50 ký tự.',
         ]);
 
         $preview = $this->payments->previewCouponForUser(
@@ -121,7 +121,7 @@ class PaymentController extends WebController
         if (! $preview) {
             return response()->json([
                 'exists' => false,
-                'message' => 'Hoa don khong ton tai.',
+                'message' => 'Hóa đơn không tồn tại.',
             ], 404);
         }
 
@@ -133,7 +133,7 @@ class PaymentController extends WebController
 
     public function success(Request $request): View|RedirectResponse
     {
-        if ($redirect = $this->redirectIfGuest('Vui long dang nhap de xem ket qua thanh toan.')) {
+        if ($redirect = $this->redirectIfGuest('Vui lòng đăng nhập để xem kết quả thanh toán.')) {
             return $redirect;
         }
 
@@ -148,13 +148,13 @@ class PaymentController extends WebController
         if (! $orderStatus || strtoupper((string) $orderStatus['status']) !== 'COMPLETED') {
             return redirect()
                 ->route('payment.show', $bookingId)
-                ->withErrors(['payment' => 'Thanh toan chua duoc ghi nhan. Vui long xac nhan thanh toan truoc.']);
+                ->withErrors(['payment' => 'Thanh toán chưa được ghi nhận. Vui lòng xác nhận thanh toán trước.']);
         }
 
         $data = $this->payments->paymentPageDataForUser(Auth::user(), (string) $bookingId);
 
         if (! $data) {
-            return $this->missingPaymentRedirect('Don booking khong ton tai hoac khong thuoc tai khoan cua ban.');
+            return $this->missingPaymentRedirect('Đơn booking không tồn tại hoặc không thuộc tài khoản của bạn.');
         }
 
         return view('client.payments.success', $data);
@@ -169,10 +169,10 @@ class PaymentController extends WebController
 
             return redirect()
                 ->route('profile.history-booking.index')
-                ->withErrors(['payment' => 'Thanh toan da huy. Phong da duoc mo lai neu booking chua hoan tat.']);
+                ->withErrors(['payment' => 'Thanh toán đã hủy. Phòng đã được mở lại nếu booking chưa hoàn tất.']);
         }
 
-        return $this->missingPaymentRedirect('Thanh toan chua thanh cong.');
+        return $this->missingPaymentRedirect('Thanh toán chưa thành công.');
     }
 
     public function checkStatus(string $bookingId): JsonResponse
@@ -180,7 +180,7 @@ class PaymentController extends WebController
         if (! Auth::check()) {
             return response()->json([
                 'exists' => false,
-                'message' => 'Ban chua dang nhap.',
+                'message' => 'Bạn chưa đăng nhập.',
             ], 401);
         }
 
@@ -189,7 +189,7 @@ class PaymentController extends WebController
         if (! $orderStatus) {
             return response()->json([
                 'exists' => false,
-                'message' => 'Hoa don khong ton tai.',
+                'message' => 'Hóa đơn không tồn tại.',
             ], 404);
         }
 
@@ -204,7 +204,7 @@ class PaymentController extends WebController
         $data = $this->payments->paymentPageDataForUser(Auth::user(), $bookingId);
 
         if (! $data) {
-            return $this->missingPaymentRedirect('Don booking khong ton tai hoac khong thuoc tai khoan cua ban.');
+            return $this->missingPaymentRedirect('Đơn booking không tồn tại hoặc không thuộc tài khoản của bạn.');
         }
 
         return view('client.payments.create', $data);

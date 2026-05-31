@@ -10,9 +10,9 @@ class ErrorController extends WebController
     public function unauthorized(): Response
     {
         return $this->errorPage(
-            'Khong co quyen truy cap',
+            'Không có quyền truy cập',
             'Unauthorized',
-            'Tai khoan cua ban khong co quyen truy cap trang nay.',
+            'Tài khoản của bạn không có quyền truy cập trang này.',
             Response::HTTP_FORBIDDEN
         );
     }
@@ -20,9 +20,9 @@ class ErrorController extends WebController
     public function notFound(): Response
     {
         return $this->errorPage(
-            '404 - Khong tim thay',
+            '404 - Không tìm thấy',
             'Not Found',
-            'Trang ban dang tim kiem khong ton tai hoac da bi go bo.',
+            'Trang bạn đang tìm kiếm không tồn tại hoặc đã bị gỡ bỏ.',
             Response::HTTP_NOT_FOUND
         );
     }

@@ -6,8 +6,8 @@
     const list = document.querySelector("[data-branch-list]");
     const feedback = document.querySelector("[data-branch-feedback]");
     const mapCount = document.querySelector("[data-branch-map-count]");
-    const mapMarkers = document.querySelector("[data-branch-map-markers]");
     const leafletMapEl = document.getElementById("branchLeafletMap");
+    const mapPlaceholder = document.querySelector("[data-branch-map-placeholder]");
 
     if (!form || !keywordInput || !districtSelect || !list) {
         return;
@@ -66,28 +66,62 @@
         return null;
     };
 
-    const initLeafletMap = function () {
-        if (!leafletMapEl || !window.L || leafletMap) {
+    const markerIcon = function (index) {
+        return window.L.divIcon({
+            className: "branch-map-pin",
+            html: `<span>${index + 1}</span>`,
+            iconSize: [34, 42],
+            iconAnchor: [17, 42],
+            popupAnchor: [0, -36],
+        });
+    };
+
+    const setMapPlaceholder = function (message, isError) {
+        if (!mapPlaceholder) {
             return;
+        }
+
+        mapPlaceholder.hidden = !message;
+        mapPlaceholder.classList.toggle("is-error", Boolean(isError));
+        mapPlaceholder.innerHTML = message
+            ? `<i class="fa-regular fa-map"></i><span>${escapeHtml(message)}</span>`
+            : "";
+    };
+
+    const initLeafletMap = function () {
+        if (!leafletMapEl || leafletMap) {
+            return Boolean(leafletMap);
+        }
+
+        if (!window.L) {
+            leafletMapEl.classList.add("is-leaflet-unavailable");
+            setMapPlaceholder("Không tải được thư viện bản đồ. Vui lòng kiểm tra kết nối mạng.", true);
+            return false;
         }
 
         leafletMap = window.L.map(leafletMapEl, {
             scrollWheelZoom: false,
+            zoomControl: true,
         }).setView([10.7769, 106.7009], 11);
 
         window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 18,
+            maxZoom: 19,
             attribution: "&copy; OpenStreetMap contributors",
         }).addTo(leafletMap);
 
         leafletLayer = window.L.layerGroup().addTo(leafletMap);
         leafletMapEl.classList.add("is-leaflet-ready");
+        setMapPlaceholder("", false);
+
+        window.setTimeout(function () {
+            leafletMap.invalidateSize();
+        }, 80);
+
+        return true;
     };
 
     const renderLeafletMap = function (branches) {
-        initLeafletMap();
-
-        if (!leafletMap || !leafletLayer || !window.L) {
+        if (!initLeafletMap()) {
             return;
         }
 
@@ -95,7 +129,7 @@
 
         const bounds = [];
 
-        branches.forEach(function (branch) {
+        branches.forEach(function (branch, index) {
             const coordinates = branchCoordinates(branch);
 
             if (!coordinates) {
@@ -104,7 +138,10 @@
 
             bounds.push(coordinates);
 
-            window.L.marker(coordinates)
+            window.L.marker(coordinates, {
+                icon: markerIcon(index),
+                title: branch.name || "",
+            })
                 .addTo(leafletLayer)
                 .bindPopup(`
                     <div class="branch-leaflet-popup">
@@ -116,12 +153,18 @@
                 `);
         });
 
+        if (!bounds.length) {
+            setMapPlaceholder("Không có địa điểm phù hợp", false);
+            leafletMap.setView([10.7769, 106.7009], 11);
+            return;
+        }
+
+        setMapPlaceholder("", false);
+
         if (bounds.length === 1) {
             leafletMap.setView(bounds[0], 14);
-        } else if (bounds.length > 1) {
-            leafletMap.fitBounds(bounds, { padding: [28, 28] });
         } else {
-            leafletMap.setView([10.7769, 106.7009], 11);
+            leafletMap.fitBounds(bounds, { padding: [34, 34], maxZoom: 14 });
         }
     };
 
@@ -170,40 +213,6 @@
         if (mapCount) {
             mapCount.textContent = branches.length;
         }
-
-        if (!mapMarkers) {
-            renderLeafletMap(branches);
-            return;
-        }
-
-        if (!branches.length) {
-            mapMarkers.innerHTML = `
-                <div class="map-empty">
-                    <i class="fa-regular fa-map"></i>
-                    <span>Không có địa điểm phù hợp</span>
-                </div>
-            `;
-            renderLeafletMap(branches);
-            return;
-        }
-
-        mapMarkers.innerHTML = branches.map(function (branch, index) {
-            const map = branch.map || {};
-            const x = Number.isFinite(Number(map.x)) ? Number(map.x) : 50;
-            const y = Number.isFinite(Number(map.y)) ? Number(map.y) : 50;
-
-            return `
-                <a
-                    href="${escapeHtml(branch.detail_url)}"
-                    class="map-marker"
-                    style="--marker-x: ${x}%; --marker-y: ${y}%;"
-                    aria-label="${escapeHtml(branch.name)}"
-                >
-                    <span class="marker-label">${escapeHtml(branch.name)}</span>
-                    <span class="marker-dot">${index + 1}</span>
-                </a>
-            `;
-        }).join("");
 
         renderLeafletMap(branches);
     };
@@ -263,7 +272,6 @@
     };
 
     const scheduleFetch = function () {
-        // Debounce input so typing does not call the API on every keystroke.
         window.clearTimeout(debounceTimer);
         debounceTimer = window.setTimeout(fetchBranches, 400);
     };
@@ -289,7 +297,7 @@
         });
     }
 
-    const initialBranches = (() => {
+    const initialBranches = (function () {
         if (!leafletMapEl) {
             return [];
         }
@@ -299,7 +307,7 @@
         } catch (error) {
             return [];
         }
-    })();
+    }());
 
-    renderLeafletMap(initialBranches);
+    renderMap(initialBranches);
 }());

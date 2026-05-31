@@ -63,14 +63,14 @@ Route::controller(BookingController::class)->group(function () {
     Route::get('/booking/branches/{branchId}', 'createFromBranch')->name('booking.create.from-branches');
     Route::get('/booking/branch/{branchId}', 'createFromBranch')->name('booking.create');
 
-    Route::middleware(['auth', 'role:customer'])->group(function () {
+    Route::middleware(['auth', 'role:customer', 'no.cache'])->group(function () {
         Route::post('/booking', 'store')->name('booking.store');
         Route::get('/profile/history-booking', 'index')->name('profile.history-booking.index');
         Route::get('/booking/{bookingId}', 'show')->name('booking.show');
     });
 });
 
-Route::controller(PaymentController::class)->middleware(['auth', 'role:customer'])->group(function () {
+Route::controller(PaymentController::class)->middleware(['auth', 'role:customer', 'no.cache'])->group(function () {
     Route::get('/payment', 'create')->name('payment.create');
     Route::get('/payment/check-status/{bookingId}', 'checkStatus')->name('payment.check_status');
     Route::get('/payment/booking/{bookingId}', 'show')->name('payment.show');
@@ -80,13 +80,13 @@ Route::controller(PaymentController::class)->middleware(['auth', 'role:customer'
     Route::get('/payment/failed', 'failed')->name('payment.failed');
 });
 
-Route::controller(AccountController::class)->middleware(['auth', 'role:customer'])->group(function () {
+Route::controller(AccountController::class)->middleware(['auth', 'role:customer', 'no.cache'])->group(function () {
     Route::get('/profile', 'show')->name('profile.index');
     Route::get('/profile/edit', 'edit')->name('profile.edit');
     Route::post('/profile', 'update')->name('profile.update');
 });
 
-Route::controller(PetController::class)->middleware(['auth', 'role:customer'])->prefix('pets')->name('pets.')->group(function () {
+Route::controller(PetController::class)->middleware(['auth', 'role:customer', 'no.cache'])->prefix('pets')->name('pets.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get('/create', 'create')->name('create');
     Route::post('/', 'store')->name('store');
@@ -94,7 +94,7 @@ Route::controller(PetController::class)->middleware(['auth', 'role:customer'])->
     Route::post('/{petId}', 'update')->name('update');
 });
 
-Route::controller(PetController::class)->middleware(['auth', 'role:customer'])->prefix('profile/pets')->name('profile.pets.')->group(function () {
+Route::controller(PetController::class)->middleware(['auth', 'role:customer', 'no.cache'])->prefix('profile/pets')->name('profile.pets.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get('/create', 'create')->name('create');
     Route::post('/', 'store')->name('store');
@@ -110,21 +110,21 @@ Route::controller(PetController::class)->middleware(['auth', 'role:customer'])->
 */
 Route::prefix('customer')
     ->name('customer.')
-    ->middleware(['auth', 'role:customer'])
+    ->middleware(['auth', 'role:customer', 'no.cache'])
     ->group(function () {
         require __DIR__ . '/customer/index.php';
     });
 
 Route::prefix('manager')
     ->name('manager.')
-    ->middleware(['auth', 'role:manager'])
+    ->middleware(['auth', 'role:manager', 'no.cache'])
     ->group(function () {
         require __DIR__ . '/manager/index.php';
     });
 
 Route::prefix('ceo')
     ->name('ceo.')
-    ->middleware(['auth', 'role:ceo'])
+    ->middleware(['auth', 'role:ceo', 'no.cache'])
     ->group(function () {
         require __DIR__ . '/ceo/index.php';
     });

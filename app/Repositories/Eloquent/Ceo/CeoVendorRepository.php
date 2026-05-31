@@ -10,7 +10,7 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     public function getVendors(array $filters = []): array
     {
         return [
-            'message' => 'Danh sach doi tac/nha cung cap se duoc gan voi module supplier sau.',
+            'message' => 'Danh sách đối tác/nhà cung cấp sẽ được gắn với module supplier sau.',
             'products' => Product::orderBy('product_name')->limit(20)->get(),
         ];
     }

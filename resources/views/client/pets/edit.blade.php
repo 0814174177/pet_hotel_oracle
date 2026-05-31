@@ -41,5 +41,5 @@
 @endpush
 
 @push('scripts')
-  <script src="{{ asset('assets/client/js/pet-form.js') }}"></script>
+  <script src="{{ asset('assets/client/js/client/pet-form.js') }}"></script>
 @endpush

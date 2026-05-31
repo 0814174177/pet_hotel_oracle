@@ -1,20 +1,21 @@
 @extends('layouts.client')
 
-@section('title', 'Phong Thuong cho Cho')
+@section('title', 'Phòng nhỏ cho chó')
 
 @php
-  $money = fn ($amount) => number_format((float) $amount, 0, ',', '.').'d';
+  $money = fn ($amount) => number_format((float) $amount, 0, ',', '.').'đ';
   $images = $typeRoom['images'] ?? [];
   $mainImage = $images[0] ?? asset('assets/client/images/type-room/normal/dog/1.jpg');
   $firstAvailableRoom = collect($roomRows ?? [])->firstWhere('is_available', true);
   $bookingUrl = $firstAvailableRoom['booking_url'] ?? url('/booking');
-  $availabilityText = ($availableCount ?? 0) > 0 ? 'Con phong' : 'Het phong';
+  $availabilityText = ($availableCount ?? 0) > 0 ? 'Còn phòng' : 'Hết phòng';
   $availabilityClass = ($availableCount ?? 0) > 0 ? 'rd-status--available' : 'rd-status--busy';
-  $description = $typeRoom['description'] ?? 'Dang cap nhat';
+  $description = $typeRoom['description'] ?? 'Thông tin loại phòng đang được cập nhật.';
+  $area = $typeRoom['area'] ?? '3 m²';
   $conditionLines = [
-      'Ngay tra phong phai sau ngay nhan phong.',
-      'Thu cung can co thong tin can nang phu hop voi loai phong.',
-      'Phong chi duoc giu cho sau khi he thong tao booking thanh cong.',
+      'Ngày trả phòng phải sau ngày nhận phòng.',
+      'Thú cưng cần có thông tin cân nặng phù hợp với loại phòng.',
+      'Phòng chỉ được giữ sau khi hệ thống tạo booking thành công.',
   ];
 @endphp
 
@@ -25,50 +26,50 @@
   <div class="dog-hero-overlay"></div>
 
   <div class="dog-hero-content">
-    <h1>Phong Thuong cho Cho</h1>
+    <h1>Phòng nhỏ cho chó</h1>
     <p>{{ $description }}</p>
 
     <a href="{{ $bookingUrl }}" class="dog-primary-btn">
-      Dat phong ngay
+      Đặt phòng ngay
     </a>
   </div>
 </section>
 
 <section class="dog-section dog-standards">
   <div class="dog-container">
-    <h2 class="dog-section-title">Thong tin phong</h2>
+    <h2 class="dog-section-title">Thông tin phòng</h2>
 
     <div class="standard-grid">
       <div class="standard-card">
         <div class="standard-icon">
           <i class="fa-solid fa-dog"></i>
         </div>
-        <h3>Loai thu cung</h3>
-        <p>Dog / Cho</p>
+        <h3>Loài thú cưng</h3>
+        <p>Chó</p>
       </div>
 
       <div class="standard-card">
         <div class="standard-icon">
           <i class="fa-solid fa-door-open"></i>
         </div>
-        <h3>Loai phong</h3>
-        <p>Normal / Phong Thuong</p>
+        <h3>Loại phòng</h3>
+        <p>Phòng nhỏ</p>
       </div>
 
       <div class="standard-card">
         <div class="standard-icon">
           <i class="fa-solid fa-paw"></i>
         </div>
-        <h3>Suc chua toi da</h3>
-        <p>{{ $typeRoom['capacity'] ?? (($maxPets ?? null) ? $maxPets.' be' : 'Dang cap nhat') }}</p>
+        <h3>Sức chứa tối đa</h3>
+        <p>{{ $typeRoom['capacity'] ?? (($maxPets ?? null) ? $maxPets.' bé' : 'Đang cập nhật') }}</p>
       </div>
 
       <div class="standard-card">
         <div class="standard-icon">
           <i class="fa-solid fa-weight-scale"></i>
         </div>
-        <h3>Can nang phu hop</h3>
-        <p>{{ $typeRoom['weight'] ?? 'Dang cap nhat' }}</p>
+        <h3>Cân nặng phù hợp</h3>
+        <p>{{ $typeRoom['weight'] ?? 'Đang cập nhật' }}</p>
       </div>
     </div>
   </div>
@@ -76,47 +77,47 @@
 
 <section class="dog-section dog-rooms">
   <div class="dog-container">
-    <h2 class="dog-section-title">Phong Thuong cho cho</h2>
+    <h2 class="dog-section-title">Phòng nhỏ cho chó</h2>
 
     <div class="dog-room-card">
       <div class="dog-room-image">
-        <img src="{{ $mainImage }}" alt="Phong Thuong cho cho">
+        <img src="{{ $mainImage }}" alt="Phòng nhỏ cho chó">
       </div>
 
       <div class="dog-room-content">
         <div class="dog-room-header">
           <div>
-            <h3>{{ $typeRoom['name'] ?? 'Phong Thuong cho cho' }}</h3>
-            <p class="room-area">Tong phong: {{ $totalRooms ?? 0 }} | Con trong: {{ $availableCount ?? 0 }}</p>
+            <h3>{{ $typeRoom['name'] ?? 'Phòng nhỏ cho chó' }}</h3>
+            <p class="room-area">Diện tích: {{ $area }}</p>
           </div>
 
           <div class="room-price">
             <strong>{{ $money($price ?? $typeRoom['price_raw'] ?? 0) }}</strong>
-            <span>/ngay</span>
+            <span>/ngày</span>
           </div>
         </div>
 
         <div class="room-feature-grid">
           <ul>
-            <li><i class="fa-solid fa-check"></i> Ten loai phong: {{ $typeRoom['label'] ?? 'Dang cap nhat' }}</li>
-            <li><i class="fa-solid fa-check"></i> So phong con trong: {{ $availableCount ?? 0 }}</li>
-            <li><i class="fa-solid fa-check"></i> Tong so phong: {{ $totalRooms ?? 0 }}</li>
+            <li><i class="fa-solid fa-check"></i> Loại phòng: {{ $typeRoom['label'] ?? 'Phòng nhỏ' }}</li>
+            <li><i class="fa-solid fa-check"></i> Sức chứa: {{ $typeRoom['capacity'] ?? 'Đang cập nhật' }}</li>
+            <li><i class="fa-solid fa-check"></i> Cân nặng: {{ $typeRoom['weight'] ?? 'Đang cập nhật' }}</li>
           </ul>
 
           <ul>
-            <li><i class="fa-solid fa-check"></i> Gia: {{ $typeRoom['price'] ?? $money($price ?? 0).'/ngay' }}</li>
-            <li><i class="fa-solid fa-check"></i> Trang thai: <span class="rd-status {{ $availabilityClass }}">{{ $availabilityText }}</span></li>
-            <li><i class="fa-solid fa-check"></i> Ma loai phong: {{ $typeRoom['id'] ?? 'Dang cap nhat' }}</li>
+            <li><i class="fa-solid fa-check"></i> Giá: {{ $typeRoom['price'] ?? $money($price ?? 0).'/ngày' }}</li>
+            <li><i class="fa-solid fa-check"></i> Diện tích: {{ $area }}</li>
+            <li><i class="fa-solid fa-check"></i> Trạng thái: <span class="rd-status {{ $availabilityClass }}">{{ $availabilityText }}</span></li>
           </ul>
         </div>
 
         <div class="room-description">
-          <h4>Mo ta phong</h4>
+          <h4>Mô tả phòng</h4>
           <p>{{ $description }}</p>
         </div>
 
         <div class="room-health-note">
-          <h4>Dieu kien dat phong</h4>
+          <h4>Điều kiện đặt phòng</h4>
           <ul>
             @foreach ($conditionLines as $line)
               <li>{{ $line }}</li>
@@ -124,7 +125,7 @@
           </ul>
         </div>
 
-        <a href="{{ $bookingUrl }}" class="dog-room-btn">Dat phong</a>
+        <a href="{{ $bookingUrl }}" class="dog-room-btn">Đặt phòng</a>
       </div>
     </div>
   </div>
@@ -132,19 +133,19 @@
 
 <section class="dog-section">
   <div class="dog-container">
-    <h2 class="dog-section-title">Hinh anh phong</h2>
+    <h2 class="dog-section-title">Hình ảnh phòng</h2>
 
     <div class="rd-gallery">
       <div class="rd-gallery-main">
-        <img class="rd-gallery-main__img" id="rdMainImage" src="{{ $mainImage }}" alt="Phong Thuong cho cho">
+        <img class="rd-gallery-main__img" id="rdMainImage" src="{{ $mainImage }}" alt="Phòng nhỏ cho chó">
       </div>
 
       @if (! empty($images))
         <div class="rd-gallery-thumbs">
           @foreach ($images as $index => $image)
             <button class="rd-gallery-thumb {{ $index === 0 ? 'rd-gallery-thumb--active' : '' }}" type="button"
-              onclick="rdSwitchImage('{{ $image }}', this)" aria-label="Xem anh {{ $index + 1 }}">
-              <img src="{{ $image }}" alt="Phong Thuong cho cho {{ $index + 1 }}">
+              onclick="rdSwitchImage('{{ $image }}', this)" aria-label="Xem ảnh {{ $index + 1 }}">
+              <img src="{{ $image }}" alt="Phòng nhỏ cho chó {{ $index + 1 }}">
             </button>
           @endforeach
         </div>
@@ -155,20 +156,20 @@
 
 <section class="dog-section dog-daily-process">
   <div class="dog-container">
-    <h2 class="dog-section-title">Dich vu di kem</h2>
+    <h2 class="dog-section-title">Dịch vụ đi kèm</h2>
 
     <div class="daily-process-grid">
       @forelse ($services as $service)
         <div class="daily-step">
           <span>{{ $loop->iteration }}</span>
           <h3>{{ $service->service_name }}</h3>
-          <p>{{ $money($service->base_price) }}{{ $service->duration_minutes ? ' | '.$service->duration_minutes.' phut' : '' }}</p>
+          <p>{{ $money($service->base_price) }}{{ $service->duration_minutes ? ' | '.$service->duration_minutes.' phút' : '' }}</p>
         </div>
       @empty
         <div class="daily-step">
           <span>!</span>
-          <h3>Dang cap nhat</h3>
-          <p>Chua co dich vu di kem cho loai phong nay.</p>
+          <h3>Đang cập nhật</h3>
+          <p>Chưa có dịch vụ đi kèm cho loại phòng này.</p>
         </div>
       @endforelse
     </div>
@@ -180,5 +181,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('assets/client/js/type-room.js') }}"></script>
+<script src="{{ asset('assets/client/js/client/type-room.js') }}"></script>
 @endpush

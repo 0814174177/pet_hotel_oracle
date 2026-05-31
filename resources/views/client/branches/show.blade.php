@@ -139,16 +139,6 @@
                 <span class="spa-name"><i class="fa-solid fa-spa"></i> Massage thư giãn</span>
                 <span class="spa-price">200.000đ</span>
             </div>
-
-            <div class="spa-row">
-                <span class="spa-name"><i class="fa-solid fa-tooth"></i> Vệ sinh răng miệng</span>
-                <span class="spa-price">120.000đ</span>
-            </div>
-
-            <div class="spa-row">
-                <span class="spa-name"><i class="fa-solid fa-wand-magic-sparkles"></i> Combo Spa cao cấp</span>
-                <span class="spa-price">400.000đ</span>
-            </div>
         </div>
 
         <a href="{{ route('branches.index') }}" class="bh-back">
@@ -161,5 +151,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/client/js/branch-show.js') }}"></script>
+    <script src="{{ asset('assets/client/js/client/branch-show.js') }}"></script>
 @endpush
