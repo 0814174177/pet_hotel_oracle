@@ -212,7 +212,11 @@
     }
 @endphp
 
-<div class="finance-page">
+<div
+    class="finance-page"
+    id="ceoFinancePage"
+    data-finance-url="{{ route('api.dashboard.ceo.finance') }}"
+>
 
     <x-global-control-panel
         title="Phân tích Tài chính Tổng thể"
@@ -245,6 +249,7 @@
 
             <div class="finance-chart-area">
                 <x-chart.line
+                    id="financeRevenueCostChart"
                     :data="$plChartData"
                     xAxisKey="time"
                     :lineConfigs="$plLineConfigs"
@@ -269,6 +274,7 @@
 
                 <div class="finance-chart-area">
                     <x-chart.pie
+                        id="financeRevenueMixChart"
                         :data="$unitPieData"
                         nameKey="name"
                         dataKey="value"
@@ -446,3 +452,7 @@
 
 </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('assets/client/js/ceo/finance-analytics.js') }}?v={{ time() }}"></script>
+@endpush

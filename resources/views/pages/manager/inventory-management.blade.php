@@ -9,6 +9,7 @@
 
 @php
     $period = 'tháng';
+    $managerBranchId = auth()->user()?->employee?->branch_id ?? 1;
 
     $items = [
         [
@@ -105,7 +106,12 @@
     $lowStockCount = count(array_filter($items, fn ($item) => $item['currentQty'] > 0 && $item['currentQty'] < $item['minQty']));
 @endphp
 
-<div class="inventory-page">
+<div
+    class="inventory-page"
+    id="managerInventoryPage"
+    data-kpi-url="{{ route('api.dashboard.manager.branches.inventory.materials.kpi', ['branchId' => $managerBranchId]) }}"
+    data-materials-url="{{ route('api.dashboard.manager.branches.inventory.materials.list', ['branchId' => $managerBranchId]) }}"
+>
 
     <x-global-control-panel
         title="Quản trị Danh mục Vật tư"
@@ -265,3 +271,7 @@
 </div>
 
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('assets/client/js/manager/inventory-management.js') }}?v={{ time() }}"></script>
+@endpush

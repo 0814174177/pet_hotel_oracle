@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Ceo;
 
 use App\Http\Controllers\Api\ApiController;
-use App\Http\Requests\ReportFilterRequest;
+use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Ceo\BranchNetworkRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 
@@ -14,37 +14,41 @@ class BranchController extends ApiController
     ) {
     }
 
-    public function activeCount(ReportFilterRequest $request): JsonResponse
+    public function activeCount(DateRangeFilterRequest $request): JsonResponse
     {
         return response()->json([
+            'success' => true,
             'data' => $this->branches->getActiveBranchCount($this->filters($request)),
         ]);
     }
 
-    public function highestRevenue(ReportFilterRequest $request): JsonResponse
+    public function highestRevenue(DateRangeFilterRequest $request): JsonResponse
     {
         return response()->json([
+            'success' => true,
             'data' => $this->branches->getHighestRevenueBranch($this->filters($request)),
         ]);
     }
 
-    public function lowestOccupancy(ReportFilterRequest $request): JsonResponse
+    public function lowestOccupancy(DateRangeFilterRequest $request): JsonResponse
     {
         return response()->json([
+            'success' => true,
             'data' => $this->branches->getLowestOccupancyBranch($this->filters($request)),
         ]);
     }
 
-    public function index(ReportFilterRequest $request): JsonResponse
+    public function index(DateRangeFilterRequest $request): JsonResponse
     {
         return response()->json([
+            'success' => true,
             'data' => $this->branches->getBranchNetworkList($this->filters($request)),
         ]);
     }
 
-    private function filters(ReportFilterRequest $request): array
+    private function filters(DateRangeFilterRequest $request): array
     {
-        return array_merge($request->reportFilters(), $request->validate([
+        return array_merge($request->getFiltersArray(), $request->validate([
             'region' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'string', 'max:50'],
             'min_revenue' => ['nullable', 'numeric', 'min:0'],

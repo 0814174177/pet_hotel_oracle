@@ -87,7 +87,14 @@
     ];
 @endphp
 
-<div class="branch-management-page">
+<div
+    class="branch-management-page"
+    id="ceoBranchPage"
+    data-active-count-url="{{ route('api.dashboard.ceo.branches.active-count') }}"
+    data-highest-revenue-url="{{ route('api.dashboard.ceo.branches.highest-revenue') }}"
+    data-lowest-occupancy-url="{{ route('api.dashboard.ceo.branches.lowest-occupancy') }}"
+    data-branches-url="{{ route('api.dashboard.ceo.branches.index') }}"
+>
 
     <x-global-control-panel
         title="Mạng lưới Chi nhánh"
@@ -217,3 +224,7 @@
 
 </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('assets/client/js/ceo/branch-management.js') }}?v={{ time() }}"></script>
+@endpush

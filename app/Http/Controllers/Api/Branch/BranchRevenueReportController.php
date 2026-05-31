@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Branch;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Branch\RevenueReportRequest;
+use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Branch\BranchRevenueReportRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 
@@ -14,72 +14,65 @@ class BranchRevenueReportController extends Controller
     ) {
     }
 
-    public function index(RevenueReportRequest $request, int|string $branchId): JsonResponse
+    public function index(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view this branch revenue report.
         return response()->json([
-            'data' => $this->branchRevenueReportRepository->getDashboard($branchId, $request->validated()),
+            'success' => true,
+            'data' => $this->branchRevenueReportRepository->getDashboard($branchId, $this->filters($request)),
         ]);
     }
 
-    public function targetProgress(RevenueReportRequest $request, int|string $branchId): JsonResponse
+    public function targetProgress(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view revenue target progress for this branch.
-        [$period, $startDate, $endDate] = $this->reportFilters($request);
-
         return response()->json([
-            'data' => $this->branchRevenueReportRepository->getTargetProgress($branchId, $period, $startDate, $endDate),
+            'success' => true,
+            'data' => $this->branchRevenueReportRepository->getTargetProgress($branchId, $this->filters($request)),
         ]);
     }
 
-    public function revenueComparison(RevenueReportRequest $request, int|string $branchId): JsonResponse
+    public function revenueComparison(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view revenue comparison data for this branch.
-        [$period, $startDate, $endDate] = $this->reportFilters($request);
-
         return response()->json([
-            'data' => $this->branchRevenueReportRepository->getRevenueComparison($branchId, $period, $startDate, $endDate),
+            'success' => true,
+            'data' => $this->branchRevenueReportRepository->getRevenueComparison($branchId, $this->filters($request)),
         ]);
     }
 
-    public function serviceMix(RevenueReportRequest $request, int|string $branchId): JsonResponse
+    public function serviceMix(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view service mix and AOV data for this branch.
-        [$period, $startDate, $endDate] = $this->reportFilters($request);
-
         return response()->json([
-            'data' => $this->branchRevenueReportRepository->getServiceMixAndAov($branchId, $period, $startDate, $endDate),
+            'success' => true,
+            'data' => $this->branchRevenueReportRepository->getServiceMixAndAov($branchId, $this->filters($request)),
         ]);
     }
 
-    public function employeePerformance(RevenueReportRequest $request, int|string $branchId): JsonResponse
+    public function employeePerformance(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view employee performance data for this branch.
-        [$period, $startDate, $endDate] = $this->reportFilters($request);
-
         return response()->json([
-            'data' => $this->branchRevenueReportRepository->getEmployeePerformance($branchId, $period, $startDate, $endDate),
+            'success' => true,
+            'data' => $this->branchRevenueReportRepository->getEmployeePerformance($branchId, $this->filters($request)),
         ]);
     }
 
-    public function customerRetention(RevenueReportRequest $request, int|string $branchId): JsonResponse
+    public function customerRetention(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view customer retention data for this branch.
-        [$period, $startDate, $endDate] = $this->reportFilters($request);
-
         return response()->json([
-            'data' => $this->branchRevenueReportRepository->getCustomerRetention($branchId, $period, $startDate, $endDate),
+            'success' => true,
+            'data' => $this->branchRevenueReportRepository->getCustomerRetention($branchId, $this->filters($request)),
         ]);
     }
 
-    private function reportFilters(RevenueReportRequest $request): array
+    private function filters(DateRangeFilterRequest $request): array
     {
-        $validated = $request->validated();
-
-        return [
-            (string) ($validated['period'] ?? 'month'),
-            $validated['start_date'] ?? $validated['date'] ?? null,
-            $validated['end_date'] ?? null,
-        ];
+        return array_merge($request->getFiltersArray(), $request->validate([
+            'period' => ['nullable', 'string', 'in:day,month,year'],
+            'date' => ['nullable', 'date'],
+        ]));
     }
 }

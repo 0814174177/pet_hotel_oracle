@@ -156,7 +156,11 @@
     }
 @endphp
 
-<div class="manager-branch-dashboard">
+<div
+    class="manager-branch-dashboard"
+    id="managerBranchDashboard"
+    data-overview-url="{{ route('api.dashboard.manager.overview') }}"
+>
 
     <x-global-control-panel
         title="Chi nhánh Quận 1"
@@ -412,3 +416,7 @@
 </div>
 
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('assets/client/js/manager/branch-dashboard.js') }}?v={{ time() }}"></script>
+@endpush

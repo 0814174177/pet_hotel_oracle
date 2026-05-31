@@ -10,18 +10,18 @@
 <div
     class="dashboard-overview-page"
     id="ceoDashboard"
-    data-current-occupancy-url="{{ route('api.ceo.dashboard.current-hotel-occupancy') }}"
-    data-occupancy-rate-url="{{ route('api.ceo.dashboard.occupancy-rate') }}"
-    data-revpar-url="{{ route('api.ceo.dashboard.revpar') }}"
-    data-customer-trend-url="{{ route('api.ceo.dashboard.customer-trend') }}"
-    data-total-revenue-url="{{ route('api.ceo.dashboard.total-revenue') }}"
-    data-estimated-cogs-url="{{ route('api.ceo.dashboard.estimated-cogs') }}"
-    data-revenue-mix-url="{{ route('api.ceo.dashboard.revenue-mix') }}"
-    data-revenue-cogs-trend-url="{{ route('api.ceo.dashboard.revenue-and-cogs-trend') }}"
-    data-branch-revenue-url="{{ route('api.ceo.dashboard.branch-revenue') }}"
-    data-branch-ranking-url="{{ route('api.ceo.dashboard.branch-ranking') }}"
-    data-top-used-services-url="{{ route('api.ceo.dashboard.top-used-services') }}"
-    data-risk-alerts-url="{{ route('api.ceo.dashboard.risk-alerts') }}"
+    data-current-occupancy-url="{{ route('api.dashboard.ceo.current-hotel-occupancy') }}"
+    data-occupancy-rate-url="{{ route('api.dashboard.ceo.occupancy-rate') }}"
+    data-revpar-url="{{ route('api.dashboard.ceo.revpar') }}"
+    data-customer-trend-url="{{ route('api.dashboard.ceo.customer-trend') }}"
+    data-total-revenue-url="{{ route('api.dashboard.ceo.revenue') }}"
+    data-estimated-cogs-url="{{ route('api.dashboard.ceo.estimated-cogs') }}"
+    data-revenue-mix-url="{{ route('api.dashboard.ceo.revenue-mix') }}"
+    data-revenue-cogs-trend-url="{{ route('api.dashboard.ceo.revenue-and-cogs-trend') }}"
+    data-branch-revenue-url="{{ route('api.dashboard.ceo.branch-revenue') }}"
+    data-branch-ranking-url="{{ route('api.dashboard.ceo.branch-ranking') }}"
+    data-top-used-services-url="{{ route('api.dashboard.ceo.top-used-services') }}"
+    data-risk-alerts-url="{{ route('api.dashboard.ceo.risk-alerts') }}"
 >
     <x-global-control-panel
         data-dashboard-controls
@@ -196,7 +196,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/client/js/hooks/api-hooks.js') }}"></script>
-    <script src="{{ asset('assets/client/js/hooks/ceo-dashboard-api-hook.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('assets/client/js/ceo/dashboard.js') }}?v={{ time() }}"></script>
+    <script src="{{ asset('assets/client/js/ceo/dashboard-overview.js') }}?v={{ time() }}"></script>
 @endpush

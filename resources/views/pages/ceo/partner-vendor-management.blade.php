@@ -147,7 +147,11 @@
     }
 @endphp
 
-<div class="partner-vendor-page">
+<div
+    class="partner-vendor-page"
+    id="ceoVendorPage"
+    data-vendors-url="{{ route('api.dashboard.ceo.vendors') }}"
+>
 
     <x-global-control-panel
         title="Quản trị Chuỗi cung ứng & Đối tác"
@@ -355,3 +359,7 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('assets/client/js/ceo/partner-vendor-management.js') }}?v={{ time() }}"></script>
+@endpush

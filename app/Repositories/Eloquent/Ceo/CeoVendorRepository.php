@@ -9,13 +9,6 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
 {
     public function getVendors(array $filters = []): array
     {
-        $this->resolvePeriodRange(
-            $filters['period_type'] ?? null,
-            $filters['date'] ?? null,
-            $filters['start_date'] ?? null,
-            $filters['end_date'] ?? null
-        );
-
         return [
             'message' => 'Danh sach doi tac/nha cung cap se duoc gan voi module supplier sau.',
             'products' => Product::orderBy('product_name')->limit(20)->get(),

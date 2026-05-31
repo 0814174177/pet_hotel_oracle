@@ -78,11 +78,24 @@
     }
 @endphp
 
-<div class="ceo-service-page">
+<div
+    class="ceo-service-page"
+    id="ceoServicePage"
+    data-summary-url="{{ route('api.dashboard.ceo.services.summary') }}"
+    data-highest-revenue-url="{{ route('api.dashboard.ceo.services.highest-revenue') }}"
+    data-lowest-revenue-url="{{ route('api.dashboard.ceo.services.lowest-revenue') }}"
+    data-catalog-url="{{ route('api.dashboard.ceo.services.index') }}"
+>
     <header class="ceo-service-header">
         <h1>Quản trị Danh mục Dịch vụ</h1>
         <p>Kiểm soát hiệu suất, biên lợi nhuận và độ phủ dịch vụ trên toàn chuỗi</p>
     </header>
+
+    <x-global-control-panel
+        title="Quáº£n trá»‹ Danh má»¥c Dá»‹ch vá»¥"
+        period="thÃ¡ng"
+        lastUpdate="14:58 - Cáº­p nháº­t thÃ nh cÃ´ng"
+    />
 
     <section class="ceo-service-stats">
         @foreach ($stats as $item)
@@ -208,3 +221,7 @@
     </section>
 </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('assets/client/js/ceo/service-management.js') }}?v={{ time() }}"></script>
+@endpush

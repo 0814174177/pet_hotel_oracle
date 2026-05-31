@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Ceo;
 
 use App\Http\Controllers\Api\ApiController;
-use App\Http\Requests\ReportFilterRequest;
+use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Ceo\CeoFinanceRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Throwable;
@@ -15,9 +15,9 @@ class FinanceController extends ApiController
     ) {
     }
 
-    public function index(ReportFilterRequest $request): JsonResponse
+    public function index(DateRangeFilterRequest $request): JsonResponse
     {
-        $filters = $request->reportFilters();
+        $filters = $request->getFiltersArray();
 
         try {
             return response()->json([

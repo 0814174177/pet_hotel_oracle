@@ -97,7 +97,7 @@ class LoginController extends WebController
     private function redirectPathFor(User $user): string
     {
         return match ($user->role) {
-            'ADMIN' => '/ceo/dashboard',
+            'ADMIN', 'CEO' => '/ceo/dashboard',
             'MANAGER', 'RECEPTIONIST', 'GROOMER' => '/manager/dashboard',
             default => '/', // Khách hàng (CUSTOMER)
         };

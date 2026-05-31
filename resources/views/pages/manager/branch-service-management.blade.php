@@ -10,6 +10,7 @@
 
 @php
     $branchName = 'Chi nhánh Quận 1';
+    $managerBranchId = auth()->user()?->employee?->branch_id ?? 1;
 
     $stats = [
         [
@@ -76,7 +77,13 @@
     }
 @endphp
 
-<div class="branch-service-page">
+<div
+    class="branch-service-page"
+    id="managerBranchServicePage"
+    data-overview-url="{{ route('api.dashboard.manager.branches.services.management.index', ['branchId' => $managerBranchId]) }}"
+    data-kpi-url="{{ route('api.dashboard.manager.branches.services.management.kpi', ['branchId' => $managerBranchId]) }}"
+    data-services-url="{{ route('api.dashboard.manager.branches.services.index', ['branchId' => $managerBranchId]) }}"
+>
 
     <x-global-control-panel
         :title="$branchName"
@@ -203,3 +210,7 @@
 </div>
 
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('assets/client/js/manager/branch-service-management.js') }}?v={{ time() }}"></script>
+@endpush

@@ -21,12 +21,8 @@ class BranchInventoryMaterialRepository implements BranchInventoryMaterialReposi
     /**
      * Get inventory material KPI cards for the selected branch and period.
      */
-    public function getKpiCards(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getKpiCards(int|string $branchId, array $filters = []): array
+    {
         // TODO: Load total materials, out-of-stock materials, low-stock materials, inventory capital value, and previous-period comparison when needed.
         return [];
     }
@@ -34,12 +30,8 @@ class BranchInventoryMaterialRepository implements BranchInventoryMaterialReposi
     /**
      * Get total material type count for the selected branch and period.
      */
-    public function getTotalMaterialCount(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getTotalMaterialCount(int|string $branchId, array $filters = []): array
+    {
         // TODO: Count total material types managed by the selected branch and define period behavior when needed.
         return [];
     }
@@ -47,12 +39,8 @@ class BranchInventoryMaterialRepository implements BranchInventoryMaterialReposi
     /**
      * Get out-of-stock material count for the selected branch and period.
      */
-    public function getOutOfStockCount(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getOutOfStockCount(int|string $branchId, array $filters = []): array
+    {
         // TODO: Count materials with zero stock for the selected branch only.
         return [];
     }
@@ -60,12 +48,8 @@ class BranchInventoryMaterialRepository implements BranchInventoryMaterialReposi
     /**
      * Get low-stock material count for the selected branch and period.
      */
-    public function getLowStockCount(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getLowStockCount(int|string $branchId, array $filters = []): array
+    {
         // TODO: Count materials at or below the warning threshold, with forecast logic added later if required.
         return [];
     }
@@ -73,12 +57,8 @@ class BranchInventoryMaterialRepository implements BranchInventoryMaterialReposi
     /**
      * Get inventory capital value for the selected branch and period.
      */
-    public function getInventoryCapitalValue(
-        int|string $branchId,
-        string $period,
-        ?string $startDate = null,
-        ?string $endDate = null
-    ): array {
+    public function getInventoryCapitalValue(int|string $branchId, array $filters = []): array
+    {
         // TODO: Calculate inventory capital value using current_stock multiplied by cost_price for materials in this branch.
         return [];
     }
@@ -144,7 +124,7 @@ class BranchInventoryMaterialRepository implements BranchInventoryMaterialReposi
     /**
      * Resolve a report period into a date range.
      */
-    public function resolvePeriodRange(string $period, ?string $startDate = null, ?string $endDate = null): array
+    public function resolvePeriodRange(array $filters = []): array
     {
         // TODO: Normalize day, month, or year into start_date and end_date using Carbon when real logic is implemented.
         return [];

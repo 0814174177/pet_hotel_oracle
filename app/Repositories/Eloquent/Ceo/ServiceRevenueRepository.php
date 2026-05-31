@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Service;
 use App\Repositories\Contracts\Ceo\ServiceRevenueRepositoryInterface;
 use Carbon\CarbonImmutable;
+use DateTimeInterface;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -40,8 +41,10 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
         'status',
     ];
 
-    public function getServiceSummary(array $filters): array
+    public function getServiceSummary(array $filters = []): array
     {
+        [$startDate, $endDate] = $this->dateRange($filters);
+
         $sql = <<<'SQL'
             WITH report_params AS (
                 SELECT
@@ -165,8 +168,8 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
             SQL;
 
         $rows = collect(DB::select($sql, [
-            'p_start_date' => $filters['start_date'],
-            'p_end_date' => $filters['end_date'],
+            'p_start_date' => $startDate,
+            'p_end_date' => $endDate,
         ]));
 
         $currentRow = $rows->first(
@@ -183,8 +186,8 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
         return [
             'period' => [
                 'current' => [
-                    'start_date' => (string) ($this->rowValue($currentRow, 'period_start_date') ?? $filters['start_date']),
-                    'end_date' => (string) ($this->rowValue($currentRow, 'period_end_date') ?? $filters['end_date']),
+                    'start_date' => (string) ($this->rowValue($currentRow, 'period_start_date') ?? $startDate),
+                    'end_date' => (string) ($this->rowValue($currentRow, 'period_end_date') ?? $endDate),
                 ],
                 'comparison' => [
                     'type' => 'previous_month',
@@ -246,7 +249,7 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
         return $service ? $this->kpiPayload($service) : null;
     }
 
-    public function getNoActivityServices(array $filters): array
+    public function getNoActivityServices(array $filters = []): array
     {
         [$startDate, $endDate] = $this->dateRange($filters);
 
@@ -276,7 +279,7 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
         ]));
     }
 
-    public function getMostProfitableService(array $filters): ?array
+    public function getMostProfitableService(array $filters = []): ?array
     {
         $service = Service::query()
             ->where('is_active', self::ACTIVE_VALUE)
@@ -305,18 +308,11 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
 
     public function getServiceRevenueList(array $filters = []): array
     {
-        $this->resolvePeriodRange(
-            $filters['period_type'] ?? $filters['period'] ?? null,
-            $filters['date'] ?? null,
-            $filters['start_date'] ?? null,
-            $filters['end_date'] ?? null
-        );
-
         $usePayments = $this->hasSuccessfulPayments();
-        $revenueByService = $this->revenueByService($usePayments);
-        $servedCount30Days = $this->servedCountByServiceLast30Days($usePayments);
+        $revenueByService = $this->revenueByService($usePayments, $filters);
+        $servedCount30Days = $this->servedCountByServiceLast30Days($usePayments, $filters);
         $activeBranchCount = $this->activeBranchCount();
-        $coverageBranchCount = $this->coverageBranchCountByService($usePayments);
+        $coverageBranchCount = $this->coverageBranchCountByService($usePayments, $filters);
         $totalRevenue = (float) $revenueByService->sum();
 
         $services = Service::query()
@@ -372,9 +368,9 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
         ];
     }
 
-    private function revenueByService(bool $usePayments): Collection
+    private function revenueByService(bool $usePayments, array $filters = []): Collection
     {
-        return $this->serviceTransactionQuery($usePayments)
+        return $this->serviceTransactionQuery($usePayments, $filters)
             ->select([
                 'booking_service_pet.service_id',
                 DB::raw('SUM(order_details.line_total) AS revenue'),
@@ -386,10 +382,15 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
             ]);
     }
 
-    private function servedCountByServiceLast30Days(bool $usePayments): Collection
+    private function servedCountByServiceLast30Days(bool $usePayments, array $filters = []): Collection
     {
-        return $this->serviceTransactionQuery($usePayments)
-            ->where('booking_service_pet.scheduled_at', '>=', now()->subDays(30))
+        $query = $this->serviceTransactionQuery($usePayments, $filters);
+
+        if (empty($filters['start_date']) && empty($filters['end_date'])) {
+            $query->where('booking_service_pet.scheduled_at', '>=', now()->subDays(30));
+        }
+
+        return $query
             ->select([
                 'booking_service_pet.service_id',
                 DB::raw('SUM(order_details.quantity) AS served_count'),
@@ -401,9 +402,9 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
             ]);
     }
 
-    private function coverageBranchCountByService(bool $usePayments): Collection
+    private function coverageBranchCountByService(bool $usePayments, array $filters = []): Collection
     {
-        return $this->serviceTransactionQuery($usePayments)
+        return $this->serviceTransactionQuery($usePayments, $filters)
             ->join('branch', 'orders.branch_id', '=', 'branch.branch_id')
             ->where('branch.is_active', self::ACTIVE_VALUE)
             ->select([
@@ -417,7 +418,7 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
             ]);
     }
 
-    private function serviceTransactionQuery(bool $usePayments): Builder
+    private function serviceTransactionQuery(bool $usePayments, array $filters = []): Builder
     {
         $query = DB::table('order_details')
             ->join('orders', 'order_details.order_id', '=', 'orders.order_id')
@@ -440,6 +441,8 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
                 ->whereIn('payments.status', self::PAID_PAYMENT_STATUSES)
                 ->whereNotNull('payments.paid_at');
         }
+
+        $this->applyDateFilters($query, $usePayments ? 'payments.paid_at' : 'orders.paid_at', $filters);
 
         return $query;
     }
@@ -585,11 +588,9 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
 
     private function dateRange(array $filters): array
     {
-        $today = CarbonImmutable::today(config('app.timezone'));
-
         return [
-            (string) ($filters['start_date'] ?? $today->startOfMonth()->toDateString()),
-            (string) ($filters['end_date'] ?? $today->endOfMonth()->toDateString()),
+            $this->dateValue($filters['start_date'] ?? null, '1900-01-01'),
+            $this->dateValue($filters['end_date'] ?? null, CarbonImmutable::today(config('app.timezone'))->toDateString()),
         ];
     }
 
@@ -600,5 +601,29 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
         }
 
         return $row->{$key} ?? $row->{strtoupper($key)} ?? null;
+    }
+
+    private function applyDateFilters(Builder $query, string $column, array $filters): void
+    {
+        if (! empty($filters['start_date'])) {
+            $query->where($column, '>=', $filters['start_date']);
+        }
+
+        if (! empty($filters['end_date'])) {
+            $query->where($column, '<=', $filters['end_date']);
+        }
+    }
+
+    private function dateValue(mixed $value, string $fallback): string
+    {
+        if ($value instanceof DateTimeInterface) {
+            return $value->format('Y-m-d');
+        }
+
+        if (filled($value)) {
+            return substr((string) $value, 0, 10);
+        }
+
+        return $fallback;
     }
 }

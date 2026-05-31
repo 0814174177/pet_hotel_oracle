@@ -109,7 +109,9 @@ body {
     text-decoration: none;
     font-size: 14px;
     font-weight: 700;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
 }
 
 .ceo-sidebar-link:hover {
@@ -204,4 +206,59 @@ body {
         justify-content: center;
         padding: 0;
     }
+}
+/* Sắp xếp lại bố cục Footer */
+.ceo-sidebar-footer {
+    display: flex;
+    flex-direction: column; /* Đặt thông tin user và nút theo chiều dọc */
+    gap: 15px;
+    padding: 20px;
+    border-top: 1px solid #e2e8f0; /* Đường viền phân cách với menu */
+}
+
+.ceo-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Thiết kế Form & Nút Đăng xuất */
+.ceo-logout-form {
+    margin-bottom: 40px;
+    margin-right: 20 px;
+    margin-left: 20px;
+    width: 100%;
+}
+
+.ceo-logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 80%;
+    padding: 10px 15px;
+    background-color: #ef4444; /* Đỏ tiêu chuẩn */
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease-in-out,
+        transform 0.1s ease;
+}
+
+.ceo-logout-btn:hover {
+    background-color: #dc2626; /* Đỏ sậm hơn khi hover */
+}
+
+.ceo-logout-btn:active {
+    transform: scale(0.98); /* Hiệu ứng nhấn */
+}
+
+.ceo-logout-icon {
+    font-size: 16px;
 }

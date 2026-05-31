@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Ceo;
 
 use App\Http\Controllers\Api\ApiController;
-use App\Http\Requests\ReportFilterRequest;
+use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Ceo\ServiceRevenueRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 
@@ -14,9 +14,9 @@ class ServiceAnalyticsController extends ApiController
     ) {
     }
 
-    public function kpi(ReportFilterRequest $request): JsonResponse
+    public function kpi(DateRangeFilterRequest $request): JsonResponse
     {
-        $filters = $request->reportFilters();
+        $filters = $request->getFiltersArray();
 
         $services = collect($this->serviceRevenues->getServiceRevenueList($filters));
 
@@ -31,9 +31,9 @@ class ServiceAnalyticsController extends ApiController
         ]);
     }
 
-    public function index(ReportFilterRequest $request): JsonResponse
+    public function index(DateRangeFilterRequest $request): JsonResponse
     {
-        $filters = array_merge($request->reportFilters(), $request->validate([
+        $filters = array_merge($request->getFiltersArray(), $request->validate([
             'service_status' => ['nullable', 'string', 'max:50'],
             'sort_by' => ['nullable', 'string'],
             'sort_dir' => ['nullable', 'string', 'in:asc,desc,ASC,DESC'],

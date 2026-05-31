@@ -5,6 +5,7 @@ namespace App\Repositories\Eloquent\Ceo;
 use App\Models\Branch;
 use App\Models\Employee;
 use App\Repositories\Contracts\Ceo\BranchNetworkRepositoryInterface;
+use DateTimeInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -105,7 +106,7 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
 
     public function getBranchNetworkList(array $filters = []): array
     {
-        $revenues = $this->revenueByBranch();
+        $revenues = $this->revenueByBranch($filters);
 
         $branches = Branch::query()
             ->with([
@@ -132,25 +133,29 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
             ->all();
     }
 
-    private function revenueByBranch(): Collection
+    private function revenueByBranch(array $filters = []): Collection
     {
         try {
             // Payments are canonical revenue; paid orders are only a fallback for demo DBs without successful payments.
             if (Schema::hasTable('payments') && DB::table('payments')->whereIn('status', self::PAID_PAYMENT_STATUSES)->exists()) {
-                return $this->paymentRevenueByBranch();
+                return $this->paymentRevenueByBranch($filters);
             }
         } catch (Throwable) {
-            return $this->orderRevenueByBranch();
+            return $this->orderRevenueByBranch($filters);
         }
 
-        return $this->orderRevenueByBranch();
+        return $this->orderRevenueByBranch($filters);
     }
 
-    private function paymentRevenueByBranch(): Collection
+    private function paymentRevenueByBranch(array $filters = []): Collection
     {
-        return DB::table('payments')
+        $query = DB::table('payments')
             ->join('orders', 'payments.order_id', '=', 'orders.order_id')
-            ->whereIn('payments.status', self::PAID_PAYMENT_STATUSES)
+            ->whereIn('payments.status', self::PAID_PAYMENT_STATUSES);
+
+        $this->applyDateFilters($query, 'payments.paid_at', $filters);
+
+        return $query
             ->select([
                 'orders.branch_id as branch_id',
                 DB::raw('SUM(payments.amount) AS revenue'),
@@ -162,7 +167,7 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
             ]);
     }
 
-    private function orderRevenueByBranch(): Collection
+    private function orderRevenueByBranch(array $filters = []): Collection
     {
         try {
             if (! Schema::hasTable('orders')) {
@@ -172,9 +177,13 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
             return collect();
         }
 
-        return DB::table('orders')
+        $query = DB::table('orders')
             ->whereIn('status', self::PAID_ORDER_STATUSES)
-            ->whereNotNull('paid_at')
+            ->whereNotNull('paid_at');
+
+        $this->applyDateFilters($query, 'paid_at', $filters);
+
+        return $query
             ->select([
                 'branch_id',
                 DB::raw('SUM(grand_total) AS revenue'),
@@ -341,5 +350,21 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
     private function rowValue(object $row, string $key): mixed
     {
         return $row->{$key} ?? $row->{strtoupper($key)} ?? null;
+    }
+
+    private function applyDateFilters($query, string $column, array $filters): void
+    {
+        if (! empty($filters['start_date'])) {
+            $query->where($column, '>=', $this->dateValue($filters['start_date']));
+        }
+
+        if (! empty($filters['end_date'])) {
+            $query->where($column, '<=', $this->dateValue($filters['end_date']));
+        }
+    }
+
+    private function dateValue(mixed $value): mixed
+    {
+        return $value instanceof DateTimeInterface ? $value : (string) $value;
     }
 }
