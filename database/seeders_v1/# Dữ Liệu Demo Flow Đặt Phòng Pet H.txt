@@ -1,0 +1,332 @@
+# Dữ Liệu Demo Flow Đặt Phòng Pet Hotel
+
+Tài liệu này mô tả bộ dữ liệu mẫu dùng để quay video demo flow đặt phòng cho Laravel Pet Hotel Web trên Oracle. Web hiện tại là source of truth; `database_mau` chỉ dùng để đối chiếu nghiệp vụ, không áp dụng máy móc vào migration/model.
+
+## 1. Cách chạy
+
+Chạy riêng seeder demo:
+
+```bash
+php artisan config:clear
+php artisan cache:clear
+php artisan migrate:fresh
+php artisan db:seed --class=DemoBookingFlowSeeder
+php artisan serve
+```
+
+Nếu chạy trên Windows với PHP Laragon và cấu hình Oracle client cục bộ:
+
+```powershell
+$env:TNS_ADMIN="D:\Web_Pethotel_UTD\pet_hotel_QQ\database\oracle\network\admin"
+D:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe artisan migrate:fresh
+D:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe artisan db:seed --class=DemoBookingFlowSeeder
+D:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe artisan serve
+```
+
+`DemoBookingFlowSeeder` không gọi mặc định trong `DatabaseSeeder`, để có thể bật/tắt riêng cho video demo.
+
+## 2. Tài khoản demo
+
+Mật khẩu chung:
+
+```text
+password123
+```
+
+| Email | Role | Mục đích |
+|---|---|---|
+| `admin.demo@pethotel.test` | ADMIN | Dashboard/quản lý |
+| `manager.central@pethotel.test` | MANAGER | Quản lý chi nhánh Gò Vấp |
+| `manager.north@pethotel.test` | MANAGER | Quản lý chi nhánh Quận 1 |
+| `manager.east@pethotel.test` | MANAGER | Quản lý chi nhánh Quận 7 |
+| `manager.west@pethotel.test` | MANAGER | Quản lý chi nhánh Thủ Đức |
+| `inventory.demo@pethotel.test` | MANAGER | Tồn kho và vật tư |
+| `groomer.central@pethotel.test` | GROOMER | Dịch vụ tại Gò Vấp |
+| `groomer.north@pethotel.test` | GROOMER | Dịch vụ tại Quận 1 |
+| `groomer.east@pethotel.test` | GROOMER | Dịch vụ tại Quận 7 |
+| `groomer.west@pethotel.test` | GROOMER | Dịch vụ tại Thủ Đức |
+| `customer.small@pethotel.test` | CUSTOMER | Nguyễn Minh Anh, booking 2 thú cưng nhỏ |
+| `customer.medium@pethotel.test` | CUSTOMER | Trần Gia Huy, booking chó cỡ vừa |
+| `customer.large@pethotel.test` | CUSTOMER | Lê Hoàng Nam, lịch sử đã thanh toán |
+| `customer.capacity@pethotel.test` | CUSTOMER | Phạm Thu Trang, booking phụ để làm đầy phòng |
+| `customer.north@pethotel.test` | CUSTOMER | Võ Khánh Linh, booking nhẹ tại Quận 1 |
+| `customer.east@pethotel.test` | CUSTOMER | Đặng Quốc Bảo, booking tại Quận 7 |
+
+Ghi chú login:
+
+- Tất cả tài khoản trong bảng trên dùng trang web `/authentication/login`.
+- Các tài khoản CUSTOMER đều có record trong bảng `customer` và liên kết bằng `customer.user_id -> users.id`.
+- API `/api/auth/login` là API dành cho customer, nên chỉ dùng cho `customer.small@pethotel.test`, `customer.medium@pethotel.test`, `customer.large@pethotel.test` và các tài khoản CUSTOMER khác.
+- `admin.demo@pethotel.test` là tài khoản dashboard web, login qua `/authentication/login` và được chuyển tới `/ceo/dashboard`; không dùng endpoint customer API.
+
+## 3. Chi nhánh
+
+| Chi nhánh | Điện thoại | Email | Địa chỉ | Ghi chú demo |
+|---|---|---|---|---|
+| Pet Hotel Gò Vấp | 0909000100 | `govap.demo@pethotel.test` | 321 Phan Văn Trị, Gò Vấp, TP.HCM | Flow chính, phòng tiêu chuẩn full ngày 26-27 |
+| Pet Hotel Quận 1 | 0909000101 | `quan1.demo@pethotel.test` | 123 Nguyễn Huệ, Quận 1, TP.HCM | Có đủ phòng, tồn kho cao, có booking nhẹ |
+| Pet Hotel Quận 7 | 0909000102 | `quan7.demo@pethotel.test` | 789 Nguyễn Thị Thập, Quận 7, TP.HCM | Có phòng cao cấp gần hết, tồn kho trung bình |
+| Pet Hotel Thủ Đức | 0909000103 | `thuduc.demo@pethotel.test` | 456 Võ Văn Ngân, TP. Thủ Đức, TP.HCM | Có phòng bảo trì và booking completed/paid |
+
+Mapping nội bộ trong seeder:
+
+| Key nội bộ | Tên hiển thị |
+|---|---|
+| `central` | Pet Hotel Gò Vấp |
+| `north` | Pet Hotel Quận 1 |
+| `east` | Pet Hotel Quận 7 |
+| `west` | Pet Hotel Thủ Đức |
+
+## 4. Loại phòng và phòng
+
+Seeder tạo 3 loại phòng:
+
+| Loại phòng | Max slot | Cân nặng | Giá/ngày | Mục đích |
+|---|---:|---|---:|---|
+| Phòng nhỏ | 2 | 0-10kg | 120.000đ | Milo và Bella có thể ở chung |
+| Phòng tiêu chuẩn | 1 | 10-25kg | 180.000đ | Lucky/Coco |
+| Phòng cao cấp | 1 | 25-50kg | 300.000đ | Max/Rocky |
+
+Mỗi chi nhánh có ít nhất 2 phòng `AVAILABLE` cho mỗi loại phòng:
+
+| Chi nhánh | Phòng nhỏ | Phòng tiêu chuẩn | Phòng cao cấp | Phòng đặc biệt |
+|---|---|---|---|---|
+| Gò Vấp | GV-S101, GV-S102 | GV-M201, GV-M202 | GV-L301, GV-L302 | Phòng tiêu chuẩn full theo lịch ngày 26-27 |
+| Quận 1 | Q1-S101, Q1-S102 | Q1-M201, Q1-M202 | Q1-L301, Q1-L302 | Đủ phòng để demo chi nhánh còn trống |
+| Quận 7 | Q7-S101, Q7-S102 | Q7-M201, Q7-M202 | Q7-L301, Q7-L302 | Q7-L303 `MAINTENANCE` |
+| Thủ Đức | TD-S101, TD-S102 | TD-M201, TD-M202 | TD-L301, TD-L302 | TD-M203 `MAINTENANCE` |
+
+Tổng sau seed: 26 phòng, gồm 24 phòng nền `AVAILABLE` và 2 phòng `MAINTENANCE`.
+
+## 5. Thú cưng demo
+
+| Thú cưng | Chủ | Species | Giống | Giới tính | Cân nặng | Ghi chú |
+|---|---|---|---|---|---:|---|
+| Milo | Nguyễn Minh Anh | DOG | Poodle | MALE | 5kg | Chó nhỏ, hiền, dễ chăm sóc |
+| Bella | Nguyễn Minh Anh | DOG | Corgi | FEMALE | 8kg | Chó nhỏ, cần ở cùng Milo trong cùng một lần booking |
+| Lucky | Trần Gia Huy | DOG | Shiba Inu | FEMALE | 15kg | Chó cỡ vừa, cần tắm và kiểm tra sức khỏe cơ bản |
+| Max | Lê Hoàng Nam | DOG | Golden Retriever | MALE | 30kg | Chó lớn, cần phòng rộng và grooming toàn diện |
+| Coco | Phạm Thu Trang | DOG | Border Collie | FEMALE | 18kg | Booking phụ để làm đầy Phòng tiêu chuẩn tại Gò Vấp |
+| Nori | Võ Khánh Linh | DOG | Pomeranian | FEMALE | 6kg | Booking nhẹ tại chi nhánh Quận 1 |
+| Rocky | Đặng Quốc Bảo | DOG | Labrador | MALE | 28kg | Demo phòng cao cấp gần hết tại Quận 7 |
+
+## 6. Kịch bản ngày 26-27 và 26-28
+
+Ngày demo cố định:
+
+| Mốc | Giá trị |
+|---|---|
+| Ngày 26 | 2026-05-26 |
+| Ngày 27 | 2026-05-27 |
+| Ngày 28 | 2026-05-28 |
+
+Phòng tiêu chuẩn tại Pet Hotel Gò Vấp bị full ngày 26-27:
+
+| Booking | Khách hàng | Thú cưng | Phòng | Thời gian | Trạng thái |
+|---|---|---|---|---|---|
+| Account 2 | Trần Gia Huy | Lucky | GV-M201 | 2026-05-26 10:00 đến 2026-05-28 12:00 | CONFIRMED |
+| Booking phụ | Phạm Thu Trang | Coco | GV-M202 | 2026-05-26 08:00 đến 2026-05-27 12:00 | CONFIRMED |
+
+Kết quả: Pet Hotel Gò Vấp có tổng 2 phòng tiêu chuẩn và cả 2 phòng đều có active booking trong ngày 26-27. Khi demo tìm Phòng tiêu chuẩn tại Gò Vấp trong khoảng này, lịch sẽ thể hiện không còn phòng cho ngày 26-27.
+
+## 7. Dịch vụ
+
+| Dịch vụ | Species | Giá | Thời lượng | Nhóm dịch vụ | Mô tả |
+|---|---|---:|---:|---|---|
+| Tắm thú cưng | DOG | Theo cân nặng | 45 phút | Tắm thú cưng | Dịch vụ tắm được tính giá theo cân nặng của thú cưng |
+| Grooming toàn diện | DOG | 450.000đ | 90 phút | Chăm sóc lông | Tắm, sấy, cắt tỉa lông, vệ sinh tai và chăm sóc tổng thể |
+| Kiểm tra sức khỏe cơ bản | DOG | 120.000đ | 20 phút | Kiểm tra sức khỏe | Kiểm tra tình trạng sức khỏe cơ bản của thú cưng |
+| Cắt móng | DOG | 60.000đ | 15 phút | Dịch vụ bổ sung | Cắt móng và vệ sinh móng cho thú cưng |
+
+Tất cả dịch vụ có `is_active = 1` và dùng đúng các cột hiện có của migration `services`: `service_category_id`, `service_name`, `species`, `description_sv`, `base_price`, `duration_minutes`, `is_active`. Không còn tách 3 dịch vụ `Tắm chó nhỏ`, `Tắm chó vừa`, `Tắm chó lớn`; seeder chỉ tạo một dịch vụ `Tắm thú cưng`.
+
+Bảng giá tắm demo được tính trong seeder theo `pet.weight_kg`, không thêm bảng mới:
+
+| Cân nặng thú cưng | Giá tắm |
+|---|---:|
+| Dưới 10kg | 100.000đ |
+| Từ 10kg đến dưới 20kg | 150.000đ |
+| Từ 20kg đến dưới 30kg | 220.000đ |
+| Từ 30kg trở lên | 300.000đ |
+
+Ví dụ: Milo 5kg và Bella 8kg giá 100.000đ; Lucky 15kg giá 150.000đ; Rocky 28kg giá 220.000đ; Max 30kg giá 300.000đ.
+
+## 8. Sản phẩm, tồn kho và định mức vật tư
+
+Nhóm sản phẩm:
+
+| Nhóm | Sản phẩm |
+|---|---|
+| Sữa tắm | Sữa tắm cho chó, Dầu xả lông |
+| Vật tư vệ sinh | Khăn vệ sinh |
+| Vật tư chăm sóc lông | Dung dịch vệ sinh tai, Vật tư cắt móng |
+| Vật tư y tế | Găng tay kiểm tra sức khỏe |
+
+Product demo:
+
+| Sản phẩm | Đơn vị | Giá nhập demo | Dùng cho |
+|---|---|---:|---|
+| Sữa tắm cho chó | ML | 500đ | Tắm/Grooming |
+| Dầu xả lông | ML | 600đ | Tắm/Grooming |
+| Khăn vệ sinh | G | 50đ | Tắm/Grooming |
+| Dung dịch vệ sinh tai | ML | 1.000đ | Grooming/Kiểm tra sức khỏe |
+| Vật tư cắt móng | G | 2.000đ | Grooming/Cắt móng |
+| Găng tay kiểm tra sức khỏe | G | 100đ | Kiểm tra sức khỏe cơ bản |
+
+Tồn kho ban đầu theo chi nhánh, trước khi các service `DONE` trong seeder được mô phỏng trừ kho:
+
+| Chi nhánh | Sữa tắm | Dầu xả | Khăn | Vệ sinh tai | Cắt móng | Găng tay |
+|---|---:|---:|---:|---:|---:|---:|
+| Gò Vấp | 5000 | 3000 | 10000 | 2000 | 2000 | 5000 |
+| Quận 1 | 6500 | 4200 | 12000 | 2400 | 2600 | 7000 |
+| Quận 7 | 4200 | 2600 | 8500 | 1500 | 1400 | 4200 |
+| Thủ Đức | 3800 | 2400 | 7000 | 1200 | 900 | 3500 |
+
+Định mức trong `service_product_detail`:
+
+| Dịch vụ | Vật tư | Amount | Đơn vị ghi trong notes |
+|---|---|---:|---|
+| Tắm thú cưng | Sữa tắm cho chó | 100 | ML trung bình |
+| Tắm thú cưng | Dầu xả lông | 40 | ML trung bình |
+| Tắm thú cưng | Khăn vệ sinh | 200 | G trung bình |
+| Grooming toàn diện | Sữa tắm cho chó | 200 | ML |
+| Grooming toàn diện | Dầu xả lông | 100 | ML |
+| Grooming toàn diện | Dung dịch vệ sinh tai | 20 | ML |
+| Grooming toàn diện | Vật tư cắt móng | 50 | G |
+| Grooming toàn diện | Khăn vệ sinh | 400 | G |
+| Kiểm tra sức khỏe cơ bản | Găng tay kiểm tra sức khỏe | 50 | G |
+| Kiểm tra sức khỏe cơ bản | Dung dịch vệ sinh tai | 10 | ML |
+| Cắt móng | Vật tư cắt móng | 30 | G |
+
+Bảng hiện tại chưa có `usage_unit`, `min_weight_kg`, `max_weight_kg`; seeder ghi đơn vị vào `notes`, không tự thêm cột mới. Riêng mô phỏng trừ kho cho `Tắm thú cưng` dùng `pet.weight_kg` để chọn định mức thật theo cân nặng.
+
+## 9. Mô phỏng trừ kho
+
+Trigger/procedure trừ kho Oracle chưa được bật trong giai đoạn demo này. Seeder đang mô phỏng trừ kho bằng method nội bộ `applyInventoryUsage()`:
+
+- Chỉ trừ kho khi `booking_service_pet.status = DONE`.
+- Đọc định mức từ `service_product_detail`.
+- Trừ vào `branch_inventory.quantity_in_stock` theo `branch_id + product_id`.
+- Cập nhật `last_updated`.
+- Không cho tồn kho âm.
+- Không trừ kho cho service `PENDING` hoặc `SCHEDULED`.
+
+Tồn kho sau khi seed và sau khi mô phỏng trừ kho:
+
+| Chi nhánh | Ghi chú |
+|---|---|
+| Gò Vấp | Đã trừ 2 dịch vụ Tắm thú cưng cho Milo/Bella, 1 Tắm thú cưng cho Lucky, 1 Kiểm tra sức khỏe cơ bản |
+| Quận 7 | Đã trừ 1 dịch vụ Tắm thú cưng cho Rocky 28kg |
+| Thủ Đức | Đã trừ 1 Tắm thú cưng cho Max 30kg và 1 Grooming toàn diện |
+| Quận 1 | Chưa trừ kho vì dịch vụ đang `SCHEDULED` |
+
+Pet Hotel Gò Vấp sau trừ kho:
+
+| Sản phẩm | Số lượng còn lại |
+|---|---:|
+| Sữa tắm cho chó | 4800 |
+| Dầu xả lông | 2920 |
+| Khăn vệ sinh | 9600 |
+| Dung dịch vệ sinh tai | 1990 |
+| Vật tư cắt móng | 2000 |
+| Găng tay kiểm tra sức khỏe | 4950 |
+
+## 10. Booking, order, mã giảm giá và payment
+
+| Case | Khách hàng | Thú cưng | Chi nhánh/Phòng | Ngày | Booking | Order | Payment | Coupon |
+|---|---|---|---|---|---|---|---|---|
+| Account 1 | Nguyễn Minh Anh | Milo, Bella | Gò Vấp GV-S101 | 26-27 | CONFIRMED | PENDING | PENDING 342.000đ | DEMO10 |
+| Account 2 | Trần Gia Huy | Lucky | Gò Vấp GV-M201 | 26-28 | CONFIRMED | PARTIAL | SUCCESS 300.000đ | DEMO10 |
+| Booking phụ | Phạm Thu Trang | Coco | Gò Vấp GV-M202 | 26-27 | CONFIRMED | PENDING | PENDING 330.000đ | Không |
+| Account 3 | Lê Hoàng Nam | Max | Thủ Đức TD-L301 | 21-23 | COMPLETED | COMPLETED | SUCCESS 1.215.000đ | DEMO10 |
+| Quận 1 | Võ Khánh Linh | Nori | Quận 1 Q1-S101 | 26-27 | CONFIRMED | PENDING | PENDING 180.000đ | Không |
+| Quận 7 | Đặng Quốc Bảo | Rocky | Quận 7 Q7-L301 | 26-27 | CONFIRMED | PENDING | PENDING 520.000đ | Không |
+
+Coupon `DEMO10`:
+
+- Type: PERCENT.
+- Value: 10.
+- Áp dụng cho account 1, account 2, account 3.
+- `used_count = 3`.
+- `booking_coupon_log` có 3 dòng.
+
+Order details:
+
+- Mỗi order có 1 dòng tiền phòng gắn `booking_room_id`.
+- Mỗi service có 1 dòng tiền dịch vụ gắn `booking_service_pet_id`.
+- `line_total = quantity * unit_price`.
+
+## 11. Kịch bản quay video
+
+### Kịch bản A: Nguyễn Minh Anh đặt phòng cho 2 thú cưng ngày 26-27
+
+1. Login `customer.small@pethotel.test` / `password123`.
+2. Xem pet Milo 5kg và Bella 8kg.
+3. Mở lịch sử booking, xem booking tại Pet Hotel Gò Vấp, phòng GV-S101, ngày 2026-05-26 đến 2026-05-27.
+4. Giải thích `Phòng nhỏ` có `max_slot = 2`, nên 2 thú cưng nhỏ có thể ở chung 1 phòng.
+5. Xem order có tiền phòng, `Tắm thú cưng - Milo 5kg`, `Tắm thú cưng - Bella 8kg`, Cắt móng cho Bella.
+6. Giải thích DEMO10 giảm 10%, payment vẫn `PENDING`.
+
+### Kịch bản B: Trần Gia Huy và phòng tiêu chuẩn Gò Vấp full ngày 26-27
+
+1. Login `customer.medium@pethotel.test` / `password123`.
+2. Xem pet Lucky 15kg.
+3. Xem booking tại Pet Hotel Gò Vấp, phòng GV-M201, từ 2026-05-26 đến 2026-05-28.
+4. Giải thích Phòng tiêu chuẩn tại Gò Vấp bị full ngày 26-27 vì GV-M201 và GV-M202 đều có active booking.
+5. Xem order `PARTIAL`, payment `SUCCESS` một phần 300.000đ.
+6. Giải thích Tắm thú cưng của Lucky 15kg giá 150.000đ và Kiểm tra sức khỏe cơ bản đã `DONE`, nên tồn kho Gò Vấp đã bị trừ.
+
+### Kịch bản C: Lê Hoàng Nam, completed và paid
+
+1. Login `customer.large@pethotel.test` / `password123`.
+2. Xem Max 30kg.
+3. Xem booking completed tại Pet Hotel Thủ Đức, phòng TD-L301.
+4. Xem order `COMPLETED`, payment `SUCCESS`.
+5. Giải thích Max 30kg dùng giá tắm 300.000đ và Grooming toàn diện dùng nhiều vật tư hơn dịch vụ tắm thường.
+
+### Kịch bản D: Admin/manager
+
+1. Login `admin.demo@pethotel.test` hoặc `manager.central@pethotel.test` / `password123`.
+2. Xem danh sách booking/order/payment nếu UI có trang tương ứng.
+3. Lọc theo chi nhánh nếu UI hỗ trợ.
+4. Xem inventory Gò Vấp/Quận 7/Thủ Đức để thấy tồn kho đã bị trừ cho service `DONE`.
+5. Giải thích Quận 1 có booking nhẹ nhưng service đang `SCHEDULED`, nên tồn kho chưa bị trừ.
+
+## 12. Ghi chú kỹ thuật
+
+- Seeder không insert ID thủ công vào identity column, tránh lệch Oracle sequence.
+- Seeder không dùng `SET FOREIGN_KEY_CHECKS`, `TRUNCATE`, reset AUTO_INCREMENT hay raw SQL MySQL.
+- Seeder seed theo thứ tự FK: user/branch/type room/category -> room/product/service/customer/pet/employee -> coupon/inventory/standards -> booking/order/payment/log.
+- `cache`, `jobs`, `sessions`, `password_reset_tokens` không seed nghiệp vụ.
+- Nếu sau này bật trigger/procedure trừ kho Oracle thật, cần bỏ hoặc tắt phần mô phỏng `applyInventoryUsage()` để tránh trừ kho 2 lần.
+
+## 13. Đề xuất thuộc tính có thể thêm sau
+
+Chưa tự thêm migration trong giai đoạn demo. Các cột có thể thêm sau nếu muốn nghiệp vụ thật hơn:
+
+- `pet.allergy_note`
+- `pet.vaccination_status`
+- `pet.medical_condition`
+- `booking.deposit_amount`
+- `booking.cancel_reason`
+- `service_product_detail.usage_amount`
+- `service_product_detail.usage_unit`
+- `service_product_detail.min_weight_kg`
+- `service_product_detail.max_weight_kg`
+- `payments.transaction_code`
+- `payments.confirmed_by_user_id`
+
+Lý do chưa thêm: mục tiêu hiện tại là seed đầy đủ các cột đã có và giữ web chạy ổn trên schema hiện tại.
+
+## 14. Lỗi thường gặp
+
+| Lỗi | Cách xử lý |
+|---|---|
+| Seed lỗi FK | Kiểm tra thứ tự seed bảng cha trước bảng con |
+| Seed lỗi CHECK status | Kiểm tra status đúng migration: booking, orders, payments, booking_service_pet |
+| Seed lỗi unique email/phone | Chạy `migrate:fresh` hoặc đổi email/phone demo |
+| Phòng tiêu chuẩn Gò Vấp không full | Kiểm tra 2 booking GV-M201 và GV-M202 có status PENDING/CONFIRMED/CHECKED_IN và overlap 26-27 |
+| Tồn kho không bị trừ | Chỉ service `DONE` mới được seeder mô phỏng trừ kho |
+| Oracle sequence lệch | Demo seeder không insert ID cố định; nếu seeder khác insert ID cố định thì đồng bộ sequence |
+| Oracle NTS `ORA-12638` | Set `TNS_ADMIN` tới `database/oracle/network/admin` |
+    

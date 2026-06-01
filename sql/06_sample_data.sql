@@ -74,19 +74,19 @@ INSERT INTO branch (branch_id, branch_name, phone, email, address, is_active) VA
 -- =========================================================
 -- 3. EMPLOYEE
 -- =========================================================
-INSERT INTO employee (employee_id, branch_id, full_name, salary, phone, status_code) VALUES 
-('EMP001', 'BR001', 'Nguyễn Văn C',    10000000, '0981000000', 'WORKING'),
-('EMP002', 'BR002', 'Lý Thị D',        11000000, '0981000099', 'WORKING'),
-('EMP003', 'BR001', 'Nguyễn Thị Thắm', 12000000, '0981000001', 'WORKING'),
-('EMP004', 'BR002', 'Trần Văn Hùng',   13000000, '0981000002', 'WORKING'),
-('EMP005', 'BR003', 'Lê Mỹ Linh',      14500000, '0981000003', 'WORKING'),
-('EMP006', 'BR004', 'Hoàng Phi Hùng',  12500000, '0981000004', 'ON_LEAVE'),
-('EMP007', 'BR005', 'Đặng Nam Anh',    16000000, '0981000005', 'WORKING'),
-('EMP008', 'BR001', 'Vũ Tuyết Mai',    11000000, '0981000006', 'RESIGNED'),
-('EMP009', 'BR002', 'Lý Gia Thành',    20000000, '0981000007', 'WORKING'),
-('EMP010', 'BR003', 'Trương Vô Kỵ',    18000000, '0981000008', 'WORKING'),
-('EMP011', 'BR004', 'Triệu Mẫn',       17000000, '0981000009', 'WORKING'),
-('EMP012', 'BR005', 'Chu Chỉ Nhược',   15500000, '0981000010', 'WORKING');
+INSERT INTO employee (employee_id, branch_id, full_name, salary, phone, status, status_code) VALUES
+('EMP001', 'BR001', 'Nguyễn Văn C',    10000000, '0981000000', 1, 'WORKING'),
+('EMP002', 'BR002', 'Lý Thị D',        11000000, '0981000099', 1, 'WORKING'),
+('EMP003', 'BR001', 'Nguyễn Thị Thắm', 12000000, '0981000001', 1, 'WORKING'),
+('EMP004', 'BR002', 'Trần Văn Hùng',   13000000, '0981000002', 1, 'WORKING'),
+('EMP005', 'BR003', 'Lê Mỹ Linh',      14500000, '0981000003', 1, 'WORKING'),
+('EMP006', 'BR004', 'Hoàng Phi Hùng',  12500000, '0981000004', 1, 'ON_LEAVE'),
+('EMP007', 'BR005', 'Đặng Nam Anh',    16000000, '0981000005', 1, 'WORKING'),
+('EMP008', 'BR001', 'Vũ Tuyết Mai',    11000000, '0981000006', 0, 'RESIGNED'),
+('EMP009', 'BR002', 'Lý Gia Thành',    20000000, '0981000007', 1, 'WORKING'),
+('EMP010', 'BR003', 'Trương Vô Kỵ',    18000000, '0981000008', 1, 'WORKING'),
+('EMP011', 'BR004', 'Triệu Mẫn',       17000000, '0981000009', 1, 'WORKING'),
+('EMP012', 'BR005', 'Chu Chỉ Nhược',   15500000, '0981000010', 1, 'WORKING');
 
 -- =========================================================
 -- 4. APP_USER

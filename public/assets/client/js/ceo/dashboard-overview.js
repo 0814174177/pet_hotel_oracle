@@ -272,37 +272,6 @@
         });
     }
 
-    /**
-     * Render estimated salary and service material cost structure.
-     *
-     * Input:
-     * - API rows with cost_group, cost_amount, and cost_percent.
-     *
-     * Output:
-     * - Updates the #costStructureChart doughnut chart.
-     */
-    function renderCostStructure(data) {
-        renderChart("costStructureChart", {
-            type: "doughnut",
-            data: {
-                labels: data.map(
-                    (row) =>
-                        `${row.cost_group} (${formatPercent(row.cost_percent)})`,
-                ),
-                datasets: [
-                    {
-                        label: "Chi phí ước tính",
-                        data: data.map((row) => toNumber(row.cost_amount)),
-                        backgroundColor: ["#f97316", "#8b5cf6"],
-                        borderColor: "#ffffff",
-                        borderWidth: 3,
-                    },
-                ],
-            },
-            options: { ...baseChartOptions(formatCurrency), cutout: "62%" },
-        });
-    }
-
     function renderRevenueCogsTrend(data) {
         renderChart("revenueCogsTrendChart", {
             type: "line",
@@ -475,10 +444,6 @@
             {
                 url: root.dataset.estimatedCogsUrl,
                 onSuccess: renderEstimatedCogs,
-            },
-            {
-                url: root.dataset.costStructureUrl,
-                onSuccess: renderCostStructure,
             },
             { url: root.dataset.revenueMixUrl, onSuccess: renderRevenueMix },
             {

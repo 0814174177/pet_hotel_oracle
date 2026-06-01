@@ -1,0 +1,299 @@
+# DEMO SQL Queries
+
+Tài liệu này dùng để kiểm tra bộ dữ liệu mẫu của `DemoBookingFlowSeeder` sau khi chạy:
+
+```bash
+php artisan migrate:fresh
+php artisan db:seed --class=DemoBookingFlowSeeder
+```
+
+Các query dưới đây bám theo migration hiện tại của web. Lưu ý cột đúng của category là:
+
+- `category_services.service_category_name`
+- `category_product.product_category_name`
+
+## 1. Count Các Bảng Nghiệp Vụ
+
+```sql
+SELECT 'branch' AS table_name, COUNT(*) AS row_count FROM branch
+UNION ALL SELECT 'type_room', COUNT(*) FROM type_room
+UNION ALL SELECT 'room', COUNT(*) FROM room
+UNION ALL SELECT 'users', COUNT(*) FROM users
+UNION ALL SELECT 'customer', COUNT(*) FROM customer
+UNION ALL SELECT 'pet', COUNT(*) FROM pet
+UNION ALL SELECT 'employee', COUNT(*) FROM employee
+UNION ALL SELECT 'category_services', COUNT(*) FROM category_services
+UNION ALL SELECT 'services', COUNT(*) FROM services
+UNION ALL SELECT 'category_product', COUNT(*) FROM category_product
+UNION ALL SELECT 'product', COUNT(*) FROM product
+UNION ALL SELECT 'branch_inventory', COUNT(*) FROM branch_inventory
+UNION ALL SELECT 'service_product_detail', COUNT(*) FROM service_product_detail
+UNION ALL SELECT 'booking', COUNT(*) FROM booking
+UNION ALL SELECT 'booking_room', COUNT(*) FROM booking_room
+UNION ALL SELECT 'booking_room_pet', COUNT(*) FROM booking_room_pet
+UNION ALL SELECT 'booking_service_pet', COUNT(*) FROM booking_service_pet
+UNION ALL SELECT 'orders', COUNT(*) FROM orders
+UNION ALL SELECT 'order_details', COUNT(*) FROM order_details
+UNION ALL SELECT 'coupon', COUNT(*) FROM coupon
+UNION ALL SELECT 'booking_coupon_log', COUNT(*) FROM booking_coupon_log
+UNION ALL SELECT 'payments', COUNT(*) FROM payments
+ORDER BY table_name;
+```
+
+## 2. Branch
+
+```sql
+SELECT branch_id, branch_name, phone, email, address, is_active
+FROM branch
+ORDER BY branch_id;
+```
+
+## 3. Users Demo
+
+```sql
+SELECT id, name, email, role, is_active
+FROM users
+WHERE email IN (
+    'admin.demo@pethotel.test',
+    'customer.small@pethotel.test',
+    'customer.medium@pethotel.test',
+    'customer.large@pethotel.test',
+    'customer.capacity@pethotel.test',
+    'customer.north@pethotel.test',
+    'customer.east@pethotel.test'
+)
+ORDER BY id;
+```
+
+## 4. Customer Link Với User
+
+```sql
+SELECT c.customer_id, c.user_id, u.email, c.full_name, c.phone, c.address
+FROM customer c
+JOIN users u ON u.id = c.user_id
+WHERE u.email IN (
+    'customer.small@pethotel.test',
+    'customer.medium@pethotel.test',
+    'customer.large@pethotel.test',
+    'customer.capacity@pethotel.test',
+    'customer.north@pethotel.test',
+    'customer.east@pethotel.test'
+)
+ORDER BY c.customer_id;
+```
+
+## 5. Pet Demo
+
+```sql
+SELECT p.pet_id, p.pet_name, u.email, p.species, p.breed, p.sex, p.age, p.weight_kg, p.special_notes
+FROM pet p
+JOIN customer c ON c.customer_id = p.customer_id
+JOIN users u ON u.id = c.user_id
+WHERE p.pet_name IN ('Milo', 'Bella', 'Lucky', 'Max', 'Coco', 'Nori', 'Rocky')
+ORDER BY p.pet_id;
+```
+
+## 6. Type Room
+
+```sql
+SELECT type_room_id, type_name, max_slot, pet_weight_min_kg, pet_weight_max_kg,
+       base_price_per_day, is_active
+FROM type_room
+ORDER BY type_room_id;
+```
+
+## 7. Room Theo Chi Nhánh Và Loại Phòng
+
+```sql
+SELECT b.branch_name, tr.type_name, r.room_id, r.room_number, r.status
+FROM room r
+JOIN branch b ON b.branch_id = r.branch_id
+JOIN type_room tr ON tr.type_room_id = r.type_room_id
+ORDER BY b.branch_id, tr.type_room_id, r.room_number;
+```
+
+## 8. Category Và Service
+
+```sql
+SELECT cs.service_category_id, cs.service_category_name, s.service_id,
+       s.service_name, s.species, s.base_price, s.duration_minutes, s.is_active
+FROM services s
+JOIN category_services cs ON cs.service_category_id = s.service_category_id
+ORDER BY s.service_name;
+```
+
+Kỳ vọng chỉ có một dịch vụ tắm chính:
+
+```sql
+SELECT service_id, service_name, base_price, duration_minutes, is_active
+FROM services
+WHERE service_name LIKE 'Tắm%'
+ORDER BY service_name;
+```
+
+## 9. Product Và Inventory
+
+```sql
+SELECT cp.product_category_name, p.product_id, p.product_name, p.unit, p.item_price, p.is_active
+FROM product p
+JOIN category_product cp ON cp.product_category_id = p.product_category_id
+ORDER BY cp.product_category_name, p.product_name;
+```
+
+```sql
+SELECT b.branch_name, p.product_name, bi.quantity_in_stock, bi.reorder_point, bi.last_updated
+FROM branch_inventory bi
+JOIN branch b ON b.branch_id = bi.branch_id
+JOIN product p ON p.product_id = bi.product_id
+ORDER BY b.branch_id, p.product_name;
+```
+
+## 10. Định Mức Vật Tư
+
+```sql
+SELECT s.service_name, p.product_name, spd.amount, spd.notes
+FROM service_product_detail spd
+JOIN services s ON s.service_id = spd.service_id
+JOIN product p ON p.product_id = spd.product_id
+ORDER BY s.service_name, p.product_name;
+```
+
+## 11. Gò Vấp Phòng Tiêu Chuẩn Full Ngày 26-27
+
+```sql
+SELECT r.room_number, bk.booking_id, bk.status,
+       bk.checkin_expected_at, bk.checkout_expected_at
+FROM room r
+JOIN type_room tr ON tr.type_room_id = r.type_room_id
+JOIN branch b ON b.branch_id = r.branch_id
+JOIN booking_room br ON br.room_id = r.room_id
+JOIN booking bk ON bk.booking_id = br.booking_id
+WHERE b.branch_name = 'Pet Hotel Gò Vấp'
+  AND tr.type_name = 'Phòng tiêu chuẩn'
+  AND bk.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN')
+  AND bk.checkin_expected_at < TO_TIMESTAMP('2026-05-28 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+  AND bk.checkout_expected_at > TO_TIMESTAMP('2026-05-26 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+ORDER BY r.room_number;
+```
+
+Kỳ vọng: 2 dòng `GV-M201` và `GV-M202`.
+
+## 12. Booking Của Customer Small
+
+```sql
+SELECT bk.booking_id, u.email, b.branch_name, bk.status,
+       bk.checkin_expected_at, bk.checkout_expected_at, bk.total_amount
+FROM booking bk
+JOIN customer c ON c.customer_id = bk.customer_id
+JOIN users u ON u.id = c.user_id
+JOIN branch b ON b.branch_id = bk.branch_id
+WHERE u.email = 'customer.small@pethotel.test'
+ORDER BY bk.booking_id;
+```
+
+## 13. Booking Room
+
+```sql
+SELECT br.booking_room_id, bk.booking_id, r.room_number, br.assigned_at
+FROM booking_room br
+JOIN booking bk ON bk.booking_id = br.booking_id
+JOIN room r ON r.room_id = br.room_id
+JOIN customer c ON c.customer_id = bk.customer_id
+JOIN users u ON u.id = c.user_id
+WHERE u.email = 'customer.small@pethotel.test'
+ORDER BY br.booking_room_id;
+```
+
+## 14. Booking Room Pet
+
+```sql
+SELECT brp.booking_room_pet_id, bk.booking_id, r.room_number, p.pet_name
+FROM booking_room_pet brp
+JOIN booking_room br ON br.booking_room_id = brp.booking_room_id
+JOIN booking bk ON bk.booking_id = br.booking_id
+JOIN room r ON r.room_id = br.room_id
+JOIN pet p ON p.pet_id = brp.pet_id
+JOIN customer c ON c.customer_id = bk.customer_id
+JOIN users u ON u.id = c.user_id
+WHERE u.email = 'customer.small@pethotel.test'
+ORDER BY brp.booking_room_pet_id;
+```
+
+## 15. Booking Service Pet
+
+```sql
+SELECT bsp.booking_service_pet_id, bk.booking_id, p.pet_name, p.weight_kg,
+       s.service_name, bsp.status, bsp.scheduled_at
+FROM booking_service_pet bsp
+JOIN booking bk ON bk.booking_id = bsp.booking_id
+JOIN pet p ON p.pet_id = bsp.pet_id
+JOIN services s ON s.service_id = bsp.service_id
+JOIN customer c ON c.customer_id = bk.customer_id
+JOIN users u ON u.id = c.user_id
+WHERE u.email = 'customer.small@pethotel.test'
+ORDER BY bsp.booking_service_pet_id;
+```
+
+## 16. Orders Và Payments
+
+```sql
+SELECT o.order_id, u.email, o.booking_id, o.status,
+       o.subtotal, o.discount_amount, o.grand_total,
+       pay.status AS payment_status, pay.amount
+FROM orders o
+JOIN customer c ON c.customer_id = o.customer_id
+JOIN users u ON u.id = c.user_id
+LEFT JOIN payments pay ON pay.order_id = o.order_id
+ORDER BY o.order_id;
+```
+
+## 17. Order Details
+
+```sql
+SELECT od.order_detail_id, od.order_id, od.title,
+       od.booking_room_id, od.booking_service_pet_id,
+       od.quantity, od.unit_price, od.line_total
+FROM order_details od
+ORDER BY od.order_detail_id;
+```
+
+Giá tắm theo cân nặng nằm trong `order_details.unit_price`:
+
+```sql
+SELECT od.title, p.pet_name, p.weight_kg, od.unit_price, od.line_total
+FROM order_details od
+JOIN booking_service_pet bsp ON bsp.booking_service_pet_id = od.booking_service_pet_id
+JOIN services s ON s.service_id = bsp.service_id
+JOIN pet p ON p.pet_id = bsp.pet_id
+WHERE s.service_name = 'Tắm thú cưng'
+ORDER BY p.weight_kg;
+```
+
+## 18. Coupon DEMO10
+
+```sql
+SELECT coupon_id, coupon_code, discount_type, discount_value,
+       max_discount, min_order_value, max_uses, used_count,
+       effective_from, expired_at, is_active
+FROM coupon
+WHERE coupon_code = 'DEMO10';
+```
+
+## 19. Booking Coupon Log
+
+```sql
+SELECT bcl.booking_coupon_log_id, bcl.booking_id, c.coupon_code,
+       bcl.applied_at, bcl.notes
+FROM booking_coupon_log bcl
+JOIN coupon c ON c.coupon_id = bcl.coupon_id
+ORDER BY bcl.booking_coupon_log_id;
+```
+
+## 20. Payments
+
+```sql
+SELECT p.payment_id, p.order_id, p.payment_method, p.provider,
+       p.amount, p.status, p.paid_at, p.note
+FROM payments p
+ORDER BY p.payment_id;
+```

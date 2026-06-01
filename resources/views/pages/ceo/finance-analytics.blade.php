@@ -159,25 +159,6 @@
     | 4. DATA MẪU: COST OPTIMIZATION
     |--------------------------------------------------------------------------
     */
-    $lossAlerts = [
-        [
-            'id' => 'AL-01',
-            'branch' => 'Chi nhánh Quận 1',
-            'title' => 'Nghi vấn thất thoát: Sữa tắm SOS Mềm mượt',
-            'description' => 'Lượng xuất kho thực tế cao hơn 25% so với định mức của 120 dịch vụ tắm Spa đã bán trong tuần.',
-            'estimatedLoss' => 1250000,
-            'severity' => 'danger',
-        ],
-        [
-            'id' => 'AL-02',
-            'branch' => 'Chi nhánh Quận 7',
-            'title' => 'Hao hụt bất thường: Cát vệ sinh Clean Cat',
-            'description' => 'Tỷ lệ hao hụt đạt mức 18% (Vượt mức cho phép 5%). Cần kiểm tra lại quy trình dọn khay vệ sinh tại Hotel.',
-            'estimatedLoss' => 840000,
-            'severity' => 'warning',
-        ],
-    ];
-
     $supplierDebts = [
         [
             'id' => 'INV-2026-089',
@@ -228,6 +209,13 @@
     data-estimated-margin-url="{{ route('api.dashboard.ceo.finance.estimated-margin') }}"
     data-finance-trend-url="{{ route('api.dashboard.ceo.finance.trend') }}"
     data-finance-monthly-trend-url="{{ route('api.dashboard.ceo.finance.monthly-trend') }}"
+    data-cost-structure-url="{{ route('api.dashboard.ceo.finance.cost-structure') }}"
+    data-branch-estimated-profit-url="{{ route('api.dashboard.ceo.finance.branch-estimated-profit') }}"
+    data-service-estimated-profit-url="{{ route('api.dashboard.ceo.finance.service-estimated-profit') }}"
+    data-lowest-margin-services-url="{{ route('api.dashboard.ceo.finance.lowest-margin-services') }}"
+    data-negative-branch-profit-alerts-url="{{ route('api.dashboard.ceo.finance.negative-branch-profit-alerts') }}"
+    data-low-service-margin-alerts-url="{{ route('api.dashboard.ceo.finance.low-service-margin-alerts') }}"
+    data-cost-growth-alerts-url="{{ route('api.dashboard.ceo.finance.cost-growth-alerts') }}"
 >
 
     <x-global-control-panel
@@ -285,6 +273,41 @@
                 />
             </div>
         </div>
+
+        <div class="finance-card">
+            <h3>Cơ cấu chi phí ước tính</h3>
+
+            <div class="finance-chart-area">
+                <canvas id="financeCostStructureChart" aria-label="Biểu đồ cơ cấu chi phí ước tính"></canvas>
+            </div>
+        </div>
+
+        <div class="finance-card">
+            <h3>Lợi nhuận ước tính theo chi nhánh</h3>
+
+            <div class="finance-table-wrapper">
+                <table class="finance-table finance-table--branch-profit">
+                    <thead>
+                        <tr>
+                            <th>Hạng</th>
+                            <th>Chi nhánh</th>
+                            <th>Doanh thu</th>
+                            <th>Chi phí lương</th>
+                            <th>Chi phí vật tư</th>
+                            <th>Tổng chi phí</th>
+                            <th>Lợi nhuận ước tính</th>
+                            <th class="text-center">Margin</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="financeBranchEstimatedProfitTableBody">
+                        <tr>
+                            <td class="finance-table__placeholder" colspan="8">Đang tải dữ liệu...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </section>
 
 
@@ -312,49 +335,77 @@
             </div>
 
             <div class="finance-card">
-                <h3>Phân tích Lãi gộp</h3>
+                <h3>Lợi nhuận ước tính theo dịch vụ</h3>
 
                 <div class="finance-table-wrapper">
-                    <table class="finance-table">
+                    <table class="finance-table finance-table--service-profit">
                         <thead>
                             <tr>
+                                <th>Hạng</th>
                                 <th>Dịch vụ</th>
-                                <th>Giá bán</th>
-                                <th>Giá vốn</th>
+                                <th>Lượt dùng</th>
+                                <th>Doanh thu</th>
+                                <th>Chi phí vật tư</th>
+                                <th>Chi phí nhân công</th>
+                                <th>Tổng chi phí</th>
+                                <th>Lợi nhuận ước tính</th>
                                 <th class="text-center">Margin</th>
                             </tr>
                         </thead>
 
-                        <tbody>
-                            @foreach ($lowMarginServices as $service)
-                                <tr>
-                                    <td>
-                                        <div class="finance-service-name">{{ $service['name'] }}</div>
-                                        <div class="finance-service-meta">
-                                            {{ $service['id'] }} • Phân nhóm: {{ $service['category'] }}
-                                        </div>
-                                    </td>
-
-                                    <td>
-                                        <span class="finance-money">{{ financeMoney($service['price']) }}</span>
-                                    </td>
-
-                                    <td>
-                                        <span class="finance-money finance-money--muted">{{ financeMoney($service['cogs']) }}</span>
-                                    </td>
-
-                                    <td class="text-center">
-                                        <span class="{{ marginClass($service['margin']) }}">
-                                            {{ $service['margin'] }}%
-                                        </span>
-                                    </td>
-                                </tr>
-                            @endforeach
+                        <tbody id="financeServiceEstimatedProfitTableBody">
+                            <tr>
+                                <td class="finance-table__placeholder" colspan="9">Đang tải dữ liệu...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
+
+        <div class="finance-card">
+            <h3>Top 5 dịch vụ có biên lợi nhuận thấp nhất</h3>
+
+            <div class="finance-table-wrapper">
+                <table class="finance-table finance-table--service-profit">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Dịch vụ</th>
+                            <th>Lượt dùng</th>
+                            <th>Doanh thu</th>
+                            <th>Chi phí vật tư</th>
+                            <th>Chi phí nhân công</th>
+                            <th>Tổng chi phí</th>
+                            <th>Lợi nhuận ước tính</th>
+                            <th class="text-center">Margin</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="financeLowestMarginServicesTableBody">
+                        <tr>
+                            <td class="finance-table__placeholder" colspan="9">Đang tải dữ liệu...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="finance-card">
+            <div class="finance-card-title-row">
+                <h3>Cảnh báo dịch vụ biên lợi nhuận thấp</h3>
+                <span id="financeLowServiceMarginAlertCount">Đang tải...</span>
+            </div>
+
+            <div class="finance-alert-list" id="financeLowServiceMarginAlerts">
+                <div class="finance-loss-alert finance-loss-alert--warning">
+                    <div class="finance-loss-alert__content">
+                        <p>Đang tải cảnh báo...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </section>
 
 
@@ -391,6 +442,7 @@
                 />
             </div>
         </div>
+
     </section>
 
 
@@ -404,26 +456,16 @@
         <div class="finance-two-column">
             <div class="finance-card">
                 <div class="finance-card-title-row">
-                    <h3>🚨 Cảnh báo Thất thoát & Gian lận nội bộ</h3>
-                    <span>{{ count($lossAlerts) }} cảnh báo chưa xử lý</span>
+                    <h3>Cảnh báo chi nhánh lợi nhuận âm</h3>
+                    <span id="financeNegativeBranchProfitAlertCount">Đang tải...</span>
                 </div>
 
-                <div class="finance-alert-list">
-                    @foreach ($lossAlerts as $alert)
-                        <div class="finance-loss-alert {{ $alert['severity'] === 'warning' ? 'finance-loss-alert--warning' : '' }}">
-                            <div class="finance-loss-alert__icon">
-                                {{ $alert['severity'] === 'danger' ? '⛔' : '⚠️' }}
-                            </div>
-
-                            <div class="finance-loss-alert__content">
-                                <h4>[{{ $alert['branch'] }}] {{ $alert['title'] }}</h4>
-                                <p>{{ $alert['description'] }}</p>
-                                <div>
-                                    Thiệt hại ước tính: {{ financeMoney($alert['estimatedLoss']) }}
-                                </div>
-                            </div>
+                <div class="finance-alert-list" id="financeNegativeBranchProfitAlerts">
+                    <div class="finance-loss-alert finance-loss-alert--warning">
+                        <div class="finance-loss-alert__content">
+                            <p>Đang tải cảnh báo...</p>
                         </div>
-                    @endforeach
+                    </div>
                 </div>
             </div>
 
@@ -472,6 +514,21 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="finance-card">
+            <div class="finance-card-title-row">
+                <h3>Cảnh báo chi phí tăng mạnh</h3>
+                <span id="financeCostGrowthAlertCount">Đang tải...</span>
+            </div>
+
+            <div class="finance-alert-list" id="financeCostGrowthAlerts">
+                <div class="finance-loss-alert finance-loss-alert--warning">
+                    <div class="finance-loss-alert__content">
+                        <p>Đang tải cảnh báo...</p>
+                    </div>
                 </div>
             </div>
         </div>

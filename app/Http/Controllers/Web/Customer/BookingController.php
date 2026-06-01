@@ -76,6 +76,9 @@ class BookingController extends WebController
         return $this->bookingFormView($branchId);
     }
 
+    /**
+     * Trả về số lượng phòng còn trống theo loại phòng và trạng thái khả dụng của thú cưng trong khoảng ngày đã chọn.
+     */
     public function roomTypeAvailability(Request $request, string $branchId): JsonResponse
     {
         Branch::where('branch_id', $branchId)

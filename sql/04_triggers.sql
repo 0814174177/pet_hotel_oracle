@@ -32,6 +32,7 @@
 -- 10. trg_bks_inventory_sync                : Trừ/hoàn tồn kho vật tư theo trạng thái dịch vụ.
 -- 19: Tự động cộng tồn kho khi phiếu nhập hàng được duyệt
 -- 20: Tự động đồng bộ tồn kho thực tế khi hoàn tất kiểm kho
+-- 22. trg_sync_employee_work_status          : Đồng bộ status nhị phân với status_code cũ của nhân viên.
 -- =========================================================
 
 -- =========================================================
@@ -69,6 +70,23 @@ CREATE TABLE stock_alert_log (
     reorder_point NUMBER,
     alerted_at    TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL
 );
+/
+
+-- TRG-22: Đồng bộ trạng thái làm việc nhị phân với status_code cũ
+CREATE OR REPLACE TRIGGER trg_sync_employee_work_status
+BEFORE INSERT OR UPDATE OF status, status_code ON employee
+FOR EACH ROW
+BEGIN
+    IF INSERTING OR UPDATING('STATUS_CODE') THEN
+        :NEW.status := CASE WHEN :NEW.status_code = 'RESIGNED' THEN 0 ELSE 1 END;
+    ELSIF UPDATING('STATUS') THEN
+        IF :NEW.status = 0 THEN
+            :NEW.status_code := 'RESIGNED';
+        ELSIF :OLD.status = 0 AND :NEW.status_code = 'RESIGNED' THEN
+            :NEW.status_code := 'WORKING';
+        END IF;
+    END IF;
+END;
 /
 
 -- =========================================================
@@ -237,15 +255,19 @@ CREATE OR REPLACE TRIGGER trg_check_emp_branch
 BEFORE INSERT OR UPDATE ON booking_services_pet
 FOR EACH ROW
 DECLARE
-    v_eb VARCHAR2(10); v_bb VARCHAR2(10);
+    v_eb VARCHAR2(10); v_bb VARCHAR2(10); v_employee_status NUMBER(1);
 BEGIN
     IF :NEW.employee_id IS NULL THEN 
         RETURN; 
     END IF;
 
-    SELECT branch_id INTO v_eb 
+    SELECT branch_id, status INTO v_eb, v_employee_status
     FROM employee 
     WHERE employee_id = :NEW.employee_id;
+
+    IF v_employee_status <> 1 THEN
+        RAISE_APPLICATION_ERROR(-20022, 'NHAN VIEN DA NGHI VIEC.');
+    END IF;
     
     SELECT branch_id INTO v_bb 
     FROM booking WHERE booking_id = :NEW.booking_id;

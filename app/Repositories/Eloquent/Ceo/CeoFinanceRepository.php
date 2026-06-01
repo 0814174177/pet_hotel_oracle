@@ -290,6 +290,7 @@ class CeoFinanceRepository implements CeoFinanceRepositoryInterface
                 SELECT
                     NVL(SUM(e.salary), 0) AS monthly_salary_cost
                 FROM employee e
+                WHERE e.status = 1
             ),
             salary_by_day AS (
                 SELECT
@@ -453,6 +454,7 @@ class CeoFinanceRepository implements CeoFinanceRepositoryInterface
                 SELECT
                     NVL(SUM(e.salary), 0) AS monthly_salary_cost
                 FROM employee e
+                WHERE e.status = 1
             ),
             salary_by_month AS (
                 SELECT
@@ -548,6 +550,1100 @@ class CeoFinanceRepository implements CeoFinanceRepositoryInterface
         ];
     }
 
+    /**
+     * Get estimated salary and service material cost structure.
+     *
+     * Input:
+     * - Current period start_date and end_date filters.
+     *
+     * Output:
+     * - Cost chart rows with cost_group, cost_amount, and cost_percent.
+     */
+    public function getCostStructureChart(array $filters = []): array
+    {
+        $range = $this->resolvePeriodRange(
+            $filters['period_type'] ?? $filters['period'] ?? 'month',
+            $filters['date'] ?? null,
+            $filters['start_date'] ?? null,
+            $filters['end_date'] ?? null
+        );
+
+        $sql = "
+            WITH salary_cost AS (
+                SELECT
+                    'Lương nhân viên' AS cost_group,
+                    NVL(SUM(e.salary), 0) AS cost_amount
+                FROM employee e
+                WHERE e.status = 1
+            ),
+            material_cost_per_service AS (
+                SELECT
+                    spd.service_id,
+                    SUM(NVL(spd.amount, 0) * NVL(p.item_price, 0)) AS material_cost_per_time
+                FROM service_product_detail spd
+                JOIN product p
+                    ON p.product_id = spd.product_id
+                GROUP BY spd.service_id
+            ),
+            material_cost AS (
+                SELECT
+                    'Vật tư dịch vụ ước tính' AS cost_group,
+                    NVL(SUM(NVL(mc.material_cost_per_time, 0)), 0) AS cost_amount
+                FROM booking_service_pet bsp
+                LEFT JOIN material_cost_per_service mc
+                    ON mc.service_id = bsp.service_id
+                WHERE bsp.status = 'DONE'
+                  AND bsp.scheduled_at >= TO_DATE(:p_start_date, 'YYYY-MM-DD')
+                  AND bsp.scheduled_at <  TO_DATE(:p_end_date, 'YYYY-MM-DD') + 1
+            ),
+            cost_union AS (
+                SELECT * FROM salary_cost
+                UNION ALL
+                SELECT * FROM material_cost
+            )
+            SELECT
+                cost_group,
+                cost_amount,
+                ROUND(
+                    cost_amount / NULLIF(SUM(cost_amount) OVER (), 0) * 100,
+                    2
+                ) AS cost_percent
+            FROM cost_union
+            ORDER BY cost_amount DESC
+        ";
+
+        return array_map(function (object $row): array {
+            return [
+                'cost_group' => (string) ($this->rowValue($row, 'cost_group') ?? ''),
+                'cost_amount' => $this->cleanNumber((float) ($this->rowValue($row, 'cost_amount') ?? 0)),
+                'cost_percent' => $this->cleanNumber((float) ($this->rowValue($row, 'cost_percent') ?? 0)),
+            ];
+        }, DB::select($sql, [
+            'p_start_date' => $range['start']->toDateString(),
+            'p_end_date' => $range['end']->toDateString(),
+        ]));
+    }
+
+    /**
+     * Get estimated revenue, cost, profit, and margin by active branch.
+     *
+     * Input:
+     * - Current period start_date and end_date filters.
+     *
+     * Output:
+     * - Ranked active branch finance table rows.
+     */
+    public function getBranchEstimatedProfitTable(array $filters = []): array
+    {
+        $range = $this->resolvePeriodRange(
+            $filters['period_type'] ?? $filters['period'] ?? 'month',
+            $filters['date'] ?? null,
+            $filters['start_date'] ?? null,
+            $filters['end_date'] ?? null
+        );
+
+        $sql = "
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS end_date
+                FROM dual
+            ),
+            active_branch AS (
+                SELECT
+                    b.branch_id,
+                    'CN-' || b.branch_id AS branch_code,
+                    b.branch_name
+                FROM branch b
+                WHERE b.is_active = 1
+            ),
+            report_months AS (
+                SELECT
+                    ADD_MONTHS(TRUNC(pa.start_date, 'MM'), LEVEL - 1) AS month_start,
+                    LAST_DAY(ADD_MONTHS(TRUNC(pa.start_date, 'MM'), LEVEL - 1)) AS month_end,
+                    pa.start_date,
+                    pa.end_date
+                FROM params pa
+                CONNECT BY LEVEL <= MONTHS_BETWEEN(
+                    TRUNC(pa.end_date, 'MM'),
+                    TRUNC(pa.start_date, 'MM')
+                ) + 1
+            ),
+            revenue_by_branch AS (
+                SELECT
+                    o.branch_id,
+                    NVL(SUM(o.grand_total), 0) AS branch_revenue
+                FROM params pa
+                JOIN orders o
+                    ON o.status IN ('PAID', 'COMPLETED')
+                   AND o.paid_at >= pa.start_date
+                   AND o.paid_at <  pa.end_date + 1
+                GROUP BY o.branch_id
+            ),
+            salary_base_by_branch AS (
+                SELECT
+                    e.branch_id,
+                    NVL(SUM(e.salary), 0) AS monthly_salary_cost
+                FROM employee e
+                WHERE e.status = 1
+                GROUP BY e.branch_id
+            ),
+            salary_by_branch AS (
+                SELECT
+                    ab.branch_id,
+                    NVL(
+                        ROUND(
+                            SUM(
+                                NVL(sbb.monthly_salary_cost, 0)
+                                * (
+                                    LEAST(rm.month_end, rm.end_date)
+                                    - GREATEST(rm.month_start, rm.start_date)
+                                    + 1
+                                ) / (rm.month_end - rm.month_start + 1)
+                            ),
+                            0
+                        ),
+                        0
+                    ) AS branch_salary_cost
+                FROM active_branch ab
+                CROSS JOIN report_months rm
+                LEFT JOIN salary_base_by_branch sbb
+                    ON sbb.branch_id = ab.branch_id
+                GROUP BY ab.branch_id
+            ),
+            material_cost_per_service AS (
+                SELECT
+                    spd.service_id,
+                    SUM(NVL(spd.amount, 0) * NVL(p.item_price, 0)) AS material_cost_per_time
+                FROM service_product_detail spd
+                JOIN product p
+                    ON p.product_id = spd.product_id
+                GROUP BY spd.service_id
+            ),
+            material_by_branch AS (
+                SELECT
+                    bk.branch_id,
+                    NVL(SUM(NVL(mc.material_cost_per_time, 0)), 0) AS branch_material_cost
+                FROM params pa
+                JOIN booking_service_pet bsp
+                    ON bsp.status = 'DONE'
+                   AND bsp.scheduled_at >= pa.start_date
+                   AND bsp.scheduled_at <  pa.end_date + 1
+                JOIN booking bk
+                    ON bk.booking_id = bsp.booking_id
+                LEFT JOIN material_cost_per_service mc
+                    ON mc.service_id = bsp.service_id
+                GROUP BY bk.branch_id
+            ),
+            financial_by_branch AS (
+                SELECT
+                    ab.branch_id,
+                    ab.branch_code,
+                    ab.branch_name,
+                    NVL(rb.branch_revenue, 0) AS branch_revenue,
+                    NVL(sb.branch_salary_cost, 0) AS branch_salary_cost,
+                    NVL(mb.branch_material_cost, 0) AS branch_material_cost,
+                    NVL(sb.branch_salary_cost, 0)
+                        + NVL(mb.branch_material_cost, 0) AS estimated_branch_cost,
+                    NVL(rb.branch_revenue, 0)
+                        - (
+                            NVL(sb.branch_salary_cost, 0)
+                            + NVL(mb.branch_material_cost, 0)
+                        ) AS estimated_branch_profit,
+                    CASE
+                        WHEN NVL(rb.branch_revenue, 0) = 0 THEN NULL
+                        ELSE ROUND(
+                            (
+                                NVL(rb.branch_revenue, 0)
+                                - (
+                                    NVL(sb.branch_salary_cost, 0)
+                                    + NVL(mb.branch_material_cost, 0)
+                                )
+                            ) / NVL(rb.branch_revenue, 0) * 100,
+                            2
+                        )
+                    END AS estimated_branch_margin_percent
+                FROM active_branch ab
+                LEFT JOIN revenue_by_branch rb
+                    ON rb.branch_id = ab.branch_id
+                LEFT JOIN salary_by_branch sb
+                    ON sb.branch_id = ab.branch_id
+                LEFT JOIN material_by_branch mb
+                    ON mb.branch_id = ab.branch_id
+            )
+            SELECT
+                branch_id,
+                branch_code,
+                branch_name,
+                branch_revenue,
+                branch_salary_cost,
+                branch_material_cost,
+                estimated_branch_cost,
+                estimated_branch_profit,
+                estimated_branch_margin_percent,
+                ROW_NUMBER() OVER (
+                    ORDER BY estimated_branch_profit DESC
+                ) AS rank_no
+            FROM financial_by_branch
+            ORDER BY estimated_branch_profit DESC
+        ";
+
+        return array_map(function (object $row): array {
+            $margin = $this->rowValue($row, 'estimated_branch_margin_percent');
+
+            return [
+                'rank_no' => (int) ($this->rowValue($row, 'rank_no') ?? 0),
+                'branch_id' => (int) ($this->rowValue($row, 'branch_id') ?? 0),
+                'branch_code' => (string) ($this->rowValue($row, 'branch_code') ?? ''),
+                'branch_name' => (string) ($this->rowValue($row, 'branch_name') ?? ''),
+                'branch_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'branch_revenue') ?? 0)),
+                'branch_salary_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'branch_salary_cost') ?? 0)),
+                'branch_material_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'branch_material_cost') ?? 0)),
+                'estimated_branch_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_branch_cost') ?? 0)),
+                'estimated_branch_profit' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_branch_profit') ?? 0)),
+                'estimated_branch_margin_percent' => $margin === null
+                    ? null
+                    : $this->cleanNumber((float) $margin),
+            ];
+        }, DB::select($sql, [
+            'p_start_date' => $range['start']->toDateString(),
+            'p_end_date' => $range['end']->toDateString(),
+        ]));
+    }
+
+    /**
+     * Get estimated revenue, cost, profit, and margin by paid service.
+     *
+     * Input:
+     * - Current period start_date and end_date filters.
+     *
+     * Output:
+     * - Ranked service finance table rows without duplicated usage costs.
+     */
+    public function getServiceEstimatedProfitTable(array $filters = []): array
+    {
+        $range = $this->resolvePeriodRange(
+            $filters['period_type'] ?? $filters['period'] ?? 'month',
+            $filters['date'] ?? null,
+            $filters['start_date'] ?? null,
+            $filters['end_date'] ?? null
+        );
+
+        $sql = "
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS end_date
+                FROM dual
+            ),
+            material_cost_per_service AS (
+                SELECT
+                    spd.service_id,
+                    SUM(NVL(spd.amount, 0) * NVL(p.item_price, 0)) AS material_cost_per_time
+                FROM service_product_detail spd
+                JOIN product p
+                    ON p.product_id = spd.product_id
+                GROUP BY spd.service_id
+            ),
+            paid_service_usage AS (
+                SELECT
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
+                    bsp.employee_id,
+                    SUM(NVL(od.line_total, 0)) AS service_revenue
+                FROM params pa
+                JOIN booking_service_pet bsp
+                    ON bsp.status = 'DONE'
+                JOIN order_details od
+                    ON od.booking_service_pet_id = bsp.booking_service_pet_id
+                JOIN orders o
+                    ON o.order_id = od.order_id
+                   AND o.status IN ('PAID', 'COMPLETED')
+                   AND o.paid_at >= pa.start_date
+                   AND o.paid_at <  pa.end_date + 1
+                GROUP BY
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
+                    bsp.employee_id
+            ),
+            service_financial AS (
+                SELECT
+                    s.service_id,
+                    s.service_name,
+                    COUNT(psu.booking_service_pet_id) AS usage_count,
+                    NVL(SUM(psu.service_revenue), 0) AS total_service_revenue,
+                    NVL(SUM(NVL(mc.material_cost_per_time, 0)), 0) AS total_material_cost,
+                    NVL(
+                        SUM(
+                            (NVL(e.salary, 0) / 26 / 8)
+                            * (NVL(s.duration_minutes, 0) / 60)
+                        ),
+                        0
+                    ) AS total_labor_cost
+                FROM paid_service_usage psu
+                JOIN services s
+                    ON s.service_id = psu.service_id
+                LEFT JOIN employee e
+                    ON e.employee_id = psu.employee_id
+                LEFT JOIN material_cost_per_service mc
+                    ON mc.service_id = s.service_id
+                GROUP BY
+                    s.service_id,
+                    s.service_name
+            )
+            SELECT
+                service_id,
+                service_name,
+                usage_count,
+                total_service_revenue,
+                total_material_cost,
+                ROUND(total_labor_cost, 0) AS total_labor_cost,
+                total_material_cost + ROUND(total_labor_cost, 0)
+                    AS estimated_service_cost,
+                total_service_revenue
+                    - (total_material_cost + ROUND(total_labor_cost, 0))
+                    AS estimated_service_profit,
+                CASE
+                    WHEN total_service_revenue = 0 THEN NULL
+                    ELSE ROUND(
+                        (
+                            total_service_revenue
+                            - (total_material_cost + ROUND(total_labor_cost, 0))
+                        ) / total_service_revenue * 100,
+                        2
+                    )
+                END AS estimated_service_margin_percent,
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        total_service_revenue
+                        - (total_material_cost + ROUND(total_labor_cost, 0)) DESC
+                ) AS profit_rank
+            FROM service_financial
+            ORDER BY estimated_service_profit DESC
+        ";
+
+        return array_map(function (object $row): array {
+            $margin = $this->rowValue($row, 'estimated_service_margin_percent');
+
+            return [
+                'profit_rank' => (int) ($this->rowValue($row, 'profit_rank') ?? 0),
+                'service_id' => (int) ($this->rowValue($row, 'service_id') ?? 0),
+                'service_name' => (string) ($this->rowValue($row, 'service_name') ?? ''),
+                'usage_count' => (int) ($this->rowValue($row, 'usage_count') ?? 0),
+                'total_service_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'total_service_revenue') ?? 0)),
+                'total_material_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'total_material_cost') ?? 0)),
+                'total_labor_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'total_labor_cost') ?? 0)),
+                'estimated_service_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_service_cost') ?? 0)),
+                'estimated_service_profit' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_service_profit') ?? 0)),
+                'estimated_service_margin_percent' => $margin === null
+                    ? null
+                    : $this->cleanNumber((float) $margin),
+            ];
+        }, DB::select($sql, [
+            'p_start_date' => $range['start']->toDateString(),
+            'p_end_date' => $range['end']->toDateString(),
+        ]));
+    }
+
+    /**
+     * Get the five paid services with the lowest estimated margin.
+     *
+     * Input:
+     * - Current period start_date and end_date filters.
+     *
+     * Output:
+     * - Up to five low-margin service finance rows without duplicated usage costs.
+     */
+    public function getLowestMarginServicesTable(array $filters = []): array
+    {
+        $range = $this->resolvePeriodRange(
+            $filters['period_type'] ?? $filters['period'] ?? 'month',
+            $filters['date'] ?? null,
+            $filters['start_date'] ?? null,
+            $filters['end_date'] ?? null
+        );
+
+        $sql = "
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS end_date
+                FROM dual
+            ),
+            material_cost_per_service AS (
+                SELECT
+                    spd.service_id,
+                    SUM(NVL(spd.amount, 0) * NVL(p.item_price, 0)) AS material_cost_per_time
+                FROM service_product_detail spd
+                JOIN product p
+                    ON p.product_id = spd.product_id
+                GROUP BY spd.service_id
+            ),
+            paid_service_usage AS (
+                SELECT
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
+                    bsp.employee_id,
+                    SUM(NVL(od.line_total, 0)) AS service_revenue
+                FROM params pa
+                JOIN booking_service_pet bsp
+                    ON bsp.status = 'DONE'
+                JOIN order_details od
+                    ON od.booking_service_pet_id = bsp.booking_service_pet_id
+                JOIN orders o
+                    ON o.order_id = od.order_id
+                   AND o.status IN ('PAID', 'COMPLETED')
+                   AND o.paid_at >= pa.start_date
+                   AND o.paid_at <  pa.end_date + 1
+                GROUP BY
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
+                    bsp.employee_id
+            ),
+            profit_by_service AS (
+                SELECT
+                    s.service_id,
+                    s.service_name,
+                    COUNT(psu.booking_service_pet_id) AS usage_count,
+                    NVL(SUM(psu.service_revenue), 0) AS total_service_revenue,
+                    NVL(SUM(NVL(mc.material_cost_per_time, 0)), 0) AS total_material_cost,
+                    NVL(
+                        ROUND(
+                            SUM(
+                                (NVL(e.salary, 0) / 26 / 8)
+                                * (NVL(s.duration_minutes, 0) / 60)
+                            ),
+                            0
+                        ),
+                        0
+                    ) AS total_labor_cost
+                FROM paid_service_usage psu
+                JOIN services s
+                    ON s.service_id = psu.service_id
+                LEFT JOIN employee e
+                    ON e.employee_id = psu.employee_id
+                LEFT JOIN material_cost_per_service mc
+                    ON mc.service_id = s.service_id
+                GROUP BY
+                    s.service_id,
+                    s.service_name
+            ),
+            service_margin AS (
+                SELECT
+                    service_id,
+                    service_name,
+                    usage_count,
+                    total_service_revenue,
+                    total_material_cost,
+                    total_labor_cost,
+                    total_material_cost + total_labor_cost
+                        AS estimated_service_cost,
+                    total_service_revenue
+                        - (total_material_cost + total_labor_cost)
+                        AS estimated_service_profit,
+                    CASE
+                        WHEN total_service_revenue = 0 THEN NULL
+                        ELSE ROUND(
+                            (
+                                total_service_revenue
+                                - (total_material_cost + total_labor_cost)
+                            ) / total_service_revenue * 100,
+                            2
+                        )
+                    END AS estimated_service_margin_percent
+                FROM profit_by_service
+                WHERE total_service_revenue > 0
+            )
+            SELECT
+                service_id,
+                service_name,
+                usage_count,
+                total_service_revenue,
+                total_material_cost,
+                total_labor_cost,
+                estimated_service_cost,
+                estimated_service_profit,
+                estimated_service_margin_percent
+            FROM service_margin
+            ORDER BY estimated_service_margin_percent ASC
+            FETCH FIRST 5 ROWS ONLY
+        ";
+
+        return array_map(function (object $row): array {
+            $margin = $this->rowValue($row, 'estimated_service_margin_percent');
+
+            return [
+                'service_id' => (int) ($this->rowValue($row, 'service_id') ?? 0),
+                'service_name' => (string) ($this->rowValue($row, 'service_name') ?? ''),
+                'usage_count' => (int) ($this->rowValue($row, 'usage_count') ?? 0),
+                'total_service_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'total_service_revenue') ?? 0)),
+                'total_material_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'total_material_cost') ?? 0)),
+                'total_labor_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'total_labor_cost') ?? 0)),
+                'estimated_service_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_service_cost') ?? 0)),
+                'estimated_service_profit' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_service_profit') ?? 0)),
+                'estimated_service_margin_percent' => $margin === null
+                    ? null
+                    : $this->cleanNumber((float) $margin),
+            ];
+        }, DB::select($sql, [
+            'p_start_date' => $range['start']->toDateString(),
+            'p_end_date' => $range['end']->toDateString(),
+        ]));
+    }
+
+    /**
+     * Get alerts for active branches with negative estimated profit.
+     *
+     * Input:
+     * - Current period start_date and end_date filters.
+     *
+     * Output:
+     * - Negative branch profit AlertBox rows ordered by the largest loss first.
+     */
+    public function getNegativeBranchProfitAlerts(array $filters = [], float $profitThreshold = 0.0): array
+    {
+        $range = $this->resolvePeriodRange(
+            $filters['period_type'] ?? $filters['period'] ?? 'month',
+            $filters['date'] ?? null,
+            $filters['start_date'] ?? null,
+            $filters['end_date'] ?? null
+        );
+
+        $sql = "
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS end_date,
+                    :p_negative_profit_threshold AS negative_profit_threshold
+                FROM dual
+            ),
+            active_branch AS (
+                SELECT
+                    b.branch_id,
+                    b.branch_name
+                FROM branch b
+                WHERE b.is_active = 1
+            ),
+            report_months AS (
+                SELECT
+                    ADD_MONTHS(TRUNC(pa.start_date, 'MM'), LEVEL - 1) AS month_start,
+                    LAST_DAY(ADD_MONTHS(TRUNC(pa.start_date, 'MM'), LEVEL - 1)) AS month_end,
+                    pa.start_date,
+                    pa.end_date
+                FROM params pa
+                CONNECT BY LEVEL <= MONTHS_BETWEEN(
+                    TRUNC(pa.end_date, 'MM'),
+                    TRUNC(pa.start_date, 'MM')
+                ) + 1
+            ),
+            revenue_by_branch AS (
+                SELECT
+                    o.branch_id,
+                    NVL(SUM(o.grand_total), 0) AS branch_revenue
+                FROM params pa
+                JOIN orders o
+                    ON o.status IN ('PAID', 'COMPLETED')
+                   AND o.paid_at >= pa.start_date
+                   AND o.paid_at <  pa.end_date + 1
+                GROUP BY o.branch_id
+            ),
+            salary_base_by_branch AS (
+                SELECT
+                    e.branch_id,
+                    NVL(SUM(e.salary), 0) AS monthly_salary_cost
+                FROM employee e
+                WHERE e.status = 1
+                GROUP BY e.branch_id
+            ),
+            salary_by_branch AS (
+                SELECT
+                    ab.branch_id,
+                    NVL(
+                        ROUND(
+                            SUM(
+                                NVL(sbb.monthly_salary_cost, 0)
+                                * (
+                                    LEAST(rm.month_end, rm.end_date)
+                                    - GREATEST(rm.month_start, rm.start_date)
+                                    + 1
+                                ) / (rm.month_end - rm.month_start + 1)
+                            ),
+                            0
+                        ),
+                        0
+                    ) AS branch_salary_cost
+                FROM active_branch ab
+                CROSS JOIN report_months rm
+                LEFT JOIN salary_base_by_branch sbb
+                    ON sbb.branch_id = ab.branch_id
+                GROUP BY ab.branch_id
+            ),
+            material_cost_per_service AS (
+                SELECT
+                    spd.service_id,
+                    SUM(NVL(spd.amount, 0) * NVL(p.item_price, 0)) AS material_cost_per_time
+                FROM service_product_detail spd
+                JOIN product p
+                    ON p.product_id = spd.product_id
+                GROUP BY spd.service_id
+            ),
+            material_by_branch AS (
+                SELECT
+                    bk.branch_id,
+                    NVL(SUM(NVL(mc.material_cost_per_time, 0)), 0) AS branch_material_cost
+                FROM params pa
+                JOIN booking_service_pet bsp
+                    ON bsp.status = 'DONE'
+                   AND bsp.scheduled_at >= pa.start_date
+                   AND bsp.scheduled_at <  pa.end_date + 1
+                JOIN booking bk
+                    ON bk.booking_id = bsp.booking_id
+                LEFT JOIN material_cost_per_service mc
+                    ON mc.service_id = bsp.service_id
+                GROUP BY bk.branch_id
+            ),
+            branch_profit AS (
+                SELECT
+                    ab.branch_id,
+                    ab.branch_name,
+                    NVL(rb.branch_revenue, 0) AS branch_revenue,
+                    NVL(sb.branch_salary_cost, 0) AS branch_salary_cost,
+                    NVL(mb.branch_material_cost, 0) AS branch_material_cost,
+                    NVL(sb.branch_salary_cost, 0)
+                        + NVL(mb.branch_material_cost, 0) AS estimated_branch_cost,
+                    NVL(rb.branch_revenue, 0)
+                        - (
+                            NVL(sb.branch_salary_cost, 0)
+                            + NVL(mb.branch_material_cost, 0)
+                        ) AS estimated_branch_profit
+                FROM active_branch ab
+                LEFT JOIN revenue_by_branch rb
+                    ON rb.branch_id = ab.branch_id
+                LEFT JOIN salary_by_branch sb
+                    ON sb.branch_id = ab.branch_id
+                LEFT JOIN material_by_branch mb
+                    ON mb.branch_id = ab.branch_id
+            )
+            SELECT
+                'NEGATIVE_BRANCH_PROFIT' AS alert_type,
+                'HIGH' AS alert_level,
+                'Chi nhánh lợi nhuận âm' AS title,
+                'Chi nhánh '
+                    || branch_name
+                    || ' đang có lợi nhuận ước tính âm: '
+                    || TO_CHAR(estimated_branch_profit, 'FM999G999G999G999G990')
+                    || ' VND.' AS warning_text,
+                branch_id,
+                branch_name,
+                estimated_branch_profit AS main_value,
+                pa.negative_profit_threshold AS compare_value,
+                branch_revenue,
+                estimated_branch_cost,
+                TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') AS created_at
+            FROM branch_profit
+            CROSS JOIN params pa
+            WHERE estimated_branch_profit < pa.negative_profit_threshold
+            ORDER BY estimated_branch_profit ASC
+        ";
+
+        return array_map(function (object $row): array {
+            return [
+                'alert_type' => (string) ($this->rowValue($row, 'alert_type') ?? ''),
+                'alert_level' => (string) ($this->rowValue($row, 'alert_level') ?? ''),
+                'title' => (string) ($this->rowValue($row, 'title') ?? ''),
+                'warning_text' => (string) ($this->rowValue($row, 'warning_text') ?? ''),
+                'branch_id' => (int) ($this->rowValue($row, 'branch_id') ?? 0),
+                'branch_name' => (string) ($this->rowValue($row, 'branch_name') ?? ''),
+                'main_value' => $this->cleanNumber((float) ($this->rowValue($row, 'main_value') ?? 0)),
+                'compare_value' => $this->cleanNumber((float) ($this->rowValue($row, 'compare_value') ?? 0)),
+                'branch_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'branch_revenue') ?? 0)),
+                'estimated_branch_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_branch_cost') ?? 0)),
+                'created_at' => (string) ($this->rowValue($row, 'created_at') ?? ''),
+            ];
+        }, DB::select($sql, [
+            'p_start_date' => $range['start']->toDateString(),
+            'p_end_date' => $range['end']->toDateString(),
+            'p_negative_profit_threshold' => $profitThreshold,
+        ]));
+    }
+
+    /**
+     * Get alerts for paid services below the configured estimated margin.
+     *
+     * Input:
+     * - Current period start_date and end_date filters.
+     * - Low-margin threshold and high-level threshold from FinanceController.
+     *
+     * Output:
+     * - Low service margin AlertBox rows ordered by margin ascending.
+     */
+    public function getLowServiceMarginAlerts(
+        array $filters = [],
+        float $lowMarginThreshold = 20.0,
+        float $highMarginThreshold = 10.0
+    ): array {
+        $range = $this->resolvePeriodRange(
+            $filters['period_type'] ?? $filters['period'] ?? 'month',
+            $filters['date'] ?? null,
+            $filters['start_date'] ?? null,
+            $filters['end_date'] ?? null
+        );
+
+        $sql = "
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS end_date,
+                    NVL(:p_low_margin_threshold, 20) AS low_margin_threshold,
+                    NVL(:p_high_margin_threshold, 10) AS high_margin_threshold
+                FROM dual
+            ),
+            material_cost_per_service AS (
+                SELECT
+                    spd.service_id,
+                    SUM(NVL(spd.amount, 0) * NVL(p.item_price, 0)) AS material_cost_per_time
+                FROM service_product_detail spd
+                JOIN product p
+                    ON p.product_id = spd.product_id
+                GROUP BY spd.service_id
+            ),
+            paid_service_usage AS (
+                SELECT
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
+                    bsp.employee_id,
+                    SUM(NVL(od.line_total, 0)) AS service_revenue
+                FROM params pa
+                JOIN booking_service_pet bsp
+                    ON bsp.status = 'DONE'
+                JOIN order_details od
+                    ON od.booking_service_pet_id = bsp.booking_service_pet_id
+                JOIN orders o
+                    ON o.order_id = od.order_id
+                   AND o.status IN ('PAID', 'COMPLETED')
+                   AND o.paid_at >= pa.start_date
+                   AND o.paid_at <  pa.end_date + 1
+                GROUP BY
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
+                    bsp.employee_id
+            ),
+            profit_by_service AS (
+                SELECT
+                    s.service_id,
+                    s.service_name,
+                    COUNT(psu.booking_service_pet_id) AS usage_count,
+                    NVL(SUM(psu.service_revenue), 0) AS total_service_revenue,
+                    NVL(SUM(NVL(mc.material_cost_per_time, 0)), 0) AS total_material_cost,
+                    NVL(
+                        ROUND(
+                            SUM(
+                                (NVL(e.salary, 0) / 26 / 8)
+                                * (NVL(s.duration_minutes, 0) / 60)
+                            ),
+                            0
+                        ),
+                        0
+                    ) AS total_labor_cost
+                FROM paid_service_usage psu
+                JOIN services s
+                    ON s.service_id = psu.service_id
+                LEFT JOIN employee e
+                    ON e.employee_id = psu.employee_id
+                LEFT JOIN material_cost_per_service mc
+                    ON mc.service_id = s.service_id
+                GROUP BY
+                    s.service_id,
+                    s.service_name
+            ),
+            service_margin AS (
+                SELECT
+                    service_id,
+                    service_name,
+                    usage_count,
+                    total_service_revenue,
+                    total_material_cost,
+                    total_labor_cost,
+                    total_material_cost + total_labor_cost
+                        AS estimated_service_cost,
+                    total_service_revenue
+                        - (total_material_cost + total_labor_cost)
+                        AS estimated_service_profit,
+                    CASE
+                        WHEN total_service_revenue = 0 THEN NULL
+                        ELSE ROUND(
+                            (
+                                total_service_revenue
+                                - (total_material_cost + total_labor_cost)
+                            ) / total_service_revenue * 100,
+                            2
+                        )
+                    END AS estimated_service_margin_percent
+                FROM profit_by_service
+                WHERE total_service_revenue > 0
+            )
+            SELECT
+                'LOW_SERVICE_MARGIN' AS alert_type,
+                CASE
+                    WHEN sm.estimated_service_margin_percent < pa.high_margin_threshold THEN 'HIGH'
+                    ELSE 'MEDIUM'
+                END AS alert_level,
+                'Dịch vụ biên lợi nhuận thấp' AS title,
+                'Dịch vụ '
+                    || sm.service_name
+                    || ' có margin ước tính thấp: '
+                    || TO_CHAR(sm.estimated_service_margin_percent, 'FM999G990D00')
+                    || '%.' AS warning_text,
+                sm.service_id,
+                sm.service_name,
+                sm.estimated_service_margin_percent AS main_value,
+                pa.low_margin_threshold AS compare_value,
+                sm.total_service_revenue,
+                sm.estimated_service_cost,
+                sm.estimated_service_profit,
+                TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') AS created_at
+            FROM service_margin sm
+            CROSS JOIN params pa
+            WHERE sm.estimated_service_margin_percent < pa.low_margin_threshold
+            ORDER BY sm.estimated_service_margin_percent ASC
+        ";
+
+        return array_map(function (object $row): array {
+            return [
+                'alert_type' => (string) ($this->rowValue($row, 'alert_type') ?? ''),
+                'alert_level' => (string) ($this->rowValue($row, 'alert_level') ?? ''),
+                'title' => (string) ($this->rowValue($row, 'title') ?? ''),
+                'warning_text' => (string) ($this->rowValue($row, 'warning_text') ?? ''),
+                'service_id' => (int) ($this->rowValue($row, 'service_id') ?? 0),
+                'service_name' => (string) ($this->rowValue($row, 'service_name') ?? ''),
+                'main_value' => $this->cleanNumber((float) ($this->rowValue($row, 'main_value') ?? 0)),
+                'compare_value' => $this->cleanNumber((float) ($this->rowValue($row, 'compare_value') ?? 0)),
+                'total_service_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'total_service_revenue') ?? 0)),
+                'estimated_service_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_service_cost') ?? 0)),
+                'estimated_service_profit' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_service_profit') ?? 0)),
+                'created_at' => (string) ($this->rowValue($row, 'created_at') ?? ''),
+            ];
+        }, DB::select($sql, [
+            'p_start_date' => $range['start']->toDateString(),
+            'p_end_date' => $range['end']->toDateString(),
+            'p_low_margin_threshold' => $lowMarginThreshold,
+            'p_high_margin_threshold' => $highMarginThreshold,
+        ]));
+    }
+
+    /**
+     * Get an alert when estimated total cost grows above the configured threshold.
+     *
+     * Input:
+     * - Current and previous date range filters.
+     * - Growth threshold and high-level threshold from FinanceController.
+     *
+     * Output:
+     * - Zero or one cost growth AlertBox row.
+     */
+    public function getCostGrowthAlerts(
+        array $filters = [],
+        float $costGrowthThreshold = 20.0,
+        float $highCostGrowthThreshold = 40.0
+    ): array {
+        $range = $this->resolvePeriodRange(
+            $filters['period_type'] ?? $filters['period'] ?? 'month',
+            $filters['date'] ?? null,
+            $filters['start_date'] ?? null,
+            $filters['end_date'] ?? null
+        );
+        $previousRange = $this->previousRange($range, $filters);
+
+        $sql = "
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS end_date,
+                    TRUNC(TO_DATE(:p_prev_start_date, 'YYYY-MM-DD')) AS prev_start_date,
+                    TRUNC(TO_DATE(:p_prev_end_date, 'YYYY-MM-DD')) AS prev_end_date,
+                    NVL(:p_cost_growth_threshold, 20) AS cost_growth_threshold,
+                    NVL(:p_high_cost_growth_threshold, 40) AS high_cost_growth_threshold
+                FROM dual
+            ),
+            material_cost_per_service AS (
+                SELECT
+                    spd.service_id,
+                    SUM(NVL(spd.amount, 0) * NVL(p.item_price, 0)) AS material_cost_per_time
+                FROM service_product_detail spd
+                JOIN product p
+                    ON p.product_id = spd.product_id
+                GROUP BY spd.service_id
+            ),
+            cur_material AS (
+                SELECT
+                    NVL(SUM(NVL(mc.material_cost_per_time, 0)), 0) AS current_material_cost
+                FROM params pa
+                JOIN booking_service_pet bsp
+                    ON bsp.status = 'DONE'
+                   AND bsp.scheduled_at >= pa.start_date
+                   AND bsp.scheduled_at <  pa.end_date + 1
+                LEFT JOIN material_cost_per_service mc
+                    ON mc.service_id = bsp.service_id
+            ),
+            prev_material AS (
+                SELECT
+                    NVL(SUM(NVL(mc.material_cost_per_time, 0)), 0) AS previous_material_cost
+                FROM params pa
+                JOIN booking_service_pet bsp
+                    ON bsp.status = 'DONE'
+                   AND bsp.scheduled_at >= pa.prev_start_date
+                   AND bsp.scheduled_at <  pa.prev_end_date + 1
+                LEFT JOIN material_cost_per_service mc
+                    ON mc.service_id = bsp.service_id
+            ),
+            salary_base AS (
+                SELECT
+                    NVL(SUM(e.salary), 0) AS monthly_salary_cost
+                FROM employee e
+                WHERE e.status = 1
+            ),
+            cur_months AS (
+                SELECT
+                    ADD_MONTHS(TRUNC(pa.start_date, 'MM'), LEVEL - 1) AS month_start,
+                    LAST_DAY(ADD_MONTHS(TRUNC(pa.start_date, 'MM'), LEVEL - 1)) AS month_end,
+                    pa.start_date,
+                    pa.end_date
+                FROM params pa
+                CONNECT BY LEVEL <= MONTHS_BETWEEN(
+                    TRUNC(pa.end_date, 'MM'),
+                    TRUNC(pa.start_date, 'MM')
+                ) + 1
+            ),
+            prev_months AS (
+                SELECT
+                    ADD_MONTHS(TRUNC(pa.prev_start_date, 'MM'), LEVEL - 1) AS month_start,
+                    LAST_DAY(ADD_MONTHS(TRUNC(pa.prev_start_date, 'MM'), LEVEL - 1)) AS month_end,
+                    pa.prev_start_date AS start_date,
+                    pa.prev_end_date AS end_date
+                FROM params pa
+                CONNECT BY LEVEL <= MONTHS_BETWEEN(
+                    TRUNC(pa.prev_end_date, 'MM'),
+                    TRUNC(pa.prev_start_date, 'MM')
+                ) + 1
+            ),
+            cur_salary AS (
+                SELECT
+                    NVL(
+                        ROUND(
+                            SUM(
+                                sb.monthly_salary_cost
+                                * (
+                                    LEAST(cm.month_end, cm.end_date)
+                                    - GREATEST(cm.month_start, cm.start_date)
+                                    + 1
+                                ) / (cm.month_end - cm.month_start + 1)
+                            ),
+                            0
+                        ),
+                        0
+                    ) AS current_salary_cost
+                FROM cur_months cm
+                CROSS JOIN salary_base sb
+            ),
+            prev_salary AS (
+                SELECT
+                    NVL(
+                        ROUND(
+                            SUM(
+                                sb.monthly_salary_cost
+                                * (
+                                    LEAST(pm.month_end, pm.end_date)
+                                    - GREATEST(pm.month_start, pm.start_date)
+                                    + 1
+                                ) / (pm.month_end - pm.month_start + 1)
+                            ),
+                            0
+                        ),
+                        0
+                    ) AS previous_salary_cost
+                FROM prev_months pm
+                CROSS JOIN salary_base sb
+            ),
+            cost_compare AS (
+                SELECT
+                    cs.current_salary_cost,
+                    ps.previous_salary_cost,
+                    cm.current_material_cost,
+                    pm.previous_material_cost,
+                    cs.current_salary_cost + cm.current_material_cost
+                        AS current_estimated_total_cost,
+                    ps.previous_salary_cost + pm.previous_material_cost
+                        AS previous_estimated_total_cost,
+                    CASE
+                        WHEN ps.previous_salary_cost + pm.previous_material_cost = 0
+                             AND cs.current_salary_cost + cm.current_material_cost > 0
+                            THEN 100
+                        WHEN ps.previous_salary_cost + pm.previous_material_cost = 0
+                             AND cs.current_salary_cost + cm.current_material_cost = 0
+                            THEN 0
+                        ELSE ROUND(
+                            (
+                                (cs.current_salary_cost + cm.current_material_cost)
+                                - (ps.previous_salary_cost + pm.previous_material_cost)
+                            ) / (ps.previous_salary_cost + pm.previous_material_cost) * 100,
+                            2
+                        )
+                    END AS cost_growth_percent
+                FROM cur_salary cs
+                CROSS JOIN prev_salary ps
+                CROSS JOIN cur_material cm
+                CROSS JOIN prev_material pm
+            )
+            SELECT
+                'COST_GROWTH_HIGH' AS alert_type,
+                CASE
+                    WHEN cc.cost_growth_percent >= pa.high_cost_growth_threshold THEN 'HIGH'
+                    ELSE 'MEDIUM'
+                END AS alert_level,
+                'Chi phí tăng mạnh' AS title,
+                'Chi phí ước tính tăng '
+                    || TO_CHAR(cc.cost_growth_percent, 'FM999G990D00')
+                    || '% so với kỳ trước.' AS warning_text,
+                cc.cost_growth_percent AS main_value,
+                pa.cost_growth_threshold AS compare_value,
+                cc.current_estimated_total_cost,
+                cc.previous_estimated_total_cost,
+                cc.current_salary_cost,
+                cc.previous_salary_cost,
+                cc.current_material_cost,
+                cc.previous_material_cost,
+                TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') AS created_at
+            FROM cost_compare cc
+            CROSS JOIN params pa
+            WHERE cc.cost_growth_percent >= pa.cost_growth_threshold
+        ";
+
+        return array_map(function (object $row): array {
+            return [
+                'alert_type' => (string) ($this->rowValue($row, 'alert_type') ?? ''),
+                'alert_level' => (string) ($this->rowValue($row, 'alert_level') ?? ''),
+                'title' => (string) ($this->rowValue($row, 'title') ?? ''),
+                'warning_text' => (string) ($this->rowValue($row, 'warning_text') ?? ''),
+                'main_value' => $this->cleanNumber((float) ($this->rowValue($row, 'main_value') ?? 0)),
+                'compare_value' => $this->cleanNumber((float) ($this->rowValue($row, 'compare_value') ?? 0)),
+                'current_estimated_total_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'current_estimated_total_cost') ?? 0)),
+                'previous_estimated_total_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'previous_estimated_total_cost') ?? 0)),
+                'current_salary_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'current_salary_cost') ?? 0)),
+                'previous_salary_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'previous_salary_cost') ?? 0)),
+                'current_material_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'current_material_cost') ?? 0)),
+                'previous_material_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'previous_material_cost') ?? 0)),
+                'created_at' => (string) ($this->rowValue($row, 'created_at') ?? ''),
+            ];
+        }, DB::select($sql, [
+            'p_start_date' => $range['start']->toDateString(),
+            'p_end_date' => $range['end']->toDateString(),
+            'p_prev_start_date' => $previousRange['start']->toDateString(),
+            'p_prev_end_date' => $previousRange['end']->toDateString(),
+            'p_cost_growth_threshold' => $costGrowthThreshold,
+            'p_high_cost_growth_threshold' => $highCostGrowthThreshold,
+        ]));
+    }
+
     private function estimatedProfitMetrics(array $filters = []): array
     {
         $range = $this->resolvePeriodRange(
@@ -589,6 +1685,7 @@ class CeoFinanceRepository implements CeoFinanceRepositoryInterface
                 SELECT
                     NVL(SUM(e.salary), 0) AS monthly_salary_cost
                 FROM employee e
+                WHERE e.status = 1
             ),
             current_report_months AS (
                 SELECT

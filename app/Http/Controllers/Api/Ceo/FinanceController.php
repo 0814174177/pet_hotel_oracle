@@ -10,141 +10,145 @@ use Throwable;
 
 class FinanceController extends ApiController
 {
+    /**
+     * Alert thresholds can be tuned here without changing repository SQL.
+     */
+    private const NEGATIVE_BRANCH_PROFIT_THRESHOLD = 0.0;
+
+    private const LOW_SERVICE_MARGIN_THRESHOLD = 20.0;
+
+    private const HIGH_SERVICE_MARGIN_THRESHOLD = 10.0;
+
+    private const COST_GROWTH_THRESHOLD = 20.0;
+
+    private const HIGH_COST_GROWTH_THRESHOLD = 40.0;
+
     public function __construct(
         protected CeoFinanceRepositoryInterface $financeRepository
     ) {
     }
 
-    public function index(DateRangeFilterRequest $request): JsonResponse
+    private function respondData(callable $callback): JsonResponse
     {
-        $filters = $request->getFiltersArray();
-
         try {
             return response()->json([
                 'success' => true,
-                'message' => 'CEO finance data loaded successfully',
-                'data' => $this->financeRepository->getFinanceData($filters),
+                'data' => $callback(),
             ]);
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unable to load CEO finance data',
-                'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function index(DateRangeFilterRequest $request): JsonResponse
+    {
+        return $this->respondData(
+            fn () => $this->financeRepository->getFinanceData($request->getFiltersArray())
+        );
     }
 
     public function totalChainRevenue(DateRangeFilterRequest $request): JsonResponse
     {
-        $filters = $request->getFiltersArray();
-
-        try {
-            return response()->json([
-                'success' => true,
-                'message' => 'CEO total chain revenue loaded successfully',
-                'data' => $this->financeRepository->getTotalChainRevenueCard($filters),
-            ]);
-        } catch (Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unable to load CEO total chain revenue',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->respondData(
+            fn () => $this->financeRepository->getTotalChainRevenueCard($request->getFiltersArray())
+        );
     }
 
     public function estimatedTotalCost(DateRangeFilterRequest $request): JsonResponse
     {
-        $filters = $request->getFiltersArray();
-
-        try {
-            return response()->json([
-                'success' => true,
-                'message' => 'CEO estimated total cost loaded successfully',
-                'data' => $this->financeRepository->getEstimatedTotalCostCard($filters),
-            ]);
-        } catch (Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unable to load CEO estimated total cost',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->respondData(
+            fn () => $this->financeRepository->getEstimatedTotalCostCard($request->getFiltersArray())
+        );
     }
 
     public function estimatedProfit(DateRangeFilterRequest $request): JsonResponse
     {
-        $filters = $request->getFiltersArray();
-
-        try {
-            return response()->json([
-                'success' => true,
-                'message' => 'CEO estimated profit loaded successfully',
-                'data' => $this->financeRepository->getEstimatedProfitCard($filters),
-            ]);
-        } catch (Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unable to load CEO estimated profit',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->respondData(
+            fn () => $this->financeRepository->getEstimatedProfitCard($request->getFiltersArray())
+        );
     }
 
     public function estimatedMargin(DateRangeFilterRequest $request): JsonResponse
     {
-        $filters = $request->getFiltersArray();
-
-        try {
-            return response()->json([
-                'success' => true,
-                'message' => 'CEO estimated margin loaded successfully',
-                'data' => $this->financeRepository->getEstimatedMarginCard($filters),
-            ]);
-        } catch (Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unable to load CEO estimated margin',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->respondData(
+            fn () => $this->financeRepository->getEstimatedMarginCard($request->getFiltersArray())
+        );
     }
 
     public function trend(DateRangeFilterRequest $request): JsonResponse
     {
-        $filters = $request->getFiltersArray();
-
-        try {
-            return response()->json([
-                'success' => true,
-                'message' => 'CEO finance trend loaded successfully',
-                'data' => $this->financeRepository->getFinanceTrendChart($filters),
-            ]);
-        } catch (Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unable to load CEO finance trend',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->respondData(
+            fn () => $this->financeRepository->getFinanceTrendChart($request->getFiltersArray())
+        );
     }
 
     public function monthlyTrend(DateRangeFilterRequest $request): JsonResponse
     {
-        $filters = $request->getFiltersArray();
+        return $this->respondData(
+            fn () => $this->financeRepository->getFinanceMonthlyTrendChart($request->getFiltersArray())
+        );
+    }
 
-        try {
-            return response()->json([
-                'success' => true,
-                'message' => 'CEO finance monthly trend loaded successfully',
-                'data' => $this->financeRepository->getFinanceMonthlyTrendChart($filters),
-            ]);
-        } catch (Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unable to load CEO finance monthly trend',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+    public function costStructure(DateRangeFilterRequest $request): JsonResponse
+    {
+        return $this->respondData(
+            fn () => $this->financeRepository->getCostStructureChart($request->getFiltersArray())
+        );
+    }
+
+    public function branchEstimatedProfit(DateRangeFilterRequest $request): JsonResponse
+    {
+        return $this->respondData(
+            fn () => $this->financeRepository->getBranchEstimatedProfitTable($request->getFiltersArray())
+        );
+    }
+
+    public function serviceEstimatedProfit(DateRangeFilterRequest $request): JsonResponse
+    {
+        return $this->respondData(
+            fn () => $this->financeRepository->getServiceEstimatedProfitTable($request->getFiltersArray())
+        );
+    }
+
+    public function lowestMarginServices(DateRangeFilterRequest $request): JsonResponse
+    {
+        return $this->respondData(
+            fn () => $this->financeRepository->getLowestMarginServicesTable($request->getFiltersArray())
+        );
+    }
+
+    public function negativeBranchProfitAlerts(DateRangeFilterRequest $request): JsonResponse
+    {
+        return $this->respondData(
+            fn () => $this->financeRepository->getNegativeBranchProfitAlerts(
+                $request->getFiltersArray(),
+                self::NEGATIVE_BRANCH_PROFIT_THRESHOLD
+            )
+        );
+    }
+
+    public function lowServiceMarginAlerts(DateRangeFilterRequest $request): JsonResponse
+    {
+        return $this->respondData(
+            fn () => $this->financeRepository->getLowServiceMarginAlerts(
+                $request->getFiltersArray(),
+                self::LOW_SERVICE_MARGIN_THRESHOLD,
+                self::HIGH_SERVICE_MARGIN_THRESHOLD
+            )
+        );
+    }
+
+    public function costGrowthAlerts(DateRangeFilterRequest $request): JsonResponse
+    {
+        return $this->respondData(
+            fn () => $this->financeRepository->getCostGrowthAlerts(
+                $request->getFiltersArray(),
+                self::COST_GROWTH_THRESHOLD,
+                self::HIGH_COST_GROWTH_THRESHOLD
+            )
+        );
     }
 }
