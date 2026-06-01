@@ -2,21 +2,47 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Employee extends Model
 {
+    public const STATUS_RESIGNED = 0;
+
+    public const STATUS_WORKING = 1;
+
     protected $table = 'employee';
     protected $primaryKey = 'employee_id';
 
     protected $guarded = [];
+
+    protected $attributes = [
+        'status' => self::STATUS_WORKING,
+    ];
 
     protected function casts(): array
     {
         return [
             'hire_date' => 'date',
             'birthday' => 'date',
+            'status' => 'integer',
         ];
+    }
+
+    public function scopeWorking(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_WORKING);
+    }
+
+    public function isWorking(): bool
+    {
+        return $this->status === self::STATUS_WORKING;
+    }
+
+    public function getTerminatedAtAttribute(): ?Carbon
+    {
+        return $this->isWorking() ? null : $this->updated_at;
     }
 
     public function user()

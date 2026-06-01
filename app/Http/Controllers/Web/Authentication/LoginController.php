@@ -45,7 +45,7 @@ class LoginController extends WebController
                 ], 422);
             }
 
-            if (! $user->is_active) {
+            if (! $user->is_active || ($user->isStaff() && $user->employee && ! $user->employee->isWorking())) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Tài khoản này đang bị khóa. Vui lòng liên hệ quản trị viên.'

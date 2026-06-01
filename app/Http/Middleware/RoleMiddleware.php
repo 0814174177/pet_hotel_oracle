@@ -24,7 +24,7 @@ class RoleMiddleware
 
         $expectsJson = $request->expectsJson() || $request->is('api/*');
 
-        if (! $user || ! $user->role || ! $user->is_active) {
+        if (! $user || ! $user->role || ! $user->is_active || ($user->isStaff() && $user->employee && ! $user->employee->isWorking())) {
             if (! $expectsJson) {
                 return redirect()->route('login');
             }

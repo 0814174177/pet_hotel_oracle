@@ -56,6 +56,10 @@ body {
     gap: 24px;
 }
 
+.finance-two-column + .finance-card {
+    margin-top: 24px;
+}
+
 .finance-card {
     background: #ffffff;
     border: 1px solid #d1d5db;
@@ -110,6 +114,14 @@ body {
     background: #ffffff;
 }
 
+.finance-table--branch-profit {
+    min-width: 1320px;
+}
+
+.finance-table--service-profit {
+    min-width: 1480px;
+}
+
 .finance-table thead {
     background: #f8fafc;
 }
@@ -160,6 +172,15 @@ body {
 
 .finance-money--muted {
     color: #64748b;
+}
+
+.finance-money--negative {
+    color: #dc2626;
+}
+
+.finance-table__placeholder {
+    color: #64748b !important;
+    text-align: center;
 }
 
 .finance-margin {

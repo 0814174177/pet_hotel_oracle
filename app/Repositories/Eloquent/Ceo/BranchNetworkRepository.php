@@ -111,6 +111,7 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
         $branches = Branch::query()
             ->with([
                 'employees' => fn ($query) => $query
+                    ->working()
                     ->where('position', 'MANAGER')
                     ->with('user')
                     ->orderBy('employee_id'),
@@ -118,7 +119,7 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
             ->withCount([
                 'rooms',
                 'bookings',
-                'employees',
+                'employees' => fn ($query) => $query->working(),
                 'rooms as used_rooms' => fn ($query) => $query->whereIn('status', self::ROOM_USED_STATUSES),
             ])
             ->orderBy('branch_name')

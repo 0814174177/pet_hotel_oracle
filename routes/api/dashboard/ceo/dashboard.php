@@ -10,7 +10,6 @@ Route::controller(DashboardController::class)->group(function () {
     Route::get('/customer-trend', 'customerTrend')->name('customer-trend');
     Route::get('/revenue', 'chainRevenue')->name('revenue');
     Route::get('/estimated-cogs', 'estimatedCogs')->name('estimated-cogs');
-    Route::get('/cost-structure', 'costStructure')->name('cost-structure');
     Route::get('/revenue-mix', 'revenueMix')->name('revenue-mix');
     Route::get('/revenue-and-cogs-trend', 'revenueAndCogsTrend')->name('revenue-and-cogs-trend');
     Route::get('/branch-revenue', 'branchRevenue')->name('branch-revenue');

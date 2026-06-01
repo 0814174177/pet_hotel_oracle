@@ -110,6 +110,7 @@ CREATE TABLE employee (
     email            VARCHAR2(254),
     phone            VARCHAR2(20) NOT NULL,
     hire_date        TIMESTAMP(6) WITH TIME ZONE,
+    status           NUMBER(1) DEFAULT 1 NOT NULL,
     status_code      NVARCHAR2(20) NOT NULL,
     note             CLOB,
     CONSTRAINT pk_employee PRIMARY KEY (employee_id),
@@ -117,7 +118,12 @@ CREATE TABLE employee (
     CONSTRAINT uq_employee_phone UNIQUE (phone),
     CONSTRAINT fk_employee_branch FOREIGN KEY (branch_id) REFERENCES branch(branch_id),
     CONSTRAINT fk_employee_user FOREIGN KEY (user_id) REFERENCES app_user(user_id),
-    CONSTRAINT ck_employee_status CHECK (status_code IN ('WORKING','ON_LEAVE','RESIGNED'))
+    CONSTRAINT ck_employee_status CHECK (status IN (0, 1)),
+    CONSTRAINT ck_employee_status_code CHECK (status_code IN ('WORKING','ON_LEAVE','RESIGNED')),
+    CONSTRAINT ck_employee_status_match CHECK (
+        (status = 1 AND status_code IN ('WORKING','ON_LEAVE'))
+        OR (status = 0 AND status_code = 'RESIGNED')
+    )
     --Working: đang làm việc
     --On_Leave: đang trong kì nghỉ phép
     --Resigned: đã nghỉ việc

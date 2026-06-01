@@ -42,7 +42,7 @@ class DashboardController extends ApiController
             $this->dashboardRepository->getRevpar($request->getFiltersArray())
         );
     }
-
+    
     public function customerTrend(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -61,22 +61,6 @@ class DashboardController extends ApiController
     {
         return $this->respondData(
             $this->dashboardRepository->getEstimatedCogs($request->getFiltersArray())
-        );
-    }
-
-    /**
-     * Get the estimated cost structure chart for the selected date range.
-     *
-     * Input:
-     * - DateRangeFilterRequest provides start_date and end_date.
-     *
-     * Output:
-     * - JSON response through respondData().
-     */
-    public function costStructure(DateRangeFilterRequest $request): JsonResponse
-    {
-        return $this->respondData(
-            $this->dashboardRepository->getCostStructure($request->getFiltersArray())
         );
     }
 

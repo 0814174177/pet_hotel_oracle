@@ -54,7 +54,6 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
         return [
             'total_revenue' => $this->getTotalRevenue($filters),
             'estimated_cogs' => $this->getEstimatedCogs($filters),
-            'cost_structure' => $this->getCostStructure($filters),
             'revenue_mix' => $this->getRevenueMix($filters),
             'revenue_and_cogs_trend' => $this->getRevenueAndCogsTrend($filters),
         ];
@@ -577,78 +576,6 @@ class CeoDashboardRepository implements CeoDashboardRepositoryInterface
                 'trend' => $this->getTrend($growthPercent),
             ],
         ];
-    }
-
-    /**
-     * Get estimated salary and service material cost structure.
-     *
-     * Input:
-     * - Current period start_date and end_date filters.
-     *
-     * Output:
-     * - Cost chart rows with cost_group, cost_amount, and cost_percent.
-     */
-    public function getCostStructure(array $filters = []): array
-    {
-        $filters = $this->normalizeFilters($filters);
-
-        $sql = "
-            WITH salary_cost AS (
-                SELECT
-                    'Lương nhân viên' AS cost_group,
-                    NVL(SUM(e.salary), 0) AS cost_amount
-                FROM employee e
-            ),
-            material_cost_per_service AS (
-                SELECT
-                    spd.service_id,
-                    SUM(NVL(spd.amount, 0) * NVL(p.item_price, 0)) AS material_cost_per_time
-                FROM service_product_detail spd
-                JOIN product p
-                    ON p.product_id = spd.product_id
-                GROUP BY spd.service_id
-            ),
-            material_cost AS (
-                SELECT
-                    'Vật tư dịch vụ ước tính' AS cost_group,
-                    NVL(SUM(NVL(mc.material_cost_per_time, 0)), 0) AS cost_amount
-                FROM booking_service_pet bsp
-                LEFT JOIN material_cost_per_service mc
-                    ON mc.service_id = bsp.service_id
-                WHERE bsp.status = 'DONE'
-                  AND bsp.scheduled_at >= TO_DATE(:p_start_date, 'YYYY-MM-DD')
-                  AND bsp.scheduled_at <  TO_DATE(:p_end_date, 'YYYY-MM-DD') + 1
-            ),
-            cost_union AS (
-                SELECT * FROM salary_cost
-                UNION ALL
-                SELECT * FROM material_cost
-            )
-            SELECT
-                cost_group,
-                cost_amount,
-                ROUND(
-                    cost_amount / NULLIF(SUM(cost_amount) OVER (), 0) * 100,
-                    2
-                ) AS cost_percent
-            FROM cost_union
-            ORDER BY cost_amount DESC
-        ";
-
-        $rows = DB::select($sql, [
-            'p_start_date' => $filters['start_date'],
-            'p_end_date' => $filters['end_date'],
-        ]);
-
-        return array_map(function (object $row): array {
-            $data = array_change_key_case((array) $row, CASE_LOWER);
-
-            return [
-                'cost_group' => (string) ($data['cost_group'] ?? ''),
-                'cost_amount' => $this->nullableFloat($data['cost_amount'] ?? null) ?? 0.0,
-                'cost_percent' => $this->nullableFloat($data['cost_percent'] ?? null) ?? 0.0,
-            ];
-        }, $rows);
     }
 
     /**
