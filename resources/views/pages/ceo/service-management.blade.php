@@ -48,7 +48,7 @@ $stats = [
     <p>Kiểm soát hiệu suất, biên lợi nhuận và độ phủ dịch vụ trên toàn chuỗi</p>
   </header> -->
 
-  <x-global-control-panel title="Quản trị Danh mục Dịch vụ" period="tháng" lastUpdate="14:58 - Cập nhật thành công" />
+  <x-global-control-panel title="Quản trị Danh mục Dịch vụ" />
 
   <section class="ceo-service-stats">
     @foreach ($stats as $item)

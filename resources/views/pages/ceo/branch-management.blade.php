@@ -98,8 +98,6 @@
 
     <x-global-control-panel
         title="Mạng lưới Chi nhánh"
-        period="tháng"
-        lastUpdate="14:58 - Cập nhật thành công"
     />
 
     <section class="branch-stats">

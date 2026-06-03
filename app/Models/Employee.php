@@ -40,6 +40,11 @@ class Employee extends Model
         return $this->status === self::STATUS_WORKING;
     }
 
+    public function isManagerPosition(): bool
+    {
+        return strtoupper((string) $this->position) === 'MANAGER';
+    }
+
     public function getTerminatedAtAttribute(): ?Carbon
     {
         return $this->isWorking() ? null : $this->updated_at;

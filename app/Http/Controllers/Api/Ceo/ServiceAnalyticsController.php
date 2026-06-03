@@ -20,15 +20,14 @@ class ServiceAnalyticsController extends ApiController
 
         $services = collect($this->serviceRevenues->getServiceRevenueList($filters));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Service KPI data loaded successfully',
-            'data' => [
+        return $this->respondData(
+            [
                 'top_revenue_service' => $this->formatKpiService($this->serviceRevenues->getHighestRevenueService($filters)),
                 'lowest_revenue_service' => $this->formatKpiService($this->serviceRevenues->getLowestRevenueService($filters)),
                 'total_service_revenue' => $this->cleanNumber((float) $services->sum('revenue')),
             ],
-        ]);
+            'Service KPI data loaded successfully'
+        );
     }
 
     public function index(DateRangeFilterRequest $request): JsonResponse
@@ -52,17 +51,19 @@ class ServiceAnalyticsController extends ApiController
             ])
             ->values();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Service analytics list loaded successfully',
-            'data' => $data->forPage($page, $perPage)->values(),
-            'meta' => [
+        return $this->respondData(
+            $data->forPage($page, $perPage)->values(),
+            'Service analytics list loaded successfully',
+            200,
+            [
+                'meta' => [
                 'page' => $page,
                 'per_page' => $perPage,
                 'total' => $data->count(),
                 'last_page' => max(1, (int) ceil($data->count() / $perPage)),
-            ],
-        ]);
+                ],
+            ]
+        );
     }
 
     private function formatKpiService(?array $service): ?array

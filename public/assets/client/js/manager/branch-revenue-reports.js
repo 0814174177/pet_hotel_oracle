@@ -149,6 +149,25 @@
             : null;
 
         if (!chart) {
+            new window.Chart(canvas, {
+                type: "line",
+                data: {
+                    labels,
+                    datasets,
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: "top" },
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true },
+                    },
+                },
+            });
+
             return;
         }
 
@@ -169,6 +188,28 @@
             : null;
 
         if (!chart) {
+            new window.Chart(canvas, {
+                type: "doughnut",
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            data: values,
+                            backgroundColor: colors,
+                            borderColor: "#ffffff",
+                            borderWidth: 3,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                    },
+                },
+            });
+
             return;
         }
 
@@ -179,6 +220,45 @@
             chart.data.datasets[0].backgroundColor = colors;
         }
 
+        chart.update();
+    }
+
+    function renderBarChart(chartId, labels, datasets) {
+        const canvas = document.getElementById(chartId);
+
+        if (!canvas || !window.Chart) {
+            return;
+        }
+
+        const chart = typeof window.Chart.getChart === "function"
+            ? window.Chart.getChart(canvas)
+            : null;
+
+        if (!chart) {
+            new window.Chart(canvas, {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets,
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true },
+                    },
+                },
+            });
+
+            return;
+        }
+
+        chart.data.labels = labels;
+        chart.data.datasets = datasets;
         chart.update();
     }
 
@@ -325,6 +405,16 @@
 
         legend.innerHTML = "";
 
+        if (rows.length === 0) {
+            const empty = document.createElement("div");
+
+            empty.className = "service-legend-empty";
+            empty.textContent = "Chua co du lieu co cau dich vu trong ky nay.";
+            legend.appendChild(empty);
+
+            return;
+        }
+
         rows.forEach((item, index) => {
             const name = serviceMixName(item);
             const color = colors[index] || serviceMixColor(name, index);
@@ -388,14 +478,242 @@
         }
     }
 
+    function employeeRows(data) {
+        if (Array.isArray(data)) {
+            return data;
+        }
+
+        if (Array.isArray(data?.items)) {
+            return data.items;
+        }
+
+        if (Array.isArray(data?.employees)) {
+            return data.employees;
+        }
+
+        return [];
+    }
+
+    function employeeRoleClass(role) {
+        const normalized = String(role || "").toLowerCase();
+
+        if (normalized.includes("chính") || normalized.includes("chinh") || normalized.includes("main")) {
+            return "role-badge role-badge--main";
+        }
+
+        if (normalized.includes("phụ") || normalized.includes("phu") || normalized.includes("assistant")) {
+            return "role-badge role-badge--assistant";
+        }
+
+        if (normalized.includes("lễ") || normalized.includes("le") || normalized.includes("reception")) {
+            return "role-badge role-badge--reception";
+        }
+
+        return "role-badge";
+    }
+
+    function upsellClass(value) {
+        const percent = toNumber(value);
+
+        if (percent >= 70) {
+            return "upsell-fill upsell-fill--good";
+        }
+
+        if (percent >= 50) {
+            return "upsell-fill upsell-fill--warning";
+        }
+
+        return "upsell-fill upsell-fill--danger";
+    }
+
+    function appendText(parent, tagName, text, className = "") {
+        const node = document.createElement(tagName);
+
+        if (className) {
+            node.className = className;
+        }
+
+        node.textContent = text ?? "";
+        parent.appendChild(node);
+
+        return node;
+    }
+
+    function renderEmployeePerformance(data) {
+        const rows = employeeRows(data);
+        const body = root.querySelector("[data-employee-performance-body]");
+        const warning = root.querySelector("[data-employee-performance-warning]");
+        const warningText = root.querySelector("[data-employee-performance-warning-text]");
+        const maxRevenue = Math.max(...rows.map((item) => toNumber(item.revenue ?? item.total_revenue)), 0);
+        const hasWarning = rows.some((item) => Boolean(item.alert ?? item.has_alert ?? item.warning));
+
+        if (warning) {
+            warning.hidden = !hasWarning;
+        }
+
+        if (warningText && hasWarning) {
+            warningText.textContent = "Có dấu hiệu bất thường trong hiệu suất nhân sự.";
+        }
+
+        if (!body) {
+            return;
+        }
+
+        body.innerHTML = "";
+
+        if (rows.length === 0) {
+            const row = document.createElement("div");
+            const info = document.createElement("div");
+
+            row.className = "staff-row";
+            info.className = "staff-info";
+            appendText(info, "div", "--", "staff-rank");
+
+            const detail = document.createElement("div");
+            appendText(detail, "div", "Chưa có dữ liệu hiệu suất nhân sự trong kỳ này.", "staff-name");
+            appendText(detail, "div", "--", "role-badge");
+            info.appendChild(detail);
+            row.appendChild(info);
+            appendText(row, "div", "--", "staff-revenue");
+            appendText(row, "div", "--", "upsell-value");
+            body.appendChild(row);
+
+            return;
+        }
+
+        rows.forEach((item, index) => {
+            const revenue = toNumber(item.revenue ?? item.total_revenue);
+            const upsellRate = toNumber(item.upsell_rate ?? item.upsellRate);
+            const revenuePercent = maxRevenue > 0 ? Math.min((revenue / maxRevenue) * 100, 100) : 0;
+            const isAlert = Boolean(item.alert ?? item.has_alert ?? item.warning);
+            const row = document.createElement("div");
+            const info = document.createElement("div");
+            const rank = document.createElement("div");
+            const detail = document.createElement("div");
+            const revenueCell = document.createElement("div");
+            const revenueTrack = document.createElement("div");
+            const revenueFill = document.createElement("div");
+            const upsellCell = document.createElement("div");
+            const upsellTrack = document.createElement("div");
+            const upsellFill = document.createElement("div");
+
+            row.className = isAlert
+                ? "staff-row staff-row--alert"
+                : index === 0
+                  ? "staff-row staff-row--top"
+                  : "staff-row";
+            info.className = "staff-info";
+            rank.className = index === 0 ? "staff-rank staff-rank--top" : "staff-rank";
+            rank.textContent = String(index + 1);
+
+            if (isAlert) {
+                appendText(rank, "span", "", "staff-alert-dot");
+            }
+
+            appendText(
+                detail,
+                "div",
+                item.employee_name || item.full_name || item.name || "Nhân sự chưa xác định",
+                "staff-name",
+            );
+            appendText(detail, "div", item.role || item.position || "--", employeeRoleClass(item.role || item.position));
+            info.appendChild(rank);
+            info.appendChild(detail);
+
+            appendText(revenueCell, "div", `${formatMillion(revenue)}tr`, "staff-revenue");
+            revenueTrack.className = "staff-revenue-track";
+            revenueFill.style.width = `${revenuePercent}%`;
+            revenueTrack.appendChild(revenueFill);
+            revenueCell.appendChild(revenueTrack);
+
+            appendText(upsellCell, "div", `${formatNumber(upsellRate, { maximumFractionDigits: 2 })}%`, "upsell-value");
+            upsellTrack.className = "upsell-track";
+            upsellFill.className = upsellClass(upsellRate);
+            upsellFill.style.width = `${Math.max(0, Math.min(upsellRate, 100))}%`;
+            upsellTrack.appendChild(upsellFill);
+            upsellCell.appendChild(upsellTrack);
+
+            row.appendChild(info);
+            row.appendChild(revenueCell);
+            row.appendChild(upsellCell);
+            body.appendChild(row);
+        });
+    }
+
+    function retentionRows(data) {
+        if (Array.isArray(data)) {
+            return data;
+        }
+
+        if (Array.isArray(data?.items)) {
+            return data.items;
+        }
+
+        if (Array.isArray(data?.retention)) {
+            return data.retention;
+        }
+
+        return [];
+    }
+
+    function renderCustomerRetention(data) {
+        const rows = retentionRows(data);
+        const rateNode = root.querySelector("[data-retention-rate]");
+        const trendNode = root.querySelector("[data-retention-trend]");
+        const latestRow = rows[rows.length - 1] || {};
+        const latestRate = data?.retention_rate ?? data?.returning_rate ?? latestRow.rate ?? latestRow.retention_rate;
+        const trendValue = data?.retention_trend ?? data?.trend_percent ?? data?.growth_percent;
+        const labels = rows.map((item) => item.month || item.period || item.label || formatChartDate(item.date));
+        const values = rows.map((item) => toNumber(item.rate ?? item.retention_rate ?? item.value));
+
+        if (rateNode) {
+            rateNode.classList.remove("customer-rate--positive", "customer-rate--negative");
+            rateNode.textContent = latestRate === undefined || latestRate === null
+                ? "--"
+                : `${formatNumber(latestRate, { maximumFractionDigits: 2 })}%`;
+        }
+
+        if (trendNode) {
+            const trendNumber = Number(trendValue);
+
+            trendNode.classList.remove("customer-trend--positive", "customer-trend--negative");
+
+            if (Number.isFinite(trendNumber)) {
+                trendNode.classList.add(trendNumber >= 0 ? "customer-trend--positive" : "customer-trend--negative");
+                trendNode.textContent = `${trendNumber >= 0 ? "▲" : "▼"} ${formatNumber(Math.abs(trendNumber), { maximumFractionDigits: 2 })}%`;
+            } else {
+                trendNode.textContent = "Chưa có dữ liệu";
+            }
+        }
+
+        setText(
+            "[data-new-customers]",
+            data?.new_customers === undefined ? "--" : formatNumber(data.new_customers, { maximumFractionDigits: 0 }),
+        );
+        setText(
+            "[data-loyal-customers]",
+            data?.loyal_customers === undefined ? "--" : formatNumber(data.loyal_customers, { maximumFractionDigits: 0 }),
+        );
+
+        renderBarChart("managerCustomerRetentionChart", labels, [
+            {
+                label: "Ty le quay lai",
+                data: values,
+                backgroundColor: "#3B82F6",
+                borderColor: "#3B82F6",
+                borderRadius: 4,
+            },
+        ]);
+    }
+
     $(document).ready(function () {
         DashboardEngine.run([
             { url: root.dataset.targetProgressUrl, onSuccess: renderTargetProgress },
             { url: root.dataset.revenueComparisonUrl, onSuccess: renderRevenueComparisonChart },
             { url: root.dataset.serviceMixUrl, onSuccess: renderServiceMix },
             { url: root.dataset.aovUrl, onSuccess: renderAovSummary },
-            { url: root.dataset.employeePerformanceUrl, onSuccess: function () {} },
-            { url: root.dataset.customerRetentionUrl, onSuccess: function () {} },
+            { url: root.dataset.employeePerformanceUrl, onSuccess: renderEmployeePerformance },
+            { url: root.dataset.customerRetentionUrl, onSuccess: renderCustomerRetention },
         ]);
     });
 })(window.jQuery);

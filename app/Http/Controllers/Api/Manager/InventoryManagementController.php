@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers\Api\Manager;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Manager\BranchScopedInventoryMaterialRepositoryInterface;
+use App\Services\Manager\ManagerBranchScopeService;
 use Illuminate\Http\JsonResponse;
 
-class InventoryManagementController extends Controller
+class InventoryManagementController extends ApiController
 {
     public function __construct(
-        protected BranchScopedInventoryMaterialRepositoryInterface $branchInventoryMaterialRepository
+        protected BranchScopedInventoryMaterialRepositoryInterface $branchInventoryMaterialRepository,
+        protected ManagerBranchScopeService $branchScope
     ) {
     }
 
@@ -30,11 +32,11 @@ class InventoryManagementController extends Controller
      */
     public function index(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view inventory materials for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchInventoryMaterialRepository->getDashboard($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchInventoryMaterialRepository->getDashboard($branchId, $this->filters($request))
+        );
     }
 
     /**
@@ -55,11 +57,11 @@ class InventoryManagementController extends Controller
      */
     public function kpi(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view inventory material KPI cards for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchInventoryMaterialRepository->getInventoryKpi($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchInventoryMaterialRepository->getInventoryKpi($branchId, $this->filters($request))
+        );
     }
 
     /**
@@ -75,11 +77,11 @@ class InventoryManagementController extends Controller
      */
     public function materials(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view inventory material list data for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchInventoryMaterialRepository->getMaterialsByBranch($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchInventoryMaterialRepository->getMaterialsByBranch($branchId, $this->filters($request))
+        );
     }
 
     /**
@@ -95,11 +97,11 @@ class InventoryManagementController extends Controller
      */
     public function outOfStock(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view out-of-stock materials for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchInventoryMaterialRepository->getOutOfStockMaterials($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchInventoryMaterialRepository->getOutOfStockMaterials($branchId, $this->filters($request))
+        );
     }
 
     /**
@@ -115,11 +117,11 @@ class InventoryManagementController extends Controller
      */
     public function lowStock(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view low-stock materials for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchInventoryMaterialRepository->getLowStockMaterials($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchInventoryMaterialRepository->getLowStockMaterials($branchId, $this->filters($request))
+        );
     }
 
     /**
@@ -135,19 +137,20 @@ class InventoryManagementController extends Controller
      */
     public function inventoryValueByCategory(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view inventory value by category for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchInventoryMaterialRepository->getInventoryValueByCategory($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchInventoryMaterialRepository->getInventoryValueByCategory($branchId, $this->filters($request))
+        );
     }
 
     public function show(int|string $branchId, int|string $materialId): JsonResponse
     {
-        // TODO: Authorize that the current user can view this material detail for the branch.
-        return response()->json([
-            'data' => $this->branchInventoryMaterialRepository->findMaterialDetail($branchId, $materialId),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchInventoryMaterialRepository->findMaterialDetail($branchId, $materialId)
+        );
     }
 
     /**

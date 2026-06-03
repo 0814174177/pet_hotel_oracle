@@ -22,15 +22,23 @@ class DateRangeFilterRequest extends FormRequest
 
     public function getStartDate(): ?Carbon
     {
-        return $this->filled('start_date')
-            ? Carbon::parse($this->validated('start_date'))->startOfDay()
+        if ($this->filled('start_date')) {
+            return Carbon::parse($this->validated('start_date'))->startOfDay();
+        }
+
+        return $this->shouldUseDefaultDateRange()
+            ? $this->defaultStartDate()
             : null;
     }
 
     public function getEndDate(): ?Carbon
     {
-        return $this->filled('end_date')
-            ? Carbon::parse($this->validated('end_date'))->endOfDay()
+        if ($this->filled('end_date')) {
+            return Carbon::parse($this->validated('end_date'))->endOfDay();
+        }
+
+        return $this->shouldUseDefaultDateRange()
+            ? $this->defaultEndDate()
             : null;
     }
 
@@ -73,5 +81,20 @@ class DateRangeFilterRequest extends FormRequest
             'prev_start_date' => $this->getPreviousStartDate(),
             'prev_end_date' => $this->getPreviousEndDate(),
         ];
+    }
+
+    private function shouldUseDefaultDateRange(): bool
+    {
+        return ! $this->filled('start_date') && ! $this->filled('end_date');
+    }
+
+    private function defaultStartDate(): Carbon
+    {
+        return Carbon::today(config('app.timezone'))->subDays(2)->startOfDay();
+    }
+
+    private function defaultEndDate(): Carbon
+    {
+        return Carbon::today(config('app.timezone'))->subDay()->endOfDay();
     }
 }

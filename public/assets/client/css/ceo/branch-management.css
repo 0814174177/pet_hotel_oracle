@@ -191,6 +191,12 @@ body {
     border-color: #fde68a;
 }
 
+.status-inactive {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
 .branch-action-btn {
     height: 36px;
     padding: 0 12px;

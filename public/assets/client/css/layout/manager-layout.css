@@ -140,6 +140,48 @@ body {
     font-weight: 700;
 }
 
+.manager-logout-form {
+    margin: 0;
+    padding: 0 20px 24px;
+    width: 100%;
+}
+
+.manager-logout-btn {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0 14px;
+    background-color: #ef4444;
+    color: #ffffff;
+    border: 1px solid #ef4444;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.1s ease;
+}
+
+.manager-logout-btn:hover {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+.manager-logout-btn:active {
+    transform: scale(0.98);
+}
+
+.manager-logout-icon {
+    flex: 0 0 18px;
+    font-size: 16px;
+    line-height: 1;
+}
+
 .manager-main-content {
     min-height: 100vh;
     margin-left: calc(var(--sidebar-width) + var(--content-gap));
@@ -150,6 +192,58 @@ body {
 .manager-main-inner {
     width: 100%;
     max-width: 100%;
+}
+
+.manager-layout .global-control-panel__date-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.manager-layout .global-control-panel__date-input {
+    min-height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #334155;
+    padding: 7px 10px;
+}
+
+.manager-layout .global-control-panel__apply-btn,
+.manager-layout .global-control-panel__refresh-btn {
+    min-height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.manager-layout .global-control-panel__apply-btn {
+    background: #0ea5e9;
+    border: 1px solid #0ea5e9;
+    color: #ffffff;
+}
+
+.manager-layout .global-control-panel__apply-btn:hover {
+    background: #0284c7;
+    border-color: #0284c7;
+}
+
+.manager-layout .global-control-panel__refresh-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+}
+
+.manager-layout .global-control-panel__refresh-btn:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
 }
 
 /* Khi sidebar thu gọn */
@@ -181,6 +275,14 @@ body {
 
 .manager-layout--collapsed .manager-sidebar-footer {
     justify-content: center;
+    padding: 0;
+}
+
+.manager-layout--collapsed .manager-logout-form {
+    padding: 0 12px 24px;
+}
+
+.manager-layout--collapsed .manager-logout-btn {
     padding: 0;
 }
 

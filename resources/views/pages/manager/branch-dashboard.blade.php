@@ -9,8 +9,15 @@
 @section('content')
 
 @php
-    $managerBranchId = auth()->user()?->employee?->branch_id ?? 1;
-    $period = 'tháng';
+    $managerBranchId = $managerBranchId ?? auth()->user()?->managerBranchId();
+    abort_if(blank($managerBranchId), 403, 'Manager account is not assigned to a branch.');
+    $managerBranchName = $managerBranchName
+        ?? auth()->user()?->employee?->branch?->branch_name
+        ?? 'Chi nhánh #'.$managerBranchId;
+    $managerPanelTitle = $managerPanelTitle
+        ?? auth()->user()?->employee?->full_name
+        ?? $managerBranchName;
+    $period = 'kỳ lọc';
 
     /*
     |--------------------------------------------------------------------------
@@ -24,7 +31,7 @@
             'value' => 'Đang tải...',
             'trend' => 'Chưa có dữ liệu',
             'isPositive' => true,
-            'period' => 'hôm qua',
+            'period' => $period,
         ],
         [
             'key' => 'check-out-schedule',
@@ -32,7 +39,7 @@
             'value' => 'Đang tải...',
             'trend' => 'Chưa có dữ liệu',
             'isPositive' => true,
-            'period' => 'hôm qua',
+            'period' => $period,
         ],
         [
             'key' => 'grooming-schedule',
@@ -40,7 +47,7 @@
             'value' => 'Đang tải...',
             'trend' => 'Chưa có dữ liệu',
             'isPositive' => false,
-            'period' => 'hôm qua',
+            'period' => $period,
         ],
         [
             'key' => 'walk-in-available-rooms',
@@ -48,117 +55,9 @@
             'value' => 'Đang tải...',
             'trend' => 'Chưa có dữ liệu',
             'isPositive' => false,
-            'period' => 'hôm qua',
+            'period' => $period,
         ],
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | URGENT ALERTS
-    |--------------------------------------------------------------------------
-    */
-    $healthAlerts = [
-        [
-            'id' => 'BK1080',
-            'customer' => 'Trần Văn E',
-            'pet' => 'Milo (Poodle)',
-            'condition' => 'Bỏ ăn 2 bữa',
-            'time' => '14:00 15/04',
-            'note' => 'Bé lừ đừ, rớt dãi nhiều',
-        ],
-        [
-            'id' => 'BK1092',
-            'customer' => 'Lê Thị F',
-            'pet' => 'Bông (Mèo Anh)',
-            'condition' => 'Tiêu chảy',
-            'time' => '16:30 15/04',
-            'note' => 'Phân lỏng, có mùi tanh',
-        ],
-    ];
-
-    $inventoryAlerts = [
-        [
-            'id' => 'VT_005',
-            'name' => 'Cát vệ sinh CleanCat 10L',
-            'stock' => 2,
-            'lastUpdated' => '08:00 15/04',
-            'note' => 'Sẽ hết trong chiều nay, NCC báo mai mới giao',
-        ],
-    ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | FINANCIAL RISK
-    |--------------------------------------------------------------------------
-    */
-    $riskData = [
-        'cancelCount' => 4,
-        'lostValue' => 2500000,
-    ];
-
-    $alertGrid = [
-        [
-            'id' => 'BK1001',
-            'customer' => 'Nguyễn Văn A',
-            'service' => 'Suite Room',
-            'time' => '10:00 15/04',
-            'cancelTime' => '08:00 15/04',
-            'deposit' => 500000,
-            'warning' => 'Hủy sát giờ',
-        ],
-        [
-            'id' => 'BK1005',
-            'customer' => 'Phạm Thị B',
-            'service' => 'Spa/Grooming',
-            'time' => '15:30 15/04',
-            'cancelTime' => '14:55 15/04',
-            'deposit' => 0,
-            'warning' => 'Không đặt cọc',
-        ],
-    ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | OPERATIONAL REPORT
-    |--------------------------------------------------------------------------
-    */
-    $barData = [
-        ['name' => 'Lưu chuồng Suite', 'revenue' => 35000000],
-        ['name' => 'Cắt tỉa trọn gói', 'revenue' => 20000000],
-        ['name' => 'Tắm diệt rận', 'revenue' => 15000000],
-    ];
-
-    $barConfigs = [
-        ['key' => 'revenue', 'name' => 'Doanh thu (VNĐ)', 'color' => '#3B82F6'],
-    ];
-
-    $pieData = [
-        ['name' => 'Grooming & Spa', 'value' => 45000000],
-        ['name' => 'Pet Hotel', 'value' => 75000000],
-    ];
-
-    $pieColors = ['#10B981', '#F59E0B'];
-
-    $debtData = [
-        [
-            'id' => 'CUS001',
-            'name' => 'Lê Văn C',
-            'debt' => 1500000,
-            'date' => '12/04/2026',
-            'phone' => '0901234567',
-        ],
-        [
-            'id' => 'CUS002',
-            'name' => 'Nguyễn Thị D',
-            'debt' => 850000,
-            'date' => '14/04/2026',
-            'phone' => '0911222333',
-        ],
-    ];
-
-    function managerMoney($amount) {
-        return number_format($amount, 0, ',', '.') . ' đ';
-    }
 @endphp
 
 <div
@@ -175,9 +74,7 @@
 >
 
     <x-global-control-panel
-        title="Chi nhánh Quận 1"
-        period="tháng"
-        lastUpdate="14:58 - Cập nhật thành công"
+        :title="$managerPanelTitle"
     />
 
     <div class="manager-dashboard-main">
@@ -205,100 +102,21 @@
             <div class="urgent-alerts-wrapper">
 
                 {{-- Health alerts --}}
-                @if (count($healthAlerts) === 0)
-                    <div class="safe-state-card" data-health-warning-card data-severity="green">
-                        <div class="health-warning-summary" data-health-warning-summary data-severity="green">
-                            <span><strong data-health-warning-count>0</strong> pet c&#7847;n theo d&#245;i</span>
-                        </div>
-                        ✅ <span>0 Cảnh báo Y tế - Tất cả các bé đều đang khỏe mạnh và ăn uống tốt.</span>
+                <div class="safe-state-card" data-health-warning-card data-severity="green">
+                    <div class="health-warning-summary" data-health-warning-summary data-severity="green">
+                        <span><strong data-health-warning-count>Đang tải...</strong> pet cần theo dõi</span>
                     </div>
-                @else
-                    <div class="manager-alert-card" data-health-warning-card data-severity="yellow">
-                        <h3 class="manager-alert-title manager-alert-title--red" data-health-warning-text>
-                            🚨 Báo động Y tế: {{ count($healthAlerts) }} bé có dấu hiệu bất thường!
-                        </h3>
-
-                        <div class="health-warning-summary" data-health-warning-summary data-severity="yellow">
-                            <span><strong data-health-warning-count>{{ count($healthAlerts) }}</strong> pet c&#7847;n theo d&#245;i</span>
-                        </div>
-
-                        <div class="manager-grid-table">
-                            <div class="manager-grid-header manager-health-header">
-                                <div>Mã Booking</div>
-                                <div>Khách hàng</div>
-                                <div>Tên bé</div>
-                                <div>Tình trạng</div>
-                                <div>Phát hiện lúc</div>
-                                <div>Ghi chú (Staff)</div>
-                                <div class="text-center">Thao tác</div>
-                            </div>
-
-                            <div class="manager-grid-body">
-                                @foreach ($healthAlerts as $item)
-                                    <div class="manager-grid-row manager-health-row">
-                                        <div class="cell-bold">{{ $item['id'] }}</div>
-                                        <div>{{ $item['customer'] }}</div>
-                                        <div class="cell-bold">{{ $item['pet'] }}</div>
-                                        <div class="cell-red">{{ $item['condition'] }}</div>
-                                        <div>{{ $item['time'] }}</div>
-                                        <div class="cell-note">{{ $item['note'] }}</div>
-                                        <div class="text-center">
-                                            <button type="button" class="btn-red">Ghi log xử lý</button>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                @endif
+                    <span data-health-warning-text>Đang tải cảnh báo y tế...</span>
+                </div>
 
                 {{-- Inventory alerts --}}
-                @if (count($inventoryAlerts) === 0)
-                    <div class="safe-state-card" data-inventory-warning-card data-severity="green">
-                        <div class="inventory-warning-summary" data-inventory-warning-summary data-severity="green">
-                            <span><strong data-inventory-out-of-stock-count>0</strong> v&#7853;t t&#432; h&#7871;t h&#224;ng</span>
-                            <span><strong data-inventory-low-stock-count>0</strong> v&#7853;t t&#432; s&#7855;p h&#7871;t</span>
-                        </div>
-                        📦 <span>0 Cảnh báo Kho - Vật tư tiêu hao đang ở mức an toàn.</span>
+                <div class="safe-state-card" data-inventory-warning-card data-severity="green">
+                    <div class="inventory-warning-summary" data-inventory-warning-summary data-severity="green">
+                        <span><strong data-inventory-out-of-stock-count>Đang tải...</strong> vật tư hết hàng</span>
+                        <span><strong data-inventory-low-stock-count>Đang tải...</strong> vật tư sắp hết</span>
                     </div>
-                @else
-                    <div class="manager-alert-card" data-inventory-warning-card data-severity="yellow">
-                        <h3 class="manager-alert-title manager-alert-title--orange" data-inventory-warning-text>
-                            ⚠️ Cảnh báo Tồn kho: {{ count($inventoryAlerts) }} vật tư sắp cạn!
-                        </h3>
-
-                        <div class="inventory-warning-summary" data-inventory-warning-summary data-severity="yellow">
-                            <span><strong data-inventory-out-of-stock-count>0</strong> v&#7853;t t&#432; h&#7871;t h&#224;ng</span>
-                            <span><strong data-inventory-low-stock-count>{{ count($inventoryAlerts) }}</strong> v&#7853;t t&#432; s&#7855;p h&#7871;t</span>
-                        </div>
-
-                        <div class="manager-grid-table">
-                            <div class="manager-grid-header manager-inventory-header">
-                                <div>Mã VT</div>
-                                <div>Tên vật tư</div>
-                                <div>Tồn kho</div>
-                                <div>Cập nhật cuối</div>
-                                <div>Ghi chú (Kho)</div>
-                                <div class="text-center">Thao tác</div>
-                            </div>
-
-                            <div class="manager-grid-body">
-                                @foreach ($inventoryAlerts as $item)
-                                    <div class="manager-grid-row manager-inventory-row">
-                                        <div class="cell-bold">{{ $item['id'] }}</div>
-                                        <div>{{ $item['name'] }}</div>
-                                        <div class="cell-warning">{{ $item['stock'] }}</div>
-                                        <div>{{ $item['lastUpdated'] }}</div>
-                                        <div class="cell-note">{{ $item['note'] }}</div>
-                                        <div class="text-center">
-                                            <button type="button" class="btn-orange">Ghi log xử lý</button>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                @endif
+                    <span data-inventory-warning-text>Đang tải cảnh báo tồn kho...</span>
+                </div>
 
                 {{-- Late cancelled bookings --}}
                 <div class="manager-alert-card" data-late-cancelled-card>
@@ -349,57 +167,19 @@
             <div class="risk-summary-grid">
                 <div class="risk-summary-card" data-financial-risk-count-card>
                     <p>Tổng số ca Hủy (Trong kỳ)</p>
-                    <strong><span data-financial-risk-cancelled-count>{{ $riskData['cancelCount'] }}</span> <span>ca</span></strong>
+                    <strong><span data-financial-risk-cancelled-count>Đang tải...</span> <span>ca</span></strong>
                 </div>
 
                 <div class="risk-summary-card" data-financial-risk-amount-card>
                     <p>Tổng Giá Trị Thất Thoát</p>
-                    <strong class="text-red" data-financial-risk-lost-amount>{{ managerMoney($riskData['lostValue']) }}</strong>
+                    <strong class="text-red" data-financial-risk-lost-amount>Đang tải...</strong>
                     <small>* Dựa trên grand_total của hóa đơn bị hủy</small>
                 </div>
             </div>
 
             <div class="financial-risk-warning" data-financial-risk-warning-text data-severity="yellow">
-                C&#7843;nh b&#225;o nh&#7865;: c&#243; &#273;&#417;n h&#7911;y/ho&#224;n.
+                Đang tải cảnh báo rủi ro tài chính...
             </div>
-
-            @if (count($alertGrid) === 0)
-                <div class="empty-message">Không có cảnh báo rủi ro nào.</div>
-            @else
-                <div class="manager-grid-table">
-                    <div class="manager-grid-header manager-risk-header">
-                        <div>Mã Booking</div>
-                        <div>Khách hàng</div>
-                        <div>Dịch vụ</div>
-                        <div>Giờ hẹn</div>
-                        <div>Thời điểm hủy</div>
-                        <div class="text-right">Tiền cọc</div>
-                        <div>Nhãn Cảnh báo</div>
-                        <div class="text-center">Thao tác</div>
-                    </div>
-
-                    <div class="manager-grid-body">
-                        @foreach ($alertGrid as $item)
-                            <div class="manager-grid-row manager-risk-row">
-                                <div class="cell-bold">{{ $item['id'] }}</div>
-                                <div>{{ $item['customer'] }}</div>
-                                <div>{{ $item['service'] }}</div>
-                                <div>{{ $item['time'] }}</div>
-                                <div class="cell-red">{{ $item['cancelTime'] }}</div>
-                                <div class="text-right">{{ managerMoney($item['deposit']) }}</div>
-                                <div>
-                                    <span class="{{ $item['deposit'] == 0 ? 'risk-badge risk-badge--danger' : 'risk-badge risk-badge--warning' }}">
-                                        {{ $item['warning'] }}
-                                    </span>
-                                </div>
-                                <div class="text-center">
-                                    <button type="button" class="btn-blue">Ghi log</button>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
         </section>
 
 
@@ -413,14 +193,7 @@
                     </div>
 
                     <div class="manager-chart-wrapper">
-                        <x-chart.bar
-                            id="managerTopRevenueServicesChart"
-                            :data="$barData"
-                            xAxisKey="name"
-                            :barConfigs="$barConfigs"
-                            yAxisFormatter="currency"
-                            height="320px"
-                        />
+                        <canvas id="managerTopRevenueServicesChart" aria-label="Biểu đồ top dịch vụ doanh thu cao nhất"></canvas>
                     </div>
 
                     <div class="manager-grid-table manager-top-service-table" data-top-revenue-services-table>
@@ -498,20 +271,11 @@
                     </div>
 
                     <div class="manager-pie-wrapper">
-                        <x-chart.pie
-                            id="managerRevenueStructureChart"
-                            :data="$pieData"
-                            nameKey="name"
-                            dataKey="value"
-                            :colors="$pieColors"
-                            tooltipFormatter="currency"
-                            height="320px"
-                        />
+                        <canvas id="managerRevenueStructureChart" aria-label="Biểu đồ cơ cấu doanh thu"></canvas>
                     </div>
 
                     <div class="pie-summary" data-revenue-structure-summary>
-                        Đang xem báo cáo theo: <strong>{{ $period }}</strong>.
-                        Sự chênh lệch tỷ trọng sẽ giúp bạn quyết định điều hướng Marketing kịp thời.
+                        Đang tải cơ cấu doanh thu...
                     </div>
 
                     <div class="manager-grid-table manager-revenue-structure-table" data-revenue-structure-table>

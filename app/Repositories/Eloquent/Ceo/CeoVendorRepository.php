@@ -10,16 +10,16 @@ use Illuminate\Support\Facades\DB;
 class CeoVendorRepository implements CeoVendorRepositoryInterface
 {
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach va phan hang doi tac/nha cung cap gia lap theo nhom vat tu.
+     * Mô tả chức năng:
+     * Lấy danh sách và phân hạng đối tác/nhà cung cấp giả lập theo nhóm vật tư.
      *
      * Input:
-     * - array $filters: filter ngay tu DateRangeFilterRequest, duoc normalize de tranh truyen Carbon vao SQL.
-     * - float $platinumThreshold, $goldThreshold, $silverThreshold: nguong phan hang hieu suat.
-     * - float $outOfStockPenalty, $lowStockPenalty: diem phat khi vat tu het/sap het.
+     * - array $filters: filter ngày từ DateRangeFilterRequest, được normalize để tránh truyền Carbon vào SQL.
+     * - float $platinumThreshold, $goldThreshold, $silverThreshold: ngưỡng phân hạng hiệu suất.
+     * - float $outOfStockPenalty, $lowStockPenalty: điểm phạt khi vật tư hết/sắp hết.
      *
      * Output:
-     * - Mang row table gom ten doi tac, so mat hang, tong chi tieu, hang, diem va canh bao.
+     * - Mảng row table gồm tên đối tác, số mặt hàng, tổng chi tiêu, hạng, điểm và cảnh báo.
      */
     public function getVendors(
         array $filters = [],
@@ -107,10 +107,10 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     ELSE 'RISK'
                 END AS tier,
                 CASE
-                    WHEN performance_rate >= platinum_threshold THEN 'Khong canh bao - doi tac rat on dinh'
-                    WHEN performance_rate >= gold_threshold THEN 'Theo doi nhe - hieu suat tot'
-                    WHEN performance_rate >= silver_threshold THEN 'Canh bao vang - can theo doi ton kho/giao hang'
-                    ELSE 'Canh bao do - hieu suat thap, can kiem tra nha cung cap'
+                    WHEN performance_rate >= platinum_threshold THEN 'Không cảnh báo - đối tác rất ổn định'
+                    WHEN performance_rate >= gold_threshold THEN 'Theo dõi nhẹ - hiệu suất tốt'
+                    WHEN performance_rate >= silver_threshold THEN 'Cảnh báo vàng - cần theo dõi tồn kho/giao hàng'
+                    ELSE 'Cảnh báo đỏ - hiệu suất thấp, cần kiểm tra nhà cung cấp'
                 END AS warning_text
             FROM ranked_partners
             ORDER BY performance_rate DESC, total_spend_amount DESC, partner_group_id
@@ -143,16 +143,16 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay hieu suat giao hang dung han OTD bang CTE mo phong khi schema chua co bang giao nhan.
+     * Mô tả chức năng:
+     * Lấy hiệu suất giao hàng đúng hạn OTD bằng CTE mô phỏng khi schema chưa có bảng giao nhận.
      *
      * Input:
-     * - array $filters: filter ngay tu DateRangeFilterRequest, duoc normalize de tranh truyen Carbon vao SQL.
-     * - Cac nguong OTD, chat luong va thoi gian tre truyen tu VendorController.
+     * - array $filters: filter ngày từ DateRangeFilterRequest, được normalize để tránh truyền Carbon vào SQL.
+     * - Các ngưỡng OTD, chất lượng và thời gian trễ truyền từ VendorController.
      *
      * Output:
-     * - summary: so lieu tong hop cho gauge/chart OTD.
-     * - vendors: danh sach nha cung cap va canh bao OTD chi tiet.
+     * - summary: số liệu tổng hợp cho gauge/chart OTD.
+     * - vendors: danh sách nhà cung cấp và cảnh báo OTD chi tiết.
      */
     public function getOnTimeDeliveryPerformance(
         array $filters = [],
@@ -181,14 +181,15 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     :p_watch_delay_hours AS watch_delay_hours
                 FROM dual
             ),
-            mock_delivery_orders AS (
-                SELECT 'Pet Food Solution Co.' AS supplier_name, 50 AS total_delivery_order_count, 49 AS on_time_delivery_order_count, 4.8 AS quality_score, 2 AS average_delay_hours FROM dual
-                UNION ALL
-                SELECT 'Duoc pham Thu y A Au', 40, 37, 4.5, 5 FROM dual
-                UNION ALL
-                SELECT 'Xuong Nem Happy Pet', 25, 21, 3.9, 12 FROM dual
-                UNION ALL
-                SELECT 'Dai ly Cat Sai Gon', 20, 14, 3.2, 26 FROM dual
+            delivery_orders AS (
+                SELECT
+                    CAST(NULL AS VARCHAR2(255)) AS supplier_name,
+                    0 AS total_delivery_order_count,
+                    0 AS on_time_delivery_order_count,
+                    0 AS quality_score,
+                    0 AS average_delay_hours
+                FROM dual
+                WHERE 1 = 0
             ),
             otd_calculated AS (
                 SELECT
@@ -202,7 +203,7 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     ) AS on_time_delivery_rate,
                     quality_score,
                     average_delay_hours
-                FROM mock_delivery_orders
+                FROM delivery_orders
             ),
             classified AS (
                 SELECT
@@ -213,21 +214,21 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     oc.quality_score,
                     oc.average_delay_hours,
                     CASE
-                        WHEN oc.on_time_delivery_rate >= rp.excellent_otd_threshold THEN 'Tot - khong canh bao'
-                        WHEN oc.on_time_delivery_rate >= rp.good_otd_threshold THEN 'Theo doi nhe'
-                        WHEN oc.on_time_delivery_rate >= rp.warning_otd_threshold THEN 'Canh bao vang - ty le dung han duoi 90%'
-                        ELSE 'Canh bao do - duoi 80%, can dam phan lai'
+                        WHEN oc.on_time_delivery_rate >= rp.excellent_otd_threshold THEN 'Tốt - không cảnh báo'
+                        WHEN oc.on_time_delivery_rate >= rp.good_otd_threshold THEN 'Theo dõi nhẹ'
+                        WHEN oc.on_time_delivery_rate >= rp.warning_otd_threshold THEN 'Cảnh báo vàng - tỷ lệ đúng hạn dưới 90%'
+                        ELSE 'Cảnh báo đỏ - dưới 80%, cần đàm phán lại'
                     END AS otd_warning_text,
                     CASE
-                        WHEN oc.quality_score < rp.low_quality_threshold THEN 'Canh bao do - chat luong hang kem'
-                        WHEN oc.quality_score < rp.medium_quality_threshold THEN 'Canh bao vang - chat luong trung binh'
-                        ELSE 'Chat luong dat'
+                        WHEN oc.quality_score < rp.low_quality_threshold THEN 'Cảnh báo đỏ - chất lượng hàng kém'
+                        WHEN oc.quality_score < rp.medium_quality_threshold THEN 'Cảnh báo vàng - chất lượng trung bình'
+                        ELSE 'Chất lượng đạt'
                     END AS quality_warning_text,
                     CASE
-                        WHEN oc.average_delay_hours > rp.severe_delay_hours THEN 'Canh bao do - tre nghiem trong'
-                        WHEN oc.average_delay_hours > rp.warning_delay_hours THEN 'Canh bao vang - tre dang ke'
-                        WHEN oc.average_delay_hours > rp.watch_delay_hours THEN 'Theo doi tre nhe'
-                        ELSE 'Giao dung tien do'
+                        WHEN oc.average_delay_hours > rp.severe_delay_hours THEN 'Cảnh báo đỏ - trễ nghiêm trọng'
+                        WHEN oc.average_delay_hours > rp.warning_delay_hours THEN 'Cảnh báo vàng - trễ đáng kể'
+                        WHEN oc.average_delay_hours > rp.watch_delay_hours THEN 'Theo dõi trễ nhẹ'
+                        ELSE 'Giao đúng tiến độ'
                     END AS delay_warning_text
                 FROM otd_calculated oc
                 CROSS JOIN report_params rp
@@ -285,15 +286,15 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay tong hop OTD toan chuoi bang CTE mo phong khi schema chua co bang giao nhan.
+     * Mô tả chức năng:
+     * Lấy tổng hợp OTD toàn chuỗi bằng CTE mô phỏng khi schema chưa có bảng giao nhận.
      *
      * Input:
-     * - array $filters: filter ngay tu DateRangeFilterRequest, duoc normalize de tranh truyen Carbon vao SQL.
-     * - float $goodOtdThreshold, $warningOtdThreshold: nguong canh bao OTD toan chuoi.
+     * - array $filters: filter ngày từ DateRangeFilterRequest, được normalize để tránh truyền Carbon vào SQL.
+     * - float $goodOtdThreshold, $warningOtdThreshold: ngưỡng cảnh báo OTD toàn chuỗi.
      *
      * Output:
-     * - Mang summary gom ty le dung han toan chuoi, chat luong, gio tre va canh bao tong hop.
+     * - Mảng summary gồm tỷ lệ đúng hạn toàn chuỗi, chất lượng, giờ trễ và cảnh báo tổng hợp.
      */
     public function getOnTimeDeliverySummary(
         array $filters = [],
@@ -309,14 +310,15 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     :p_warning_otd_threshold AS warning_otd_threshold
                 FROM dual
             ),
-            mock_delivery_orders AS (
-                SELECT 'Pet Food Solution Co.' AS supplier_name, 50 AS total_delivery_order_count, 49 AS on_time_delivery_order_count, 4.8 AS quality_score, 2 AS average_delay_hours FROM dual
-                UNION ALL
-                SELECT 'Duoc pham Thu y A Au', 40, 37, 4.5, 5 FROM dual
-                UNION ALL
-                SELECT 'Xuong Nem Happy Pet', 25, 21, 3.9, 12 FROM dual
-                UNION ALL
-                SELECT 'Dai ly Cat Sai Gon', 20, 14, 3.2, 26 FROM dual
+            delivery_orders AS (
+                SELECT
+                    CAST(NULL AS VARCHAR2(255)) AS supplier_name,
+                    0 AS total_delivery_order_count,
+                    0 AS on_time_delivery_order_count,
+                    0 AS quality_score,
+                    0 AS average_delay_hours
+                FROM dual
+                WHERE 1 = 0
             ),
             otd_calculated AS (
                 SELECT
@@ -330,7 +332,7 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     ) AS on_time_delivery_rate,
                     quality_score,
                     average_delay_hours
-                FROM mock_delivery_orders
+                FROM delivery_orders
             )
             SELECT
                 ROUND(
@@ -356,14 +358,14 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                 END AS status,
                 CASE
                     WHEN SUM(CASE WHEN on_time_delivery_rate < rp.warning_otd_threshold THEN 1 ELSE 0 END) > 0
-                    THEN 'Canh bao do - co doi tac giao dung han duoi 80%, gay rui ro van hanh'
+                    THEN 'Cảnh báo đỏ - có đối tác giao đúng hạn dưới 80%, gây rủi ro vận hành'
                     WHEN ROUND(
                         SUM(on_time_delivery_order_count)
                         / NULLIF(SUM(total_delivery_order_count), 0) * 100,
                         1
                     ) < rp.good_otd_threshold
-                    THEN 'Canh bao vang - OTD toan chuoi duoi 90%'
-                    ELSE 'On dinh - hieu suat giao hang tot'
+                    THEN 'Cảnh báo vàng - OTD toàn chuỗi dưới 90%'
+                    ELSE 'Ổn định - hiệu suất giao hàng tốt'
                 END AS warning_text
             FROM otd_calculated
             CROSS JOIN report_params rp
@@ -377,6 +379,22 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
             'p_warning_otd_threshold' => $warningOtdThreshold,
         ]), CASE_LOWER);
 
+        $totalDeliveryOrderCount = (int) ($row['total_delivery_order_count'] ?? 0);
+
+        if ($totalDeliveryOrderCount <= 0) {
+            return [
+                'on_time_delivery_rate' => 0,
+                'quality_score' => 0,
+                'average_delay_hours' => 0,
+                'low_otd_vendor_count' => 0,
+                'total_delivery_order_count' => 0,
+                'on_time_delivery_order_count' => 0,
+                'status' => 'no_data',
+                'show_alert' => false,
+                'warning_text' => 'Chưa có dữ liệu giao hàng đúng hạn.',
+            ];
+        }
+
         $lowOtdVendorCount = (int) ($row['low_otd_vendor_count'] ?? 0);
         $status = (string) ($row['status'] ?? 'good');
 
@@ -385,7 +403,7 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
             'quality_score' => $this->cleanNumber((float) ($row['average_quality_score'] ?? 0)),
             'average_delay_hours' => $this->cleanNumber((float) ($row['average_delay_hours'] ?? 0)),
             'low_otd_vendor_count' => $lowOtdVendorCount,
-            'total_delivery_order_count' => (int) ($row['total_delivery_order_count'] ?? 0),
+            'total_delivery_order_count' => $totalDeliveryOrderCount,
             'on_time_delivery_order_count' => (int) ($row['on_time_delivery_order_count'] ?? 0),
             'status' => $status,
             'show_alert' => $status !== 'good',
@@ -394,16 +412,16 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay bieu do dong tien va cong no phai tra nha cung cap theo thang bang CTE mo phong.
+     * Mô tả chức năng:
+     * Lấy biểu đồ dòng tiền và công nợ phải trả nhà cung cấp theo tháng bằng CTE mô phỏng.
      *
      * Input:
-     * - array $filters: filter ngay tu DateRangeFilterRequest, duoc normalize truoc khi bind SQL.
-     * - float $lightGrowthThreshold, $warningGrowthThreshold, $criticalGrowthThreshold: nguong canh bao tang truong cong no.
+     * - array $filters: filter ngày từ DateRangeFilterRequest, được normalize trước khi bind SQL.
+     * - float $lightGrowthThreshold, $warningGrowthThreshold, $criticalGrowthThreshold: ngưỡng cảnh báo tăng trưởng công nợ.
      *
      * Output:
-     * - summary: cong no thang moi nhat, tang truong va canh bao dong tien.
-     * - chart: cac dong thang de frontend render bar chart.
+     * - summary: công nợ tháng mới nhất, tăng trưởng và cảnh báo dòng tiền.
+     * - chart: các dòng tháng để frontend render bar chart.
      */
     public function getPayableCashflow(
         array $filters = [],
@@ -423,13 +441,12 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     :p_critical_growth_threshold AS critical_growth_threshold
                 FROM dual
             ),
-            mock_payables AS (
-                SELECT '2026-01' AS month_key, 320000000 AS total_payable_amount FROM dual
-                UNION ALL SELECT '2026-02', 350000000 FROM dual
-                UNION ALL SELECT '2026-03', 280000000 FROM dual
-                UNION ALL SELECT '2026-04', 305000000 FROM dual
-                UNION ALL SELECT '2026-05', 410000000 FROM dual
-                UNION ALL SELECT '2026-06', 450500000 FROM dual
+            payables AS (
+                SELECT
+                    CAST(NULL AS VARCHAR2(7)) AS month_key,
+                    0 AS total_payable_amount
+                FROM dual
+                WHERE 1 = 0
             ),
             payable_growth AS (
                 SELECT
@@ -437,7 +454,7 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     TO_DATE(mp.month_key || '-01', 'YYYY-MM-DD') AS month_date,
                     mp.total_payable_amount,
                     LAG(mp.total_payable_amount) OVER (ORDER BY mp.month_key) AS previous_payable_amount
-                FROM mock_payables mp
+                FROM payables mp
             ),
             filtered_growth AS (
                 SELECT
@@ -471,11 +488,11 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     ELSE 'normal'
                 END AS status,
                 CASE
-                    WHEN previous_payable_amount IS NULL THEN 'Khong du du lieu so sanh'
-                    WHEN growth_percent > critical_growth_threshold THEN 'Canh bao do - cong no tang dot bien, can chuan bi dong tien'
-                    WHEN growth_percent > warning_growth_threshold THEN 'Canh bao vang - cong no tang manh'
-                    WHEN growth_percent >= light_growth_threshold THEN 'Canh bao nhe - cong no tang dang chu y'
-                    ELSE 'Binh thuong'
+                    WHEN previous_payable_amount IS NULL THEN 'Không đủ dữ liệu so sánh'
+                    WHEN growth_percent > critical_growth_threshold THEN 'Cảnh báo đỏ - công nợ tăng đột biến, cần chuẩn bị dòng tiền'
+                    WHEN growth_percent > warning_growth_threshold THEN 'Cảnh báo vàng - công nợ tăng mạnh'
+                    WHEN growth_percent >= light_growth_threshold THEN 'Cảnh báo nhẹ - công nợ tăng đáng chú ý'
+                    ELSE 'Bình thường'
                 END AS warning_text
             FROM filtered_growth
             ORDER BY month_key
@@ -515,7 +532,7 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
             'previous_payable_amount' => null,
             'growth_percent' => null,
             'status' => 'no_data',
-            'warning_text' => 'Khong co du lieu cong no trong ky loc',
+            'warning_text' => 'Không có dữ liệu công nợ trong kỳ lọc',
         ];
 
         return [
@@ -525,15 +542,15 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay canh bao bien dong gia nhap bang CTE mo phong khi schema chua co lich su gia nhap.
+     * Mô tả chức năng:
+     * Lấy cảnh báo biến động giá nhập bằng CTE mô phỏng khi schema chưa có lịch sử giá nhập.
      *
      * Input:
-     * - array $filters: filter ngay tu DateRangeFilterRequest, duoc normalize de tranh truyen Carbon vao SQL.
-     * - float $watchThreshold, $warningThreshold, $criticalThreshold: nguong canh bao bien dong gia.
+     * - array $filters: filter ngày từ DateRangeFilterRequest, được normalize để tránh truyền Carbon vào SQL.
+     * - float $watchThreshold, $warningThreshold, $criticalThreshold: ngưỡng cảnh báo biến động giá.
      *
      * Output:
-     * - Mang row table gom vat tu, nha cung cap, gia trung binh 3 thang, gia nhap moi, bien dong va thao tac de xuat.
+     * - Mảng row table gồm vật tư, nhà cung cấp, giá trung bình 3 tháng, giá nhập mới, biến động và thao tác đề xuất.
      */
     public function getPriceVarianceAlerts(
         array $filters = [],
@@ -551,12 +568,14 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     :p_critical_threshold AS critical_threshold
                 FROM dual
             ),
-            mock_price_variance AS (
-                SELECT 'Cat dau nanh huu co CleanCat 10L' AS item_name, 'Dai ly Cat Sai Gon' AS supplier_name, 110000 AS average_price_3_months, 137500 AS latest_import_price FROM dual
-                UNION ALL
-                SELECT 'Sua tam SOS cho cho long trang 5L', 'Pet Food Solution Co.', 250000, 285000 FROM dual
-                UNION ALL
-                SELECT 'Khan tam sieu tham hut thu cung', 'Xuong det may An Phu', 35000, 43050 FROM dual
+            price_variance AS (
+                SELECT
+                    CAST(NULL AS VARCHAR2(255)) AS item_name,
+                    CAST(NULL AS VARCHAR2(255)) AS supplier_name,
+                    0 AS average_price_3_months,
+                    0 AS latest_import_price
+                FROM dual
+                WHERE 1 = 0
             ),
             calculated_variance AS (
                 SELECT
@@ -569,7 +588,7 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                         / NULLIF(average_price_3_months, 0) * 100,
                         1
                     ) AS variance_percent
-                FROM mock_price_variance
+                FROM price_variance
             )
             SELECT
                 cv.item_name,
@@ -584,14 +603,14 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                     ELSE 'normal'
                 END AS status,
                 CASE
-                    WHEN cv.variance_percent > rp.critical_threshold THEN 'Canh bao do - bien dong rat bat thuong'
-                    WHEN cv.variance_percent > rp.warning_threshold THEN 'Canh bao vang - vuot nguong 20%, can dieu tra'
-                    WHEN cv.variance_percent > rp.watch_threshold THEN 'Theo doi - gia tang dang chu y'
-                    ELSE 'Binh thuong'
+                    WHEN cv.variance_percent > rp.critical_threshold THEN 'Cảnh báo đỏ - biến động rất bất thường'
+                    WHEN cv.variance_percent > rp.warning_threshold THEN 'Cảnh báo vàng - vượt ngưỡng 20%, cần điều tra'
+                    WHEN cv.variance_percent > rp.watch_threshold THEN 'Theo dõi - giá tăng đáng chú ý'
+                    ELSE 'Bình thường'
                 END AS warning_text,
                 CASE
-                    WHEN cv.variance_percent > rp.warning_threshold THEN 'Dieu tra'
-                    ELSE 'Theo doi'
+                    WHEN cv.variance_percent > rp.warning_threshold THEN 'Điều tra'
+                    ELSE 'Theo dõi'
                 END AS suggested_action
             FROM calculated_variance cv
             CROSS JOIN report_params rp
@@ -615,7 +634,7 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
                 'variance_percent' => $this->cleanNumber((float) ($data['variance_percent'] ?? 0)),
                 'status' => (string) ($data['status'] ?? 'normal'),
                 'warning_text' => (string) ($data['warning_text'] ?? ''),
-                'suggested_action' => (string) ($data['suggested_action'] ?? 'Theo doi'),
+                'suggested_action' => (string) ($data['suggested_action'] ?? 'Theo dõi'),
             ];
         }, $rows);
     }
@@ -631,15 +650,15 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     }
 
     /**
-     * Mo ta chuc nang:
-     * Tong hop cac dong OTD nha cung cap thanh so lieu summary cho gauge/chart.
+     * Mô tả chức năng:
+     * Tổng hợp các dòng OTD nhà cung cấp thành số liệu summary cho gauge/chart.
      *
      * Input:
-     * - array $vendors: cac dong OTD da map tu SQL.
-     * - float $excellentOtdThreshold, $goodOtdThreshold, $warningOtdThreshold: nguong canh bao.
+     * - array $vendors: các dòng OTD đã map từ SQL.
+     * - float $excellentOtdThreshold, $goodOtdThreshold, $warningOtdThreshold: ngưỡng cảnh báo.
      *
      * Output:
-     * - Mang summary gom ty le OTD chuoi, chat luong, gio tre va so doi tac canh bao.
+     * - Mảng summary gồm tỷ lệ OTD chuỗi, chất lượng, giờ trễ và số đối tác cảnh báo.
      */
     private function summarizeOnTimeDelivery(
         array $vendors,
@@ -648,6 +667,22 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
         float $warningOtdThreshold
     ): array {
         $vendorCount = count($vendors);
+
+        if ($vendorCount === 0) {
+            return [
+                'total_delivery_order_count' => 0,
+                'on_time_delivery_order_count' => 0,
+                'on_time_delivery_rate' => 0,
+                'quality_score' => 0,
+                'average_delay_hours' => 0,
+                'low_otd_vendor_count' => 0,
+                'watch_otd_vendor_count' => 0,
+                'status' => 'no_data',
+                'show_alert' => false,
+                'warning_text' => 'Chưa có dữ liệu giao hàng đúng hạn.',
+            ];
+        }
+
         $totalOrders = array_sum(array_column($vendors, 'total_delivery_order_count'));
         $onTimeOrders = array_sum(array_column($vendors, 'on_time_delivery_order_count'));
         $onTimeRate = $totalOrders > 0
@@ -694,16 +729,16 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     }
 
     /**
-     * Mo ta chuc nang:
-     * Xac dinh trang thai mau cho gauge OTD dua tren summary da tinh.
+     * Mô tả chức năng:
+     * Xác định trạng thái màu cho gauge OTD dựa trên summary đã tính.
      *
      * Input:
-     * - float $onTimeRate: ty le giao dung han toan chuoi.
-     * - int $lowOtdVendorCount: so nha cung cap duoi nguong do.
-     * - float $excellentOtdThreshold, $warningOtdThreshold: nguong trang thai.
+     * - float $onTimeRate: tỷ lệ giao đúng hạn toàn chuỗi.
+     * - int $lowOtdVendorCount: số nhà cung cấp dưới ngưỡng đỏ.
+     * - float $excellentOtdThreshold, $warningOtdThreshold: ngưỡng trạng thái.
      *
      * Output:
-     * - Chuoi status gom danger, warning hoac good cho frontend render class.
+     * - Chuỗi status gồm danger, warning hoặc good cho frontend render class.
      */
     private function onTimeDeliverySummaryStatus(
         float $onTimeRate,
@@ -723,16 +758,16 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     }
 
     /**
-     * Mo ta chuc nang:
-     * Tao noi dung canh bao tong hop theo nguong OTD.
+     * Mô tả chức năng:
+     * Tạo nội dung cảnh báo tổng hợp theo ngưỡng OTD.
      *
      * Input:
-     * - float $onTimeRate: ty le giao dung han toan chuoi.
-     * - int $lowOtdVendorCount: so nha cung cap duoi nguong do.
-     * - Cac nguong OTD cau hinh.
+     * - float $onTimeRate: tỷ lệ giao đúng hạn toàn chuỗi.
+     * - int $lowOtdVendorCount: số nhà cung cấp dưới ngưỡng đỏ.
+     * - Các ngưỡng OTD cấu hình.
      *
      * Output:
-     * - Chuoi canh bao de frontend hien thi trong card OTD.
+     * - Chuỗi cảnh báo để frontend hiển thị trong card OTD.
      */
     private function onTimeDeliverySummaryWarning(
         float $onTimeRate,
@@ -742,33 +777,33 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
         float $warningOtdThreshold
     ): string {
         if ($lowOtdVendorCount > 0) {
-            return 'Co nha cung cap duoi nguong 80%, can dam phan lai de tranh gian doan vat tu.';
+            return 'Có nhà cung cấp dưới ngưỡng 80%, cần đàm phán lại để tránh gián đoạn vật tư.';
         }
 
         if ($onTimeRate >= $excellentOtdThreshold) {
-            return 'OTD rat tot, chua can canh bao.';
+            return 'OTD rất tốt, chưa cần cảnh báo.';
         }
 
         if ($onTimeRate >= $goodOtdThreshold) {
-            return 'OTD tot, tiep tuc theo doi nhe.';
+            return 'OTD tốt, tiếp tục theo dõi nhẹ.';
         }
 
         if ($onTimeRate >= $warningOtdThreshold) {
-            return 'Canh bao vang: OTD toan chuoi duoi 90%, can theo doi lich giao hang.';
+            return 'Cảnh báo vàng: OTD toàn chuỗi dưới 90%, cần theo dõi lịch giao hàng.';
         }
 
-        return 'Canh bao do: OTD toan chuoi duoi 80%, can dam phan lai voi nha cung cap.';
+        return 'Cảnh báo đỏ: OTD toàn chuỗi dưới 80%, cần đàm phán lại với nhà cung cấp.';
     }
 
     /**
-     * Mo ta chuc nang:
-     * Chuyen cac moc ngay trong filter ve chuoi Y-m-d neu co.
+     * Mô tả chức năng:
+     * Chuyển các mốc ngày trong filter về chuỗi Y-m-d nếu có.
      *
      * Input:
-     * - array $filters: filter tu DateRangeFilterRequest co the chua Carbon object.
+     * - array $filters: filter từ DateRangeFilterRequest có thể chứa Carbon object.
      *
      * Output:
-     * - Mang filter da normalize ngay, khong truyen Carbon truc tiep vao SQL.
+     * - Mảng filter đã normalize ngày, không truyền Carbon trực tiếp vào SQL.
      */
     private function normalizeFilters(array $filters = []): array
     {
@@ -781,14 +816,14 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     }
 
     /**
-     * Mo ta chuc nang:
-     * Chuyen mot gia tri ngay bat ky ve chuoi Y-m-d.
+     * Mô tả chức năng:
+     * Chuyển một giá trị ngày bất kỳ về chuỗi Y-m-d.
      *
      * Input:
-     * - mixed $value: DateTimeInterface, chuoi ngay hoac null.
+     * - mixed $value: DateTimeInterface, chuỗi ngày hoặc null.
      *
      * Output:
-     * - Chuoi ngay Y-m-d hoac null neu khong co gia tri hop le.
+     * - Chuỗi ngày Y-m-d hoặc null nếu không có giá trị hợp lệ.
      */
     private function dateString(mixed $value): ?string
     {
@@ -811,14 +846,14 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     }
 
     /**
-     * Mo ta chuc nang:
-     * Doi chuoi thang YYYY-MM thanh nhan ngan cho bieu do.
+     * Mô tả chức năng:
+     * Đổi chuỗi tháng YYYY-MM thành nhãn ngắn cho biểu đồ.
      *
      * Input:
-     * - string $monthKey: gia tri thang dang YYYY-MM.
+     * - string $monthKey: giá trị tháng dạng YYYY-MM.
      *
      * Output:
-     * - Nhan thang dang T1, T2... hoac chuoi goc neu khong hop le.
+     * - Nhãn tháng dạng T1, T2... hoặc chuỗi gốc nếu không hợp lệ.
      */
     private function monthLabel(string $monthKey): string
     {
@@ -830,14 +865,14 @@ class CeoVendorRepository implements CeoVendorRepositoryInterface
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lam gon so thap phan tra ve cho JSON table.
+     * Mô tả chức năng:
+     * Làm gọn số thập phân trả về cho JSON table.
      *
      * Input:
-     * - float $value: gia tri can lam gon.
+     * - float $value: giá trị cần làm gọn.
      *
      * Output:
-     * - int neu khong co phan thap phan, nguoc lai tra float 2 chu so.
+     * - int nếu không có phần thập phân, ngược lại trả float 2 chữ số.
      */
     private function cleanNumber(float $value): int|float
     {

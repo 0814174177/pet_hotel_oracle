@@ -3,15 +3,23 @@
 namespace App\Http\Controllers\Web\Manager;
 
 use App\Http\Controllers\Web\WebController;
+use App\Services\Manager\ManagerBranchScopeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class InventoryController extends WebController
 {
-    public function index(): View
+    public function __construct(
+        protected ManagerBranchScopeService $branchScope
+    ) {
+    }
+
+    public function index(int|string $branchId): View
     {
-        return view('pages.manager.inventory-management');
+        return view('pages.manager.inventory-management', [
+            'managerBranchId' => $this->branchScope->ensureCanAccessBranch((int) $branchId),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse

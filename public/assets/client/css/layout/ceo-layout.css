@@ -298,33 +298,35 @@ body {
 
 /* Thiết kế Form & Nút Đăng xuất */
 .ceo-logout-form {
-    margin-bottom: 40px;
-    margin-right: 20 px;
-    margin-left: 20px;
+    margin: 0;
+    padding: 0 20px 24px;
     width: 100%;
 }
 
 .ceo-logout-btn {
+    min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    width: 80%;
-    padding: 10px 15px;
+    width: 100%;
+    padding: 0 14px;
     background-color: #ef4444; /* Đỏ tiêu chuẩn */
     color: #ffffff;
-    border: none;
-    border-radius: 6px;
+    border: 1px solid #ef4444;
+    border-radius: 8px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 700;
     cursor: pointer;
     transition:
-        background-color 0.2s ease-in-out,
+        background-color 0.2s ease,
+        border-color 0.2s ease,
         transform 0.1s ease;
 }
 
 .ceo-logout-btn:hover {
     background-color: #dc2626; /* Đỏ sậm hơn khi hover */
+    border-color: #dc2626;
 }
 
 .ceo-logout-btn:active {
@@ -332,5 +334,15 @@ body {
 }
 
 .ceo-logout-icon {
+    flex: 0 0 18px;
     font-size: 16px;
+    line-height: 1;
+}
+
+.ceo-layout--collapsed .ceo-logout-form {
+    padding: 0 12px 24px;
+}
+
+.ceo-layout--collapsed .ceo-logout-btn {
+    padding: 0;
 }

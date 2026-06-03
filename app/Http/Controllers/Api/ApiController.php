@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Closure;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Throwable;
 
 abstract class ApiController extends Controller
 {
@@ -28,5 +31,32 @@ abstract class ApiController extends Controller
     protected function validateWithTimeFilters(Request $request, array $rules = []): array
     {
         return $request->validate(array_merge(self::timeFilterValidationRules(), $rules));
+    }
+
+    protected function respondData(
+        mixed $data = null,
+        string $message = 'Success',
+        int $status = 200,
+        array $extra = [],
+        ?string $errorMessage = null
+    ): JsonResponse {
+        try {
+            $resolvedData = $data instanceof Closure ? $data() : $data;
+        } catch (Throwable $exception) {
+            if ($errorMessage === null) {
+                throw $exception;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $errorMessage,
+            ], 500);
+        }
+
+        return response()->json(array_merge([
+            'success' => true,
+            'message' => $message,
+            'data' => $resolvedData,
+        ], $extra), $status);
     }
 }

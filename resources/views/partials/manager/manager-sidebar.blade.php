@@ -1,3 +1,19 @@
+@php
+    $managerBranchId = auth()->user()?->managerBranchId();
+    $managerDashboardUrl = $managerBranchId
+        ? route('manager.branches.dashboard', ['branchId' => $managerBranchId])
+        : route('manager.dashboard');
+    $managerReportsUrl = $managerBranchId
+        ? route('manager.branches.reports', ['branchId' => $managerBranchId])
+        : route('manager.reports');
+    $managerServiceUrl = $managerBranchId
+        ? route('manager.branches.service', ['branchId' => $managerBranchId])
+        : route('manager.service');
+    $managerInventoryUrl = $managerBranchId
+        ? route('manager.branches.inventory', ['branchId' => $managerBranchId])
+        : route('manager.inventory');
+@endphp
+
 <div class="manager-sidebar-inner">
     <div class="manager-sidebar-header">
         <div class="manager-sidebar-logo">
@@ -11,22 +27,22 @@
     </div>
 
     <nav class="manager-sidebar-nav">
-        <a href="{{ route('manager.dashboard') }}" class="manager-sidebar-link">
+        <a href="{{ $managerDashboardUrl }}" class="manager-sidebar-link">
             <span class="manager-sidebar-link-icon">📊</span>
             <span class="manager-sidebar-link-text">Dashboard</span>
         </a>
 
-        <a href="{{ route('manager.reports') }}" class="manager-sidebar-link">
+        <a href="{{ $managerReportsUrl }}" class="manager-sidebar-link">
             <span class="manager-sidebar-link-icon">📈</span>
             <span class="manager-sidebar-link-text">Doanh thu</span>
         </a>
 
-        <a href="{{ route('manager.service') }}" class="manager-sidebar-link">
+        <a href="{{ $managerServiceUrl }}" class="manager-sidebar-link">
             <span class="manager-sidebar-link-icon">🧼</span>
             <span class="manager-sidebar-link-text">Dịch vụ</span>
         </a>
 
-        <a href="{{ route('manager.inventory') }}" class="manager-sidebar-link">
+        <a href="{{ $managerInventoryUrl }}" class="manager-sidebar-link">
             <span class="manager-sidebar-link-icon">📦</span>
             <span class="manager-sidebar-link-text">Vật tư</span>
         </a>
@@ -36,4 +52,12 @@
         <span class="manager-sidebar-link-icon">👤</span>
         <span class="manager-sidebar-link-text">Branch Manager</span>
     </div>
+
+    <form action="{{ route('authentication.logout') }}" method="POST" class="manager-logout-form">
+        @csrf
+        <button type="submit" class="manager-logout-btn">
+            <span class="manager-logout-icon" aria-hidden="true">&#x23FB;</span>
+            <span class="manager-sidebar-link-text">Đăng xuất</span>
+        </button>
+    </form>
 </div>

@@ -35,6 +35,7 @@
   <form action="{{ route('authentication.logout') }}" method="POST" class="ceo-logout-form">
     @csrf
     <button type="submit" class="ceo-logout-btn">
+      <span class="ceo-logout-icon" aria-hidden="true">&#x23FB;</span>
       <span class="ceo-sidebar-link-text">Đăng xuất</span>
     </button>
   </form>

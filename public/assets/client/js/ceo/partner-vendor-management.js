@@ -245,13 +245,15 @@
         if (!vendors.length) {
             tbody.innerHTML = `
                 <tr>
-                    <td class="partner-empty-row" colspan="5">Chưa có dữ liệu đối tác.</td>
+                    <td class="partner-empty-row" colspan="4">Chưa có dữ liệu đối tác.</td>
                 </tr>
             `;
             return;
         }
 
-        tbody.innerHTML = vendors.map((vendor) => `
+        tbody.innerHTML = vendors
+            .map(
+                (vendor) => `
             <tr>
                 <td>
                     <div class="partner-vendor-name">${escapeHtml(vendor.partner_name)}</div>
@@ -271,9 +273,10 @@
                         <small>(${decimal(vendor.performance_rate)}%)</small>
                     </div>
                 </td>
-                <td><button type="button" class="partner-detail-btn">Chi tiết</button></td>
             </tr>
-        `).join("");
+        `,
+            )
+            .join("");
     }
 
     /**
@@ -301,7 +304,9 @@
         const qualityNode = root.querySelector("[data-quality-score]");
         const delayNode = root.querySelector("[data-delay-hours]");
         const alertNode = root.querySelector("[data-otd-alert]");
-        const alertCountNode = root.querySelector("[data-low-otd-vendor-count]");
+        const alertCountNode = root.querySelector(
+            "[data-low-otd-vendor-count]",
+        );
         const alertMessageNode = root.querySelector("[data-otd-alert-message]");
 
         if (fill) {
@@ -370,11 +375,15 @@
         renderChart("vendorPayablesChart", {
             type: "bar",
             data: {
-                labels: chartRows.map((row) => row.month_label || row.month || ""),
+                labels: chartRows.map(
+                    (row) => row.month_label || row.month || "",
+                ),
                 datasets: [
                     {
-                        label: "Tong cong no phai tra",
-                        data: chartRows.map((row) => Number(row.total_payable_amount) || 0),
+                        label: "Tổng công nợ phải trả",
+                        data: chartRows.map(
+                            (row) => Number(row.total_payable_amount) || 0,
+                        ),
                         backgroundColor: "#f87171",
                         borderColor: "#ef4444",
                         borderWidth: 1,
@@ -430,13 +439,15 @@
         if (!items.length) {
             tbody.innerHTML = `
                 <tr>
-                    <td class="partner-empty-row" colspan="5">Chưa có cảnh báo biến động giá nhập.</td>
+                    <td class="partner-empty-row" colspan="4">Chưa có cảnh báo biến động giá nhập.</td>
                 </tr>
             `;
             return;
         }
 
-        tbody.innerHTML = items.map((item) => `
+        tbody.innerHTML = items
+            .map(
+                (item) => `
             <tr class="${priceVarianceRowClass(item.status)}">
                 <td>
                     <div class="partner-item-name">${escapeHtml(item.item_name)}</div>
@@ -456,13 +467,10 @@
                         ${signedPercent(item.variance_percent)}
                     </span>
                 </td>
-                <td>
-                    <button type="button" class="partner-investigate-btn">
-                        ${escapeHtml(item.suggested_action || "Theo doi")}
-                    </button>
-                </td>
             </tr>
-        `).join("");
+        `,
+            )
+            .join("");
     }
 
     $(document).ready(function () {

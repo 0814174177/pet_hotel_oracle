@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Ceo\CeoVendorRepositoryInterface;
 use Illuminate\Http\JsonResponse;
-use Throwable;
 
 class VendorController extends ApiController
 {
@@ -67,31 +66,6 @@ class VendorController extends ApiController
 
     /**
      * Mo ta chuc nang:
-     * Dong goi du lieu tra ve tu repository theo JSON response chuan cua dashboard vendor.
-     *
-     * Input:
-     * - callable $callback: ham goi repository de lay du lieu da xu ly.
-     *
-     * Output:
-     * - JsonResponse co dang { success: true, data: ... } hoac loi chung khong lo raw SQL.
-     */
-    private function respondData(callable $callback): JsonResponse
-    {
-        try {
-            return response()->json([
-                'success' => true,
-                'data' => $callback(),
-            ]);
-        } catch (Throwable) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unable to load CEO vendor data',
-            ], 500);
-        }
-    }
-
-    /**
-     * Mo ta chuc nang:
      * Lay danh sach va phan hang doi tac/nha cung cap theo suc khoe ton kho hien tai.
      *
      * Input:
@@ -111,7 +85,8 @@ class VendorController extends ApiController
                 self::SILVER_PERFORMANCE_THRESHOLD,
                 self::OUT_OF_STOCK_PENALTY,
                 self::LOW_STOCK_PENALTY
-            )
+            ),
+            errorMessage: 'Unable to load CEO vendor data'
         );
     }
 
@@ -139,7 +114,8 @@ class VendorController extends ApiController
                 self::SEVERE_DELAY_HOURS,
                 self::WARNING_DELAY_HOURS,
                 self::WATCH_DELAY_HOURS
-            )
+            ),
+            errorMessage: 'Unable to load CEO vendor data'
         );
     }
 
@@ -161,7 +137,8 @@ class VendorController extends ApiController
                 $request->getFiltersArray(),
                 self::OTD_GOOD_THRESHOLD,
                 self::OTD_WARNING_THRESHOLD
-            )
+            ),
+            errorMessage: 'Unable to load CEO vendor data'
         );
     }
 
@@ -184,7 +161,8 @@ class VendorController extends ApiController
                 self::PAYABLE_LIGHT_GROWTH_THRESHOLD,
                 self::PAYABLE_WARNING_GROWTH_THRESHOLD,
                 self::PAYABLE_CRITICAL_GROWTH_THRESHOLD
-            )
+            ),
+            errorMessage: 'Unable to load CEO vendor data'
         );
     }
 
@@ -207,7 +185,8 @@ class VendorController extends ApiController
                 self::PRICE_VARIANCE_WATCH_THRESHOLD,
                 self::PRICE_VARIANCE_WARNING_THRESHOLD,
                 self::PRICE_VARIANCE_CRITICAL_THRESHOLD
-            )
+            ),
+            errorMessage: 'Unable to load CEO vendor data'
         );
     }
 }

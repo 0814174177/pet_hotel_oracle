@@ -63,10 +63,12 @@
             return null;
         }
 
-        return comparison.change_percent
-            ?? comparison.growth_percent
-            ?? comparison.percent
-            ?? null;
+        return (
+            comparison.change_percent ??
+            comparison.growth_percent ??
+            comparison.percent ??
+            null
+        );
     }
 
     function normalizeTrend(trend, changePercent = null) {
@@ -80,7 +82,9 @@
             return "up";
         }
 
-        if (["down", "decrease", "decreased", "negative"].includes(normalized)) {
+        if (
+            ["down", "decrease", "decreased", "negative"].includes(normalized)
+        ) {
             return "down";
         }
 
@@ -145,8 +149,12 @@
     }
 
     function setTrendState(card, trendResult, options = {}) {
-        const trendNode = card.querySelector("[data-kpi-trend], .kpi-card__trend");
-        const arrowNode = card.querySelector("[data-kpi-arrow], .kpi-card__arrow");
+        const trendNode = card.querySelector(
+            "[data-kpi-trend], .kpi-card__trend",
+        );
+        const arrowNode = card.querySelector(
+            "[data-kpi-arrow], .kpi-card__arrow",
+        );
 
         if (!trendNode) {
             return;
@@ -160,11 +168,12 @@
         const isDecrease = trend === "down";
         const positiveWhenIncrease = options.positiveWhenIncrease !== false;
         const isPositive = positiveWhenIncrease ? !isDecrease : !isIncrease;
-        const stateClass = trend === "neutral" || trend === "no_previous_data"
-            ? "kpi-card__trend--neutral"
-            : isPositive
-              ? "kpi-card__trend--positive"
-              : "kpi-card__trend--negative";
+        const stateClass =
+            trend === "neutral" || trend === "no_previous_data"
+                ? "kpi-card__trend--neutral"
+                : isPositive
+                  ? "kpi-card__trend--positive"
+                  : "kpi-card__trend--negative";
 
         trendNode.classList.remove(
             "kpi-card__trend--positive",
@@ -174,7 +183,7 @@
         trendNode.classList.add(stateClass);
 
         if (arrowNode) {
-            arrowNode.textContent = isIncrease ? "▲" : isDecrease ? "▼" : "=";
+            arrowNode.textContent = isIncrease ? "▲" : isDecrease ? "▼" : "";
         }
     }
 
@@ -185,8 +194,12 @@
             return;
         }
 
-        const valueNode = card.querySelector("[data-kpi-value], .kpi-card__value");
-        const trendNode = card.querySelector("[data-kpi-trend], .kpi-card__trend");
+        const valueNode = card.querySelector(
+            "[data-kpi-value], .kpi-card__value",
+        );
+        const trendNode = card.querySelector(
+            "[data-kpi-trend], .kpi-card__trend",
+        );
         const trendValueNode = card.querySelector(
             "[data-kpi-trend-value], .kpi-card__trend-value",
         );
@@ -196,25 +209,32 @@
         const detailNode = card.querySelector("[data-kpi-detail]");
         const fallbackValue = config.emptyValue ?? "—";
         const fallbackDetail = config.emptyDetail ?? "";
-        const value = typeof config.getValue === "function"
-            ? config.getValue(payload)
-            : safeGet(payload, "current.value", null);
-        const detail = typeof config.getDetail === "function"
-            ? config.getDetail(payload)
-            : null;
-        const comparison = typeof config.getComparison === "function"
-            ? config.getComparison(payload)
-            : safeGet(payload, "comparison", null);
+        const value =
+            typeof config.getValue === "function"
+                ? config.getValue(payload)
+                : safeGet(payload, "current.value", null);
+        const detail =
+            typeof config.getDetail === "function"
+                ? config.getDetail(payload)
+                : null;
+        const comparison =
+            typeof config.getComparison === "function"
+                ? config.getComparison(payload)
+                : safeGet(payload, "comparison", null);
         const formattedTrend = formatTrend(comparison, config);
-        const customTrend = typeof config.getTrend === "function"
-            ? config.getTrend(payload)
-            : null;
-        const trendResult = customTrend && typeof customTrend === "object"
-            ? { ...formattedTrend, ...customTrend }
-            : {
-                ...formattedTrend,
-                text: isEmptyValue(customTrend) ? formattedTrend.text : customTrend,
-            };
+        const customTrend =
+            typeof config.getTrend === "function"
+                ? config.getTrend(payload)
+                : null;
+        const trendResult =
+            customTrend && typeof customTrend === "object"
+                ? { ...formattedTrend, ...customTrend }
+                : {
+                      ...formattedTrend,
+                      text: isEmptyValue(customTrend)
+                          ? formattedTrend.text
+                          : customTrend,
+                  };
 
         if (valueNode) {
             valueNode.textContent = isEmptyValue(value) ? fallbackValue : value;
@@ -223,15 +243,16 @@
         if (trendNode && !config.preserveTrend) {
             const targetNode = trendValueNode || trendNode;
             targetNode.textContent = isEmptyValue(trendResult.text)
-                ? (config.emptyTrend || "Chưa có dữ liệu kỳ trước")
+                ? config.emptyTrend || "Chưa có dữ liệu kỳ trước"
                 : trendResult.text;
             setTrendState(card, trendResult, config);
         }
 
         if (periodLabelNode) {
-            const periodLabel = typeof config.getPeriodLabel === "function"
-                ? config.getPeriodLabel(payload)
-                : config.periodLabel;
+            const periodLabel =
+                typeof config.getPeriodLabel === "function"
+                    ? config.getPeriodLabel(payload)
+                    : config.periodLabel;
 
             if (typeof periodLabel !== "undefined") {
                 periodLabelNode.textContent = periodLabel;
@@ -239,7 +260,9 @@
         }
 
         if (detailNode) {
-            detailNode.textContent = isEmptyValue(detail) ? fallbackDetail : detail;
+            detailNode.textContent = isEmptyValue(detail)
+                ? fallbackDetail
+                : detail;
         }
     }
 
@@ -252,6 +275,44 @@
         safeGet,
         setTrendState,
     };
+
+    function toIsoDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
+    function defaultDateRange() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - 2);
+
+        const endDate = new Date(today);
+        endDate.setDate(today.getDate() - 1);
+
+        return {
+            start_date: toIsoDate(startDate),
+            end_date: toIsoDate(endDate),
+        };
+    }
+
+    function ensureDefaultDateRange(startDateEl, endDateEl) {
+        if (!startDateEl || !endDateEl) {
+            return;
+        }
+
+        if (startDateEl.value || endDateEl.value) {
+            return;
+        }
+
+        const range = defaultDateRange();
+        startDateEl.value = range.start_date;
+        endDateEl.value = range.end_date;
+    }
 
     const DashboardEngine = {
         run: function (apiConfigs) {
@@ -267,6 +328,8 @@
             const handleFilterClick = function () {
                 const startDateEl = document.querySelector(".js-start-date");
                 const endDateEl = document.querySelector(".js-end-date");
+
+                ensureDefaultDateRange(startDateEl, endDateEl);
 
                 const payload = {
                     start_date: startDateEl ? startDateEl.value : "",

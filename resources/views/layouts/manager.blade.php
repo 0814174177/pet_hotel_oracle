@@ -55,6 +55,28 @@
         if (layout && savedState === '1') {
             layout.classList.add('manager-layout--collapsed');
         }
+
+        document.querySelectorAll('.manager-layout .global-control-panel__date-picker-group').forEach(function (group) {
+            if (group.querySelector('.js-refresh-filter')) {
+                return;
+            }
+
+            const applyBtn = group.querySelector('.js-apply-filter');
+
+            if (!applyBtn) {
+                return;
+            }
+
+            const refreshBtn = document.createElement('button');
+            refreshBtn.type = 'button';
+            refreshBtn.className = 'js-refresh-filter global-control-panel__refresh-btn';
+            refreshBtn.textContent = 'Làm mới';
+            refreshBtn.addEventListener('click', function () {
+                applyBtn.click();
+            });
+
+            applyBtn.insertAdjacentElement('afterend', refreshBtn);
+        });
     });
 </script>
 

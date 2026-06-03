@@ -9,9 +9,13 @@
 
 @php
     $period = 'tháng';
-    $managerBranchId = auth()->user()?->employee?->branch_id;
+    $managerBranchId = $managerBranchId ?? auth()->user()?->managerBranchId();
 
     abort_if($managerBranchId === null, 403, 'Manager branch is required.');
+
+    $managerPanelTitle = $managerPanelTitle
+        ?? auth()->user()?->employee?->full_name
+        ?? 'Chi nhánh #'.$managerBranchId;
 @endphp
 
 <div
@@ -25,9 +29,7 @@
 >
 
     <x-global-control-panel
-        title="Quản trị Danh mục Vật tư"
-        period="tháng"
-        lastUpdate="14:58 - Cập nhật thành công"
+        :title="$managerPanelTitle"
     />
 
     {{-- KPI SECTION --}}

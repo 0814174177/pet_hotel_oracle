@@ -13,12 +13,11 @@ class ServiceController extends ApiController
     {
         $request->getFiltersArray();
 
-        return response()->json([
-            'success' => true,
-            'data' => Service::with('category')
+        return $this->respondData(
+            Service::with('category')
                 ->where('is_active', 1)
                 ->orderBy('service_name')
-                ->get(),
-        ]);
+                ->get()
+        );
     }
 }

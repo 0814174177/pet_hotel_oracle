@@ -211,8 +211,7 @@ if ($margin < 30) { return 'finance-margin finance-margin--bad' ; } if ($margin 
   data-low-service-margin-alerts-url="{{ route('api.dashboard.ceo.finance.low-service-margin-alerts') }}"
   data-cost-growth-alerts-url="{{ route('api.dashboard.ceo.finance.cost-growth-alerts') }}">
 
-  <x-global-control-panel title="Phân tích Tài chính Tổng thể" period="tháng"
-    lastUpdate="14:58 - Cập nhật thành công" />
+  <x-global-control-panel title="Phân tích Tài chính Tổng thể" />
 
   {{-- 1. P&L DASHBOARD --}}
   <section class="finance-section">
