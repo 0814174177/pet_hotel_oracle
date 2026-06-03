@@ -30,6 +30,10 @@
             <span class="manager-sidebar-link-icon">📦</span>
             <span class="manager-sidebar-link-text">Vật tư</span>
         </a>
+        <a href="{{ route('manager.promotions') }}" class="manager-sidebar-link {{ request()->routeIs('manager.promotions') ? 'active' : '' }}">
+            <span class="manager-sidebar-link-icon">%</span>
+            <span class="manager-sidebar-link-text">Khuyến mãi</span>
+        </a>
     </nav>
 
     <div class="manager-sidebar-footer">
