@@ -121,18 +121,72 @@
         return day && month && year ? `${day}/${month}/${year}` : date;
     }
 
+    function parseDateEndOfDay(dateString) {
+        if (!dateString) {
+            return null;
+        }
+
+        const parts = String(dateString).split("-").map(Number);
+
+        if (parts.length === 3 && parts.every((part) => Number.isFinite(part))) {
+            const [year, month, day] = parts;
+
+            return new Date(year, month - 1, day, 23, 59, 59, 999);
+        }
+
+        const date = new Date(dateString);
+
+        if (Number.isNaN(date.getTime())) {
+            return null;
+        }
+
+        date.setHours(23, 59, 59, 999);
+
+        return date;
+    }
+
     function isExpired(date) {
-        return Boolean(date) && new Date(date) < new Date();
+        const endOfDay = parseDateEndOfDay(date);
+
+        return Boolean(endOfDay) && endOfDay < new Date();
     }
 
     function isExpiringSoon(date) {
-        if (!date) {
+        const endOfDay = parseDateEndOfDay(date);
+
+        if (!endOfDay || isExpired(date)) {
             return false;
         }
 
-        const diff = (new Date(date) - new Date()) / 86400000;
+        const diff = (endOfDay - new Date()) / 86400000;
 
         return diff >= 0 && diff <= 30;
+    }
+
+    function couponStatus(coupon) {
+        if (!coupon.active) {
+            return "ended";
+        }
+
+        if (isExpired(coupon.expired)) {
+            return "expired";
+        }
+
+        return "active";
+    }
+
+    function couponStatusLabel(coupon) {
+        const status = couponStatus(coupon);
+
+        if (status === "ended") {
+            return "Đã kết thúc";
+        }
+
+        if (status === "expired") {
+            return "Hết hạn";
+        }
+
+        return "Đang hoạt động";
     }
 
     function number(value) {
@@ -177,11 +231,11 @@
 
     function updateStats() {
         setText(selectors.statTotal, coupons.length);
-        setText(selectors.statActive, coupons.filter((coupon) => coupon.active && !isExpired(coupon.expired)).length);
+        setText(selectors.statActive, coupons.filter((coupon) => couponStatus(coupon) === "active").length);
         setText(selectors.statUsed, coupons.reduce((sum, coupon) => sum + coupon.usedCount, 0));
         setText(
             selectors.statExpiring,
-            coupons.filter((coupon) => coupon.active && isExpiringSoon(coupon.expired)).length,
+            coupons.filter((coupon) => couponStatus(coupon) === "active" && isExpiringSoon(coupon.expired)).length,
         );
     }
 
@@ -192,21 +246,22 @@
             : percent >= 70
               ? "ceo-promotion-progress-fill--warn"
               : "";
-        const inactive = !coupon.active || isExpired(coupon.expired);
+        const status = couponStatus(coupon);
+        const inactive = status !== "active";
         const expiringSoon = isExpiringSoon(coupon.expired);
-        const expiredLabel = isExpired(coupon.expired) ? " ⚠️" : expiringSoon ? " 🔔" : "";
-        const expiredBadge = inactive
-            ? '<div><span class="ceo-promotion-badge-expired">⏰ Đã hết hạn</span></div>'
+        const expiredLabel = status === "expired" ? " ⚠️" : expiringSoon ? " 🔔" : "";
+        const statusBadge = inactive
+            ? `<div><span class="ceo-promotion-badge-status ceo-promotion-badge-status--${status}">${couponStatusLabel(coupon)}</span></div>`
             : "";
         const progress = coupon.maxUses
             ? `<div class="ceo-promotion-progress-bar"><div class="ceo-promotion-progress-fill ${fillClass}" style="width:${percent}%"></div></div>`
             : "";
         const toggle = inactive
-            ? `<label class="ceo-promotion-toggle ceo-promotion-toggle--disabled" title="Đã kết thúc - không thể bật lại">
+            ? `<label class="ceo-promotion-toggle ceo-promotion-toggle--disabled" title="${couponStatusLabel(coupon)} - không thể kết thúc thêm">
                     <input type="checkbox" disabled>
                     <span class="ceo-promotion-slider"></span>
                </label>`
-            : `<label class="ceo-promotion-toggle" title="Đang hoạt động - nhấn để kết thúc tạm trên UI">
+            : `<label class="ceo-promotion-toggle" title="Đang hoạt động - nhấn để kết thúc">
                     <input type="checkbox" checked data-toggle-coupon="${coupon.id}">
                     <span class="ceo-promotion-slider"></span>
                </label>`;
@@ -215,11 +270,11 @@
             <tr class="${inactive ? "is-inactive" : ""}">
                 <td>
                     <span class="ceo-promotion-coupon-code">${escapeHtml(coupon.code)}</span>
-                    ${expiredBadge}
+                    ${statusBadge}
                 </td>
                 <td>
                     <span class="ceo-promotion-badge ${coupon.type === "PERCENT" ? "ceo-promotion-badge--percent" : "ceo-promotion-badge--fixed"}">
-                        ${coupon.type === "PERCENT" ? "% Phần trăm" : "💵 Cố định"}
+                        ${coupon.type === "PERCENT" ? "% Phần trăm" : "Cố định"}
                     </span>
                 </td>
                 <td><strong>${formatValue(coupon)}</strong></td>
@@ -230,7 +285,7 @@
                     ${progress}
                 </td>
                 <td class="ceo-promotion-date-text">${formatDate(coupon.from)}</td>
-                <td class="ceo-promotion-date-text ${isExpired(coupon.expired) ? "ceo-promotion-date-text--expired" : ""}">
+                <td class="ceo-promotion-date-text ${status === "expired" ? "ceo-promotion-date-text--expired" : ""}">
                     ${formatDate(coupon.expired)}${expiredLabel}
                 </td>
                 <td class="ceo-promotion-col-active">${toggle}</td>
@@ -257,8 +312,8 @@
 
         emptyState.classList.add("ceo-promotion-hidden");
 
-        const active = list.filter((coupon) => coupon.active && !isExpired(coupon.expired));
-        const inactive = list.filter((coupon) => !coupon.active || isExpired(coupon.expired));
+        const active = list.filter((coupon) => couponStatus(coupon) === "active");
+        const inactive = list.filter((coupon) => couponStatus(coupon) !== "active");
         let rows = active.map(renderRow);
 
         if (inactive.length > 0) {
@@ -278,8 +333,7 @@
                 coupon.code.toLowerCase().includes(query) ||
                 String(coupon.notes || "").toLowerCase().includes(query);
             const matchesType = !type || coupon.type === type;
-            const matchesStatus = status === "" ||
-                (status === "1" ? coupon.active && !isExpired(coupon.expired) : isExpired(coupon.expired) || !coupon.active);
+            const matchesStatus = status === "" || couponStatus(coupon) === status;
 
             return matchesQuery && matchesType && matchesStatus;
         });

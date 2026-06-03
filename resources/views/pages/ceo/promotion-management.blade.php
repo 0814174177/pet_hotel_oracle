@@ -73,9 +73,10 @@
             </select>
 
             <select class="ceo-promotion-filter-select" data-filter-status aria-label="Lọc trạng thái">
-                <option value="">Trạng thái</option>
-                <option value="1">Hoạt động</option>
-                <option value="0">Hết hạn</option>
+                <option value="">Tất cả trạng thái</option>
+                <option value="active">Đang hoạt động</option>
+                <option value="expired">Hết hạn</option>
+                <option value="ended">Đã kết thúc</option>
             </select>
 
             <button type="button" class="ceo-promotion-btn-add" data-add-promotion>
