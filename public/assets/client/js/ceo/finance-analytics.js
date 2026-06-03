@@ -576,11 +576,11 @@
             {
                 url: root.dataset.financeUrl,
                 onBefore: function () {
-                    setKpi("finance-estimated-total-cost", "Dang tai...");
+                    setKpi("finance-estimated-total-cost", "Đang tải...");
                 },
                 onSuccess: renderFinance,
                 onError: function () {
-                    setKpi("finance-estimated-total-cost", "Khong tai duoc");
+                    setKpi("finance-estimated-total-cost", "Không tải được");
                 },
             },
         ];
@@ -589,11 +589,11 @@
             financeApis.push({
                 url: root.dataset.estimatedCostUrl,
                 onBefore: function () {
-                    setKpi("finance-estimated-total-cost", "Dang tai...");
+                    setKpi("finance-estimated-total-cost", "Đang tải...");
                 },
                 onSuccess: renderEstimatedTotalCost,
                 onError: function () {
-                    setKpi("finance-estimated-total-cost", "Khong tai duoc");
+                    setKpi("finance-estimated-total-cost", "Không tải được");
                 },
             });
         }
@@ -602,11 +602,11 @@
             financeApis.push({
                 url: root.dataset.estimatedProfitUrl,
                 onBefore: function () {
-                    setKpi("finance-estimated-profit", "Dang tai...");
+                    setKpi("finance-estimated-profit", "Đang tải...");
                 },
                 onSuccess: renderEstimatedProfit,
                 onError: function () {
-                    setKpi("finance-estimated-profit", "Khong tai duoc");
+                    setKpi("finance-estimated-profit", "Không tải được");
                 },
             });
         }
@@ -615,11 +615,11 @@
             financeApis.push({
                 url: root.dataset.estimatedMarginUrl,
                 onBefore: function () {
-                    setKpi("finance-estimated-margin", "Dang tai...");
+                    setKpi("finance-estimated-margin", "Đang tải...");
                 },
                 onSuccess: renderEstimatedMargin,
                 onError: function () {
-                    setKpi("finance-estimated-margin", "Khong tai duoc");
+                    setKpi("finance-estimated-margin", "Không tải được");
                 },
             });
         }
