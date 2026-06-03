@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Web\Authentication;
 
 use App\Http\Controllers\Web\WebController;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class ForgotPasswordController extends WebController
 {
-    private const RESET_LINK_SENT_MESSAGE = 'Nếu email tồn tại, hệ thống sẽ gửi liên kết đặt lại mật khẩu.';
+    private const RESET_LINK_SENT_MESSAGE = 'Hệ thống sẽ gửi link đặt lại mật khẩu nếu email tồn tại.';
 
     public function show(): View
     {

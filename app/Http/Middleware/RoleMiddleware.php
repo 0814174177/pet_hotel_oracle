@@ -31,7 +31,7 @@ class RoleMiddleware
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Khong xac dinh duoc danh tinh nguoi dung.',
+                'message' => 'Không xác định được danh tính người dùng.',
             ], 401);
         }
 
@@ -48,7 +48,7 @@ class RoleMiddleware
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Ban khong co quyen thuc hien hanh dong nay.',
+                'message' => 'Bạn không có quyền thực hiện hành động này.',
             ], 403);
         }
 

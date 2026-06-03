@@ -64,5 +64,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('assets/client/js/booking-history.js') }}"></script>
+    <script src="{{ asset('assets/client/js/client/booking-history.js') }}"></script>
 @endpush

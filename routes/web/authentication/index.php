@@ -24,5 +24,5 @@ Route::prefix('authentication')
     });
 
 Route::post('/authentication/logout', [LoginController::class, 'destroy'])
-    ->middleware('auth')
+    ->middleware(['auth', 'no.cache'])
     ->name('authentication.logout');

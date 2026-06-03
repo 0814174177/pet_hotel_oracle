@@ -65,7 +65,7 @@ class PaymentRepository implements PaymentRepositoryInterface
                 $this->ensureSuccessfulPaymentForOrder(
                     $order,
                     (string) ($order->payment_method ?: $databasePaymentMethod),
-                    'Dong bo thanh toan booking #'.$booking->booking_id.' da hoan tat.'
+                    'Đồng bộ thanh toán booking #'.$booking->booking_id.' đã hoàn tất.'
                 );
 
                 return $booking->fresh(['orders.payment']);
@@ -93,7 +93,7 @@ class PaymentRepository implements PaymentRepositoryInterface
             $this->ensureSuccessfulPaymentForOrder(
                 $order,
                 $databasePaymentMethod,
-                'Thanh toan booking #'.$booking->booking_id.' thanh cong.'
+                'Thanh toán booking #'.$booking->booking_id.' thành công.'
             );
 
             $this->fillMissingCustomerContact($user, $contact);
@@ -199,7 +199,7 @@ class PaymentRepository implements PaymentRepositoryInterface
                 ->update([
                     'status' => 'FAILED',
                     'paid_at' => null,
-                    'note' => 'Thanh toan booking #'.$booking->booking_id.' da huy.',
+                    'note' => 'Thanh toán booking #'.$booking->booking_id.' đã hủy.',
                 ]);
 
             if (in_array($booking->status, ['PENDING', 'CONFIRMED'], true)) {
@@ -250,7 +250,7 @@ class PaymentRepository implements PaymentRepositoryInterface
                     if (! $existingOrder->details()->exists()) {
                         if (in_array((string) $existingOrder->status, ['COMPLETED', 'PAID'], true)) {
                             throw ValidationException::withMessages([
-                                'payment' => 'Hoa don da hoan tat nhung thieu chi tiet don hang. Vui long lien he nhan vien ho tro.',
+                                'payment' => 'Hóa đơn đã hoàn tất nhưng thiếu chi tiết đơn hàng. Vui lòng liên hệ nhân viên hỗ trợ.',
                             ]);
                         }
 
@@ -422,7 +422,7 @@ class PaymentRepository implements PaymentRepositoryInterface
             $lineTotal = round($unitPrice * $nights, 2);
 
             $details->push([
-                'title' => sprintf('Phong %s (%d dem)', $typeRoom?->type_name ?: $room?->room_number ?: 'da dat', $nights),
+                'title' => sprintf('Phòng %s (%d đêm)', $typeRoom?->type_name ?: $room?->room_number ?: 'đã đặt', $nights),
                 'quantity' => $nights,
                 'unit_price' => $unitPrice,
                 'line_total' => $lineTotal,
@@ -436,7 +436,7 @@ class PaymentRepository implements PaymentRepositoryInterface
             $unitPrice = (float) ($service?->base_price ?? 0);
 
             $details->push([
-                'title' => trim(($service?->service_name ?: 'Dich vu') . ($petName ? ' - '.$petName : '')),
+                'title' => trim(($service?->service_name ?: 'Dịch vụ') . ($petName ? ' - '.$petName : '')),
                 'quantity' => 1,
                 'unit_price' => $unitPrice,
                 'line_total' => $unitPrice,
@@ -452,7 +452,7 @@ class PaymentRepository implements PaymentRepositoryInterface
             'booking_id' => $booking->booking_id,
             'order_id' => null,
             'order_status' => 'DRAFT',
-            'branch_name' => $booking->branch?->branch_name ?: 'Chi nhanh dang cap nhat',
+            'branch_name' => $booking->branch?->branch_name ?: 'Chi nhánh đang cập nhật',
             'room_names' => $this->roomNames($booking),
             'checkin' => $this->formatDate($booking->checkin_expected_at),
             'checkout' => $this->formatDate($booking->checkout_expected_at),
@@ -542,31 +542,31 @@ class PaymentRepository implements PaymentRepositoryInterface
 
         if (! $coupon) {
             throw ValidationException::withMessages([
-                'coupon_code' => 'Ma giam gia khong ton tai.',
+                'coupon_code' => 'Mã giảm giá không tồn tại.',
             ]);
         }
 
         if (! $coupon->is_active) {
             throw ValidationException::withMessages([
-                'coupon_code' => 'Ma giam gia hien khong hoat dong.',
+                'coupon_code' => 'Mã giảm giá hiện không hoạt động.',
             ]);
         }
 
         if (Carbon::parse($coupon->effective_from)->gt($now) || Carbon::parse($coupon->expired_at)->lte($now)) {
             throw ValidationException::withMessages([
-                'coupon_code' => 'Ma giam gia da het han hoac chua den thoi gian su dung.',
+                'coupon_code' => 'Mã giảm giá đã hết hạn hoặc chưa đến thời gian sử dụng.',
             ]);
         }
 
         if ($coupon->max_uses !== null && (int) $coupon->used_count >= (int) $coupon->max_uses) {
             throw ValidationException::withMessages([
-                'coupon_code' => 'Ma giam gia da het luot su dung.',
+                'coupon_code' => 'Mã giảm giá đã hết lượt sử dụng.',
             ]);
         }
 
         if ((float) $order->subtotal < (float) $coupon->min_order_value) {
             throw ValidationException::withMessages([
-                'coupon_code' => 'Don hang chua dat gia tri toi thieu de su dung ma giam gia nay.',
+                'coupon_code' => 'Đơn hàng chưa đạt giá trị tối thiểu để sử dụng mã giảm giá này.',
             ]);
         }
 
@@ -645,7 +645,7 @@ class PaymentRepository implements PaymentRepositoryInterface
                 'amount' => $amount,
                 'status' => 'PENDING',
                 'paid_at' => null,
-                'note' => 'Cho thanh toan booking #'.$order->booking_id.'.',
+                'note' => 'Chờ thanh toán booking #'.$order->booking_id.'.',
             ]
         );
     }
@@ -727,11 +727,7 @@ class PaymentRepository implements PaymentRepositoryInterface
 
     private function paymentProviderFor(string $paymentMethod): string
     {
-        return match (strtoupper($paymentMethod)) {
-            'BANK_TRANSFER' => 'Ngan hang',
-            'MOMO' => 'Momo',
-            default => 'Quay thu ngan',
-        };
+        return 'Quầy thu ngân';
     }
 
     private function paymentMethodLabel(string $paymentMethod): string

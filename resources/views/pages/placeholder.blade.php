@@ -11,11 +11,11 @@
         </span>
 
         <h1 style="margin: 0 0 12px; color: #0f172a; font-size: 32px;">
-            {{ $title ?? 'Dang cap nhat' }}
+            {{ $title ?? 'Đang cập nhật' }}
         </h1>
 
         <p style="margin: 0; color: #64748b; font-size: 16px; line-height: 1.7;">
-            {{ $description ?? 'Trang nay dang duoc hoan thien giao dien.' }}
+            {{ $description ?? 'Trang này đang được hoàn thiện giao diện.' }}
         </p>
     </div>
 </section>

@@ -1,19 +1,22 @@
 @php
-$method = $method ?? 'POST';
-$pet = $pet ?? null;
-$selectedSpecies = old('species', $pet->species ?? '');
-$selectedGender = old('gender', $pet->sex ?? 'UNKNOWN');
-$rawImage = $pet ? collect([
-$pet->pet_image ?? null,
-])->first(fn ($value) => filled($value)) : null;
+  $method = $method ?? 'POST';
+  $pet = $pet ?? null;
+  $selectedSpecies = old('species', $pet->species ?? '');
+  $selectedGender = old('gender', $pet->sex ?? 'UNKNOWN');
+  $rawImage = $pet ? ($pet->pet_image ?? null) : null;
+  $petImageUrl = null;
 
-if ($rawImage && str_starts_with($rawImage, 'http')) {
-$petImageUrl = $rawImage;
-} elseif ($rawImage) {
-$petImageUrl = asset('storage/'.$rawImage);
-} else {
-$petImageUrl = null;
-}
+  if (filled($rawImage)) {
+    $normalizedImage = ltrim((string) $rawImage, '/');
+
+    if (str_starts_with($normalizedImage, 'http://') || str_starts_with($normalizedImage, 'https://')) {
+      $petImageUrl = $normalizedImage;
+    } elseif (str_starts_with($normalizedImage, 'storage/') || str_starts_with($normalizedImage, 'assets/')) {
+      $petImageUrl = asset($normalizedImage);
+    } else {
+      $petImageUrl = asset('storage/'.$normalizedImage);
+    }
+  }
 @endphp
 
 <form action="{{ $action }}" method="POST" enctype="multipart/form-data" class="pet-form-card" id="pet-form">

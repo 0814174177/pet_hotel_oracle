@@ -769,11 +769,11 @@ class BookingRepository implements BookingRepositoryInterface
             ['order_id' => $order->order_id],
             [
                 'payment_method' => $order->payment_method,
-                'provider' => 'Quay thu ngan',
+                'provider' => 'Quầy thu ngân',
                 'amount' => $amount,
                 'status' => 'PENDING',
                 'paid_at' => null,
-                'note' => 'Cho thanh toan booking #'.$order->booking_id.'.',
+                'note' => 'Chờ thanh toán booking #'.$order->booking_id.'.',
             ]
         );
     }

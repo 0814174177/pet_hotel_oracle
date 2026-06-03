@@ -81,8 +81,7 @@ class RoomController extends WebController
         ?string $checkIn = null,
         ?string $checkOut = null,
         ?string $typeSlug = null
-    ): View
-    {
+    ): View {
         $roomSlug = $this->roomSlugForTypeRoom($typeRoomId);
         $typeRoomModel = TypeRoom::where('type_room_id', $typeRoomId)->firstOrFail();
         $rooms = Room::with('branch')
@@ -92,7 +91,7 @@ class RoomController extends WebController
             ->get();
         $busyRoomIds = $this->busyRoomIds($rooms->pluck('room_id'), $checkIn, $checkOut);
         $hasDateRange = filled($checkIn) && filled($checkOut);
-        $roomRows = $rooms->map(fn (Room $room): array => $this->roomPayload($room, $typeRoomModel, $busyRoomIds, $hasDateRange, $checkIn, $checkOut));
+        $roomRows = $rooms->map(fn (Room $room): array => $this->roomPayload($room, $typeRoomModel, $busyRoomIds, $hasDateRange));
 
         $viewData = [
             'typeRoom' => $this->typeRoomPayload($typeRoomModel, $rooms, $pet, $roomRows, $typeSlug ?: $roomSlug),
@@ -117,10 +116,6 @@ class RoomController extends WebController
             'minWeightKg' => $typeRoomModel->pet_weight_min_kg !== null ? (float) $typeRoomModel->pet_weight_min_kg : null,
             'maxWeightKg' => $typeRoomModel->pet_weight_max_kg !== null ? (float) $typeRoomModel->pet_weight_max_kg : null,
         ];
-
-        if (($typeSlug ?: $roomSlug) === 'normal' && ($pet ?: 'dog') === 'dog') {
-            return view('rooms.normal.dog', $viewData);
-        }
 
         return view('client.rooms.type-room', $viewData);
     }
@@ -151,7 +146,7 @@ class RoomController extends WebController
         $petLabel = $this->petLabel($pet);
 
         if ($petLabel !== null) {
-            $name .= ' cho '.mb_strtolower($petLabel);
+            $name .= ' cho '.mb_strtolower($petLabel, 'UTF-8');
         }
 
         return [
@@ -160,7 +155,7 @@ class RoomController extends WebController
             'label' => $this->displayTypeRoomName($typeRoom),
             'price' => 'Từ '.number_format((float) $typeRoom->base_price_per_day, 0, ',', '.').'đ/ngày',
             'price_raw' => (float) $typeRoom->base_price_per_day,
-            'area' => 'Đang cập nhật',
+            'area' => $this->roomAreaText($typeRoom, $pet),
             'capacity' => $this->capacityText((int) $typeRoom->max_slot),
             'weight' => $this->weightText($typeRoom),
             'description' => $typeRoom->notes ?: 'Thông tin loại phòng đang được cập nhật.',
@@ -284,7 +279,7 @@ class RoomController extends WebController
             ->values();
     }
 
-    private function roomPayload(Room $room, TypeRoom $typeRoom, Collection $busyRoomIds, bool $hasDateRange, ?string $checkIn, ?string $checkOut): array
+    private function roomPayload(Room $room, TypeRoom $typeRoom, Collection $busyRoomIds, bool $hasDateRange): array
     {
         $isAvailable = $room->status === 'AVAILABLE' && (! $hasDateRange || ! $busyRoomIds->contains($room->room_id));
         $bookingUrl = route('booking.select');
@@ -334,6 +329,25 @@ class RoomController extends WebController
             3 => 'Phòng lớn',
             default => $typeRoom->type_name,
         };
+    }
+
+    private function roomAreaText(TypeRoom $typeRoom, ?string $pet): string
+    {
+        $dogAreas = [
+            1 => '3 m²',
+            2 => '5 m²',
+            3 => '8 m²',
+        ];
+
+        $catAreas = [
+            1 => '2 m²',
+            2 => '4 m²',
+            3 => '6 m²',
+        ];
+
+        $areas = $pet === 'cat' ? $catAreas : $dogAreas;
+
+        return $areas[(int) $typeRoom->type_room_id] ?? 'Đang cập nhật';
     }
 
     private function typeRoomImages(array $directories): array

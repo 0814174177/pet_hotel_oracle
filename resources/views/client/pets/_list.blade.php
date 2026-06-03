@@ -20,9 +20,15 @@ $speciesIcons = [
       $petImageUrl = null;
 
       if (filled($rawImage)) {
-        $petImageUrl = str_starts_with($rawImage, 'http')
-          ? $rawImage
-          : asset('storage/'.$rawImage);
+        $normalizedImage = ltrim((string) $rawImage, '/');
+
+        if (str_starts_with($normalizedImage, 'http://') || str_starts_with($normalizedImage, 'https://')) {
+          $petImageUrl = $normalizedImage;
+        } elseif (str_starts_with($normalizedImage, 'storage/') || str_starts_with($normalizedImage, 'assets/')) {
+          $petImageUrl = asset($normalizedImage);
+        } else {
+          $petImageUrl = asset('storage/'.$normalizedImage);
+        }
       }
       $isInRoom = (bool) ($pet->is_in_room ?? false);
       $details = collect([
@@ -64,17 +70,10 @@ $speciesIcons = [
       @endif
 
       <div class="pet-actions">
-        @if ($isInRoom)
-          <button type="button" class="pet-edit-btn pet-edit-btn--disabled" disabled>
-            <i class="fa-regular fa-pen-to-square"></i>
-            Sửa
-          </button>
-        @else
-          <a href="{{ url('/profile/pets/'.$pet->pet_id.'/edit') }}" class="pet-edit-btn">
-            <i class="fa-regular fa-pen-to-square"></i>
-            Sửa
-          </a>
-        @endif
+        <a href="{{ url('/profile/pets/'.$pet->pet_id.'/edit') }}" class="pet-edit-btn">
+          <i class="fa-regular fa-pen-to-square"></i>
+          Sửa
+        </a>
 
         <a href="#" class="pet-delete-btn">
           <i class="fa-regular fa-trash-can"></i>
