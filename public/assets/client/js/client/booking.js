@@ -904,6 +904,22 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        if (
+            item.classList.contains("ineligible") &&
+            !state.selectedPets.has(pet.id) &&
+            !pet.isInRoom &&
+            !pet.isDateBlocked
+        ) {
+            item.classList.remove("active", "ineligible");
+            checkbox.checked = false;
+            checkbox.disabled = false;
+            status.textContent = petDefaultStatusMessage(pet);
+            serviceButton.disabled = true;
+            clearRoomMessage();
+            updateSummary();
+            return;
+        }
+
         const eligibility = checkPetEligibility(
             pet,
             state.selectedPets.has(pet.id),
