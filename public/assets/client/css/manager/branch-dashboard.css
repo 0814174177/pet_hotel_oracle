@@ -500,3 +500,198 @@
         font-size: 20px;
     }
 }
+
+.manager-branch-dashboard {
+    color: #0f172a;
+}
+
+.manager-dashboard-main {
+    gap: 30px;
+}
+
+.manager-kpi-grid {
+    gap: 18px;
+}
+
+.manager-branch-dashboard .kpi-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    min-height: 150px;
+    padding: 22px;
+}
+
+.manager-branch-dashboard .kpi-card__title {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.manager-branch-dashboard .kpi-card__value {
+    color: #0f172a;
+    font-size: 30px;
+    letter-spacing: 0;
+}
+
+.manager-section,
+.manager-risk-section,
+.manager-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    padding: 24px;
+}
+
+.manager-section-title {
+    color: #0f172a;
+    font-size: 22px;
+    letter-spacing: 0;
+}
+
+.urgent-alerts-wrapper,
+.operational-left {
+    gap: 18px;
+}
+
+.safe-state-card,
+.manager-alert-card,
+.risk-summary-card,
+.financial-risk-warning,
+.pie-summary,
+.debt-summary span,
+.health-warning-summary span,
+.inventory-warning-summary span {
+    border-radius: 14px;
+}
+
+.safe-state-card {
+    align-items: center;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    display: flex;
+    gap: 10px;
+}
+
+.manager-alert-card {
+    border-color: #e5e7eb;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+    padding: 20px;
+}
+
+.manager-alert-title {
+    font-size: 17px;
+    letter-spacing: 0;
+}
+
+.manager-grid-table {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    overflow: auto;
+}
+
+.manager-grid-header {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.manager-grid-header > div,
+.manager-grid-row > div {
+    border-right: 1px solid #eef2f7;
+    padding: 13px 16px;
+}
+
+.manager-grid-row {
+    border-bottom: 1px solid #eef2f7;
+    color: #334155;
+    font-size: 13px;
+}
+
+.manager-grid-row:hover {
+    background: #f9fbff;
+}
+
+.cell-bold,
+.cell-medium {
+    color: #0f172a;
+}
+
+.btn-red,
+.btn-orange,
+.btn-blue {
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+    font-family: inherit;
+    min-height: 34px;
+    transition: box-shadow 0.15s ease, filter 0.15s ease, transform 0.15s ease;
+}
+
+.btn-red:hover,
+.btn-orange:hover,
+.btn-blue:hover {
+    filter: brightness(0.96);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+    transform: translateY(-1px);
+}
+
+.risk-summary-grid {
+    gap: 16px;
+}
+
+.risk-summary-card {
+    border-color: #fed7aa;
+    background: #fff7ed;
+}
+
+.risk-summary-card p {
+    font-size: 13px;
+}
+
+.risk-summary-card strong {
+    font-size: 26px;
+}
+
+.risk-badge,
+.late-cancel-badge,
+.debt-badge {
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.manager-operational-report {
+    gap: 22px;
+}
+
+.manager-card-header h3 {
+    color: #0f172a;
+    font-size: 18px;
+    letter-spacing: 0;
+}
+
+.manager-chart-wrapper,
+.manager-pie-wrapper {
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 10px;
+}
+
+.empty-message {
+    color: #64748b;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .manager-section,
+    .manager-risk-section,
+    .manager-card {
+        border-radius: 14px;
+        padding: 18px;
+    }
+
+    .manager-branch-dashboard .kpi-card {
+        min-height: auto;
+        padding: 18px;
+    }
+}

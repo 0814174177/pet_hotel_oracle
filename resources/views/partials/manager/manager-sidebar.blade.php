@@ -11,22 +11,22 @@
     </div>
 
     <nav class="manager-sidebar-nav">
-        <a href="{{ route('manager.dashboard') }}" class="manager-sidebar-link">
+        <a href="{{ route('manager.dashboard') }}" class="manager-sidebar-link {{ request()->routeIs('manager.index', 'manager.dashboard') ? 'active' : '' }}">
             <span class="manager-sidebar-link-icon">📊</span>
             <span class="manager-sidebar-link-text">Dashboard</span>
         </a>
 
-        <a href="{{ route('manager.reports') }}" class="manager-sidebar-link">
+        <a href="{{ route('manager.reports') }}" class="manager-sidebar-link {{ request()->routeIs('manager.reports') ? 'active' : '' }}">
             <span class="manager-sidebar-link-icon">📈</span>
             <span class="manager-sidebar-link-text">Doanh thu</span>
         </a>
 
-        <a href="{{ route('manager.service') }}" class="manager-sidebar-link">
+        <a href="{{ route('manager.service') }}" class="manager-sidebar-link {{ request()->routeIs('manager.service') ? 'active' : '' }}">
             <span class="manager-sidebar-link-icon">🧼</span>
             <span class="manager-sidebar-link-text">Dịch vụ</span>
         </a>
 
-        <a href="{{ route('manager.inventory') }}" class="manager-sidebar-link">
+        <a href="{{ route('manager.inventory') }}" class="manager-sidebar-link {{ request()->routeIs('manager.inventory') ? 'active' : '' }}">
             <span class="manager-sidebar-link-icon">📦</span>
             <span class="manager-sidebar-link-text">Vật tư</span>
         </a>
