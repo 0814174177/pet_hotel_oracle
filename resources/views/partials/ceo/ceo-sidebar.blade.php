@@ -30,6 +30,10 @@
     <a href="{{ route('ceo.vendors') }}" class="ceo-sidebar-link {{ request()->routeIs('ceo.vendors') ? 'active' : '' }}">
       <span class="ceo-sidebar-link-text">Đối tác</span>
     </a>
+
+    <a href="{{ route('ceo.promotions') }}" class="ceo-sidebar-link {{ request()->routeIs('ceo.promotions') ? 'active' : '' }}">
+      <span class="ceo-sidebar-link-text">Khuyến mãi</span>
+    </a>
   </nav>
 
   <form action="{{ route('authentication.logout') }}" method="POST" class="ceo-logout-form">
