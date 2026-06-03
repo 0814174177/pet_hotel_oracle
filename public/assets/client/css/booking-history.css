@@ -258,6 +258,13 @@
     cursor: default;
 }
 
+.bh-badge-status {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    cursor: default;
+}
+
 .bh-badge-cancelled {
     background: #fceaea;
     color: #b33333;
