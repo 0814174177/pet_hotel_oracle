@@ -39,6 +39,8 @@ class OracleSequenceSeeder extends Seeder
     private function autoIncrementColumns(): array
     {
         return [
+            'jobs' => 'id',
+            'failed_jobs' => 'id',
             'users' => 'id',
             'audit_log' => 'audit_id',
             'branch' => 'branch_id',

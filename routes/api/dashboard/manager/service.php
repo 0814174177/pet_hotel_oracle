@@ -17,6 +17,10 @@ Route::middleware('role:manager,ceo')
     ->group(function () {
         Route::get('/management', 'index')->name('management.index');
         Route::get('/management/kpi', 'kpi')->name('management.kpi');
+        Route::get('/revenue-progress', 'revenueProgress')->name('revenue-progress');
+        Route::get('/revenue-drop-alerts', 'revenueDropAlerts')->name('revenue-drop-alerts');
+        Route::get('/upsell-rate', 'upsellRate')->name('upsell-rate');
+        Route::get('/filtered/{search}/{serviceGroup}/{status}', 'services')->name('filtered-list');
         Route::get('/', 'services')->name('index');
         Route::patch('/{serviceId}/website-visibility', 'updateWebsiteVisibility')->name('website-visibility.update');
         Route::patch('/{serviceId}/emergency-lock', 'updateEmergencyLock')->name('emergency-lock.update');

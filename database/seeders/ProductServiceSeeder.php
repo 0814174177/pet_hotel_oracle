@@ -41,6 +41,8 @@ class ProductServiceSeeder extends Seeder
             ['service_id' => 2, 'service_category_id' => 2, 'service_name' => 'Grooming toàn diện', 'species' => 'DOG', 'description_sv' => 'Cắt tỉa lông, vệ sinh tai và chăm sóc lông toàn diện.', 'base_price' => 250000, 'duration_minutes' => 120, 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now],
             ['service_id' => 3, 'service_category_id' => 3, 'service_name' => 'Kiểm tra sức khỏe cơ bản', 'species' => 'ALL', 'description_sv' => 'Kiểm tra nhanh tình trạng sức khỏe trước khi lưu trú.', 'base_price' => 80000, 'duration_minutes' => 30, 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now],
             ['service_id' => 4, 'service_category_id' => 4, 'service_name' => 'Cắt móng', 'species' => 'ALL', 'description_sv' => 'Cắt móng và chăm sóc bàn chân cho thú cưng.', 'base_price' => 50000, 'duration_minutes' => 25, 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['service_id' => 5, 'service_category_id' => 1, 'service_name' => 'Tắm mèo', 'species' => 'CAT', 'description_sv' => 'Tắm sấy nhẹ nhàng cho mèo, ưu tiên quy trình giảm stress.', 'base_price' => 120000, 'duration_minutes' => 70, 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['service_id' => 6, 'service_category_id' => 2, 'service_name' => 'Grooming mèo', 'species' => 'CAT', 'description_sv' => 'Chải lông, gỡ rối, vệ sinh tai và cắt móng cho mèo.', 'base_price' => 220000, 'duration_minutes' => 100, 'is_active' => 1, 'created_at' => $now, 'updated_at' => $now],
         ]);
 
         DB::table('service_product_detail')->insert([
@@ -51,6 +53,11 @@ class ProductServiceSeeder extends Seeder
             ['service_product_detail_id' => 5, 'service_id' => 2, 'product_id' => 4, 'amount' => 30.00, 'notes' => 'Dung dịch vệ sinh tai.', 'created_at' => $now, 'updated_at' => $now],
             ['service_product_detail_id' => 6, 'service_id' => 3, 'product_id' => 6, 'amount' => 2.00, 'notes' => 'Găng tay cho một lượt kiểm tra.', 'created_at' => $now, 'updated_at' => $now],
             ['service_product_detail_id' => 7, 'service_id' => 4, 'product_id' => 5, 'amount' => 1.00, 'notes' => 'Vật tư cắt móng cho một lượt dịch vụ.', 'created_at' => $now, 'updated_at' => $now],
+            ['service_product_detail_id' => 8, 'service_id' => 5, 'product_id' => 1, 'amount' => 80.00, 'notes' => 'Sữa tắm dùng ít hơn cho mèo.', 'created_at' => $now, 'updated_at' => $now],
+            ['service_product_detail_id' => 9, 'service_id' => 5, 'product_id' => 3, 'amount' => 180.00, 'notes' => 'Khăn vệ sinh cho một lượt tắm mèo.', 'created_at' => $now, 'updated_at' => $now],
+            ['service_product_detail_id' => 10, 'service_id' => 6, 'product_id' => 2, 'amount' => 50.00, 'notes' => 'Dầu xả/chăm sóc lông cho mèo.', 'created_at' => $now, 'updated_at' => $now],
+            ['service_product_detail_id' => 11, 'service_id' => 6, 'product_id' => 4, 'amount' => 20.00, 'notes' => 'Dung dịch vệ sinh tai cho mèo.', 'created_at' => $now, 'updated_at' => $now],
+            ['service_product_detail_id' => 12, 'service_id' => 6, 'product_id' => 5, 'amount' => 1.00, 'notes' => 'Vật tư cắt móng trong gói grooming mèo.', 'created_at' => $now, 'updated_at' => $now],
         ]);
     }
 }

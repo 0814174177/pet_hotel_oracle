@@ -135,6 +135,18 @@ body {
     border-color: #cbd5e1;
 }
 
+.vendor-tier--risk {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.partner-empty-row {
+    color: #64748b;
+    font-weight: 700;
+    text-align: center;
+}
+
 .partner-money {
     color: #0f172a;
     font-weight: 800;
@@ -323,6 +335,30 @@ body {
     white-space: nowrap;
 }
 
+.partner-trend-badge--normal {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.partner-trend-badge--watch {
+    border-color: #fde68a;
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.partner-trend-badge--warning {
+    border-color: #fed7aa;
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.partner-trend-badge--danger {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
+}
+
 .partner-chart-area {
     height: 280px;
 }
@@ -359,6 +395,14 @@ body {
     background: #fff1f2;
 }
 
+.partner-warning-row {
+    background: #fffbeb;
+}
+
+.partner-watch-row {
+    background: #f8fafc;
+}
+
 .partner-normal-row {
     background: #ffffff;
 }
@@ -383,6 +427,18 @@ body {
     background: #fffbeb;
     color: #b45309;
     border-color: #fde68a;
+}
+
+.partner-variance--watch {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.partner-variance--normal {
+    background: #f0fdf4;
+    color: #15803d;
+    border-color: #bbf7d0;
 }
 
 .partner-investigate-btn {

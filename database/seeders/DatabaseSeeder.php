@@ -10,10 +10,12 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             CleanupSeeder::class,
+            LaravelSystemSeeder::class,
             UserSeeder::class,
             BranchRoomSeeder::class,
             ProductServiceSeeder::class,
             PeoplePetSeeder::class,
+            AuthSupportSeeder::class,
             CouponInventorySeeder::class,
             BookingSeeder::class,
             OrderSeeder::class,

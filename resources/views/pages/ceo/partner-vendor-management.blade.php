@@ -151,6 +151,10 @@
     class="partner-vendor-page"
     id="ceoVendorPage"
     data-vendors-url="{{ route('api.dashboard.ceo.vendors') }}"
+    data-otd-url="{{ route('api.dashboard.ceo.vendors.otd') }}"
+    data-otd-summary-url="{{ route('api.dashboard.ceo.vendors.otd-summary') }}"
+    data-payables-url="{{ route('api.dashboard.ceo.vendors.payables') }}"
+    data-price-variance-url="{{ route('api.dashboard.ceo.vendors.price-variance') }}"
 >
 
     <x-global-control-panel
@@ -180,7 +184,7 @@
                         </tr>
                     </thead>
 
-                    <tbody>
+                    <tbody data-vendors-table-body>
                         @foreach ($vendors as $vendor)
                             <tr>
                                 <td>
@@ -225,10 +229,10 @@
 
             <div class="vendor-gauge">
                 <div class="vendor-gauge__arc">
-                    <div class="vendor-gauge__fill" style="width: {{ $avgOtd }}%;"></div>
+                    <div class="vendor-gauge__fill" style="width: {{ $avgOtd }}%;" data-otd-fill></div>
                 </div>
 
-                <div class="{{ gaugeColorClass($avgOtd) }}">
+                <div class="{{ gaugeColorClass($avgOtd) }}" data-otd-rate>
                     {{ $avgOtd }}%
                 </div>
 
@@ -237,26 +241,24 @@
 
             <div class="vendor-performance-metrics">
                 <div>
-                    <strong>{{ $qualityScore }}/5.0</strong>
+                    <strong><span data-quality-score>{{ $qualityScore }}</span>/5.0</strong>
                     <span>Chất lượng hàng hóa</span>
                 </div>
 
                 <div>
-                    <strong>12 hrs</strong>
+                    <strong><span data-delay-hours>12</span> hrs</strong>
                     <span>Thời gian trễ trung bình</span>
                 </div>
             </div>
 
-            @if ($avgOtd < 90)
-                <div class="vendor-performance-alert">
-                    <p>
-                        Phát hiện <strong>{{ $lowOtdVendors }} đối tác</strong> có tỷ lệ giao hàng đúng hạn dưới 80%,
-                        gây gián đoạn vật tư vận hành.
-                    </p>
+            <div class="vendor-performance-alert" data-otd-alert @if ($avgOtd >= 90) hidden @endif>
+                <p>
+                    Phát hiện <strong data-low-otd-vendor-count>{{ $lowOtdVendors }} đối tác</strong> có tỷ lệ giao hàng đúng hạn dưới 80%,
+                    <span data-otd-alert-message>gây gián đoạn vật tư vận hành.</span>
+                </p>
 
-                    <button type="button">Đàm phán lại</button>
-                </div>
-            @endif
+                <button type="button">Đàm phán lại</button>
+            </div>
         </section>
 
 
@@ -267,16 +269,17 @@
             <div class="partner-payable-summary">
                 <div>
                     <div class="partner-total-label">Tổng công nợ phải trả</div>
-                    <div class="partner-total-amount">{{ vendorMoney($totalPayables) }}</div>
+                    <div class="partner-total-amount" data-payables-total>{{ vendorMoney($totalPayables) }}</div>
                 </div>
 
-                <div class="partner-trend-badge">
+                <div class="partner-trend-badge" data-payables-trend>
                     📈 {{ $payableTrend }} so với tháng trước
                 </div>
             </div>
 
             <div class="partner-chart-area">
                 <x-chart.bar
+                    id="vendorPayablesChart"
                     :data="$spendChartData"
                     xAxisKey="month"
                     :barConfigs="$spendBarConfigs"
@@ -285,7 +288,7 @@
                 />
             </div>
 
-            <div class="partner-insight">
+            <div class="partner-insight" data-payables-insight>
                 <strong>💡 Phân tích rủi ro:</strong>
                 Chi tiêu tháng 5 và 6 tăng đột biến 35% do nhập trước đợt hàng Thức ăn hạt & Cát vệ sinh.
                 Cần chuẩn bị quỹ tiền mặt dự phòng để thanh toán cho các hóa đơn đến hạn vào tuần tới.
@@ -315,7 +318,7 @@
                         </tr>
                     </thead>
 
-                    <tbody>
+                    <tbody data-price-variance-table-body>
                         @foreach ($priceAlerts as $item)
                             @php
                                 $isCritical = $item['variance'] > 20;

@@ -12,14 +12,14 @@
     $period = 'tháng';
 
     $stats = [
-        'totalActive' => 4,
+        'totalActive' => 'Đang tải...',
         'topRevenueBranch' => [
-            'name' => 'Pet Hotel Central',
-            'value' => '540.000.000đ',
+            'name' => null,
+            'value' => 'Đang tải...',
         ],
         'lowestOccupancyBranch' => [
-            'name' => 'Pet Hotel Nam Sài Gòn',
-            'value' => '45.2%',
+            'name' => null,
+            'value' => 'Đang tải...',
         ],
     ];
 
@@ -104,27 +104,30 @@
 
     <section class="branch-stats">
         <x-kpi-card
+            data-kpi="active-branch-count"
             title="Tổng chi nhánh đang hoạt động"
-            value="{{ $stats['totalActive'] }} cơ sở"
-            trend="Hệ thống vận hành ổn định"
+            value="{{ $stats['totalActive'] }}"
+            trend="Đang tải dữ liệu API"
             :isPositive="true"
             :period="$period"
             :icon="null"
         />
 
         <x-kpi-card
-            title="Doanh thu cao nhất ({{ $stats['topRevenueBranch']['name'] }})"
+            data-kpi="highest-revenue-branch"
+            title="Doanh thu cao nhất"
             value="{{ $stats['topRevenueBranch']['value'] }}"
-            trend="Dẫn đầu toàn chuỗi"
+            trend="Đang tải dữ liệu API"
             :isPositive="true"
             :period="$period"
             :icon="null"
         />
 
         <x-kpi-card
-            title="Lấp đầy thấp nhất ({{ $stats['lowestOccupancyBranch']['name'] }})"
+            data-kpi="lowest-occupancy-branch"
+            title="Lấp đầy thấp nhất"
             value="{{ $stats['lowestOccupancyBranch']['value'] }}"
-            trend="Cảnh báo: Cần thanh tra vận hành"
+            trend="Đang tải dữ liệu API"
             :isPositive="false"
             :period="$period"
             :icon="null"

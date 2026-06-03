@@ -41,237 +41,242 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
         'status',
     ];
 
+    /**
+     * Mo ta chuc nang:
+     * Lay KPI dich vu toan chuoi theo doanh thu da thanh toan trong ky loc.
+     *
+     * Input:
+     * - array $filters gom start_date, end_date tu DateRangeFilterRequest.
+     *
+     * Output:
+     * - Mang KPI gom top_revenue_service, top_revenue_amount, top_revenue_percent,
+     *   active_service_count va no_revenue_service_count.
+     *
+     * Ghi chu:
+     * - Dich vu khong phat sinh duoc tinh theo viec khong co doanh thu da thanh toan
+     *   trong paid_service_lines, khong tinh theo booking_service_pet rieng le.
+     */
     public function getServiceSummary(array $filters = []): array
     {
         [$startDate, $endDate] = $this->dateRange($filters);
 
         $sql = <<<'SQL'
-            WITH report_params AS (
+            WITH params AS (
                 SELECT
-                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS current_start_date,
-                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS current_end_date
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS p_start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS p_end_date
                 FROM dual
             ),
-            periods AS (
+            paid_service_lines AS (
                 SELECT
-                    'current' AS period_type,
-                    current_start_date AS start_date,
-                    current_end_date AS end_date
-                FROM report_params
-
-                UNION ALL
-
-                SELECT
-                    'comparison' AS period_type,
-                    ADD_MONTHS(current_start_date, -1) AS start_date,
-                    ADD_MONTHS(current_end_date, -1) AS end_date
-                FROM report_params
-            ),
-            service_revenue AS (
-                SELECT
-                    p.period_type,
-                    s.service_id,
+                    o.order_id,
+                    od.order_detail_id,
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
                     s.service_name,
-                    SUM(NVL(od.line_total, 0)) AS service_revenue
-                FROM periods p
-                JOIN orders o
-                    ON o.paid_at >= p.start_date
-                   AND o.paid_at <  p.end_date + 1
+                    od.line_total,
+                    NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) AS report_date
+                FROM orders o
                 JOIN order_details od
                     ON od.order_id = o.order_id
                 JOIN booking_service_pet bsp
                     ON bsp.booking_service_pet_id = od.booking_service_pet_id
-                JOIN booking bk
-                    ON bk.booking_id = bsp.booking_id
                 JOIN services s
                     ON s.service_id = bsp.service_id
-                WHERE o.status IN ('PAID', 'COMPLETED')
-                  AND od.booking_service_pet_id IS NOT NULL
-                  AND bsp.status = 'DONE'
-                  AND bk.status <> 'CANCELLED'
+                CROSS JOIN params prm
+                WHERE od.booking_service_pet_id IS NOT NULL
+                  AND o.status IN ('PAID', 'COMPLETED', 'DONE')
+                  AND NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) >= prm.p_start_date
+                  AND NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) <  prm.p_end_date + 1
+            ),
+            service_revenue AS (
+                SELECT
+                    service_id,
+                    service_name,
+                    SUM(NVL(line_total, 0)) AS service_revenue
+                FROM paid_service_lines
                 GROUP BY
-                    p.period_type,
-                    s.service_id,
-                    s.service_name
+                    service_id,
+                    service_name
             ),
-            top_service_ranked AS (
+            ranked_service AS (
                 SELECT
-                    sr.period_type,
-                    sr.service_id,
-                    sr.service_name,
-                    sr.service_revenue,
-                    SUM(sr.service_revenue) OVER (
-                        PARTITION BY sr.period_type
-                    ) AS total_service_revenue,
                     ROW_NUMBER() OVER (
-                        PARTITION BY sr.period_type
-                        ORDER BY sr.service_revenue DESC, sr.service_id
-                    ) AS rn
-                FROM service_revenue sr
-            ),
-            top_service AS (
-                SELECT
-                    period_type,
+                        ORDER BY service_revenue DESC, service_id
+                    ) AS rank_no,
                     service_id,
                     service_name,
                     service_revenue,
-                    total_service_revenue,
-                    ROUND(
-                        service_revenue / NULLIF(total_service_revenue, 0) * 100,
-                        2
-                    ) AS revenue_share
-                FROM top_service_ranked
-                WHERE rn = 1
-            ),
-            no_activity AS (
-                SELECT
-                    p.period_type,
-                    COUNT(*) AS no_activity_service_count
-                FROM periods p
-                CROSS JOIN services s
-                WHERE NOT EXISTS (
-                    SELECT 1
-                    FROM booking_service_pet bsp
-                    WHERE bsp.service_id = s.service_id
-                      AND bsp.scheduled_at >= p.start_date
-                      AND bsp.scheduled_at <  p.end_date + 1
-                )
-                GROUP BY p.period_type
-            ),
-            active_services AS (
-                SELECT COUNT(*) AS active_service_count
-                FROM services
-                WHERE is_active = 1
+                    SUM(service_revenue) OVER () AS total_service_revenue
+                FROM service_revenue
             )
             SELECT
-                p.period_type,
-                TO_CHAR(p.start_date, 'YYYY-MM-DD') AS period_start_date,
-                TO_CHAR(p.end_date, 'YYYY-MM-DD') AS period_end_date,
-                ts.service_id AS top_service_id,
-                ts.service_name AS top_service_name,
-                NVL(ts.service_revenue, 0) AS top_service_revenue,
-                NVL(ts.total_service_revenue, 0) AS total_service_revenue,
-                NVL(ts.revenue_share, 0) AS top_service_revenue_share,
-                NVL(na.no_activity_service_count, 0) AS no_activity_service_count,
-                ac.active_service_count
-            FROM periods p
-            LEFT JOIN top_service ts
-                ON ts.period_type = p.period_type
-            LEFT JOIN no_activity na
-                ON na.period_type = p.period_type
-            CROSS JOIN active_services ac
-            ORDER BY
-                CASE p.period_type
-                    WHEN 'current' THEN 1
-                    ELSE 2
-                END
+                (
+                    SELECT service_name
+                    FROM ranked_service
+                    WHERE rank_no = 1
+                ) AS top_revenue_service,
+
+                NVL((
+                    SELECT service_revenue
+                    FROM ranked_service
+                    WHERE rank_no = 1
+                ), 0) AS top_revenue_amount,
+
+                NVL((
+                    SELECT ROUND(service_revenue / NULLIF(total_service_revenue, 0) * 100, 2)
+                    FROM ranked_service
+                    WHERE rank_no = 1
+                ), 0) AS top_revenue_percent,
+
+                (
+                    SELECT COUNT(*)
+                    FROM services s
+                    WHERE s.is_active = 1
+                ) AS active_service_count,
+
+                (
+                    SELECT COUNT(*)
+                    FROM services s
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM service_revenue sr
+                        WHERE sr.service_id = s.service_id
+                    )
+                ) AS no_revenue_service_count
+            FROM dual
             SQL;
 
-        $rows = collect(DB::select($sql, [
+        $row = DB::selectOne($sql, [
             'p_start_date' => $startDate,
             'p_end_date' => $endDate,
-        ]));
-
-        $currentRow = $rows->first(
-            fn (object $row): bool => $this->rowValue($row, 'period_type') === 'current'
-        );
-        $comparisonRow = $rows->first(
-            fn (object $row): bool => $this->rowValue($row, 'period_type') === 'comparison'
-        );
-        $currentTopService = $this->mapTopService($currentRow);
-        $comparisonTopService = $this->mapTopService($comparisonRow);
-        $currentNoActivityCount = (int) ($this->rowValue($currentRow, 'no_activity_service_count') ?? 0);
-        $comparisonNoActivityCount = (int) ($this->rowValue($comparisonRow, 'no_activity_service_count') ?? 0);
+        ]);
 
         return [
-            'period' => [
-                'current' => [
-                    'start_date' => (string) ($this->rowValue($currentRow, 'period_start_date') ?? $startDate),
-                    'end_date' => (string) ($this->rowValue($currentRow, 'period_end_date') ?? $endDate),
-                ],
-                'comparison' => [
-                    'type' => 'previous_month',
-                    'start_date' => (string) ($this->rowValue($comparisonRow, 'period_start_date') ?? ''),
-                    'end_date' => (string) ($this->rowValue($comparisonRow, 'period_end_date') ?? ''),
-                ],
-            ],
-            'top_revenue_service' => [
-                'current' => $currentTopService,
-                'comparison' => $comparisonTopService,
-                'change' => $this->calculateChange(
-                    $currentTopService['revenue'] ?? 0,
-                    $comparisonTopService['revenue'] ?? 0
-                ),
-            ],
-            'active_service_count' => [
-                'current' => (int) ($this->rowValue($currentRow, 'active_service_count') ?? 0),
-                'comparison' => null,
-                'change' => null,
-                'note' => 'Chỉ tính được trạng thái hiện tại vì bảng services không có lịch sử trạng thái theo kỳ.',
-            ],
-            'no_activity_service_count' => [
-                'current' => $currentNoActivityCount,
-                'comparison' => $comparisonNoActivityCount,
-                'change' => $this->calculateChange($currentNoActivityCount, $comparisonNoActivityCount),
-            ],
+            'top_revenue_service' => $this->rowValue($row, 'top_revenue_service'),
+            'top_revenue_amount' => $this->cleanNumber((float) ($this->rowValue($row, 'top_revenue_amount') ?? 0)),
+            'top_revenue_percent' => $this->cleanNumber((float) ($this->rowValue($row, 'top_revenue_percent') ?? 0)),
+            'active_service_count' => (int) ($this->rowValue($row, 'active_service_count') ?? 0),
+            'no_revenue_service_count' => (int) ($this->rowValue($row, 'no_revenue_service_count') ?? 0),
         ];
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay danh sach dich vu quan tri toan chuoi theo ky loc hien tai.
+     *
+     * Input:
+     * - array $filters gom start_date, end_date tu DateRangeFilterRequest.
+     *
+     * Output:
+     * - Mang dong table gom thong tin dich vu, danh muc, trang thai, gia ban,
+     *   von vat tu tam tinh, margin, luot phuc vu va do phu chi nhanh.
+     *
+     * Ghi chu:
+     * - Chi phi vat tu duoc tach thanh CTE rieng de tranh nhan dong voi lich su phuc vu.
+     */
     public function getServiceCatalog(array $filters = []): array
-    {
-        return Service::with('category')
-            ->orderBy('service_name')
-            ->get()
-            ->all();
-    }
-
-    public function getHighestRevenueService(array $filters = []): ?array
-    {
-        $service = collect($this->getServiceRevenueList($filters))
-            ->where('status', 'active')
-            ->filter(fn (array $service): bool => (float) $service['revenue'] > 0)
-            ->sortByDesc('revenue')
-            ->values()
-            ->first();
-
-        return $service ? $this->kpiPayload($service) : null;
-    }
-
-    public function getLowestRevenueService(array $filters = []): ?array
-    {
-        $service = collect($this->getServiceRevenueList($filters))
-            ->where('status', 'active')
-            ->filter(fn (array $service): bool => (float) $service['revenue'] > 0)
-            ->sortBy('revenue')
-            ->values()
-            ->first();
-
-        return $service ? $this->kpiPayload($service) : null;
-    }
-
-    public function getNoActivityServices(array $filters = []): array
     {
         [$startDate, $endDate] = $this->dateRange($filters);
 
         $sql = <<<'SQL'
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS p_start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS p_end_date
+                FROM dual
+            ),
+            material_cost_per_service AS (
+                SELECT
+                    spd.service_id,
+                    SUM(NVL(spd.amount, 0) * NVL(p.item_price, 0)) AS material_cost_per_time
+                FROM service_product_detail spd
+                JOIN product p
+                    ON p.product_id = spd.product_id
+                GROUP BY
+                    spd.service_id
+            ),
+            service_activity_in_period AS (
+                SELECT
+                    bsp.service_id,
+                    COUNT(DISTINCT bsp.booking_service_pet_id) AS service_count_in_period,
+                    COUNT(DISTINCT b.branch_id) AS covered_branch_count
+                FROM booking_service_pet bsp
+                LEFT JOIN booking b
+                    ON b.booking_id = bsp.booking_id
+                CROSS JOIN params prm
+                WHERE CAST(bsp.scheduled_at AS DATE) >= prm.p_start_date
+                  AND CAST(bsp.scheduled_at AS DATE) <  prm.p_end_date + 1
+                GROUP BY
+                    bsp.service_id
+            ),
+            active_branch_count AS (
+                SELECT
+                    COUNT(*) AS total_active_branch
+                FROM branch br
+                WHERE br.is_active = 1
+            )
             SELECT
                 s.service_id,
-                s.service_name
+                s.service_name,
+                cs.service_category_name,
+
+                CASE
+                    WHEN s.is_active = 1 THEN 'Hoạt động'
+                    ELSE 'Đã ẩn/Ngưng'
+                END AS service_status,
+
+                s.base_price,
+
+                NVL(mc.material_cost_per_time, 0) AS estimated_material_cost,
+
+                ROUND(
+                    CASE
+                        WHEN s.base_price > 0 THEN
+                            (
+                                s.base_price - NVL(mc.material_cost_per_time, 0)
+                            ) / s.base_price * 100
+                        ELSE 0
+                    END,
+                    2
+                ) AS margin_percent,
+
+                NVL(sa.service_count_in_period, 0) AS service_count_in_period,
+
+                NVL(sa.covered_branch_count, 0) AS covered_branch_count,
+
+                ab.total_active_branch,
+
+                ROUND(
+                    NVL(sa.covered_branch_count, 0)
+                    / NULLIF(ab.total_active_branch, 0) * 100,
+                    2
+                ) AS coverage_percent
             FROM services s
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM booking_service_pet bsp
-                WHERE bsp.service_id = s.service_id
-                  AND bsp.scheduled_at >= TO_DATE(:p_start_date, 'YYYY-MM-DD')
-                  AND bsp.scheduled_at <  TO_DATE(:p_end_date, 'YYYY-MM-DD') + 1
-            )
-            ORDER BY s.service_name, s.service_id
+            LEFT JOIN category_services cs
+                ON cs.service_category_id = s.service_category_id
+            LEFT JOIN material_cost_per_service mc
+                ON mc.service_id = s.service_id
+            LEFT JOIN service_activity_in_period sa
+                ON sa.service_id = s.service_id
+            CROSS JOIN active_branch_count ab
+            ORDER BY
+                s.service_id
             SQL;
 
         return array_map(function (object $row): array {
             return [
                 'service_id' => (int) ($this->rowValue($row, 'service_id') ?? 0),
                 'service_name' => (string) ($this->rowValue($row, 'service_name') ?? ''),
+                'service_category_name' => (string) ($this->rowValue($row, 'service_category_name') ?? ''),
+                'service_status' => (string) ($this->rowValue($row, 'service_status') ?? ''),
+                'base_price' => $this->cleanNumber((float) ($this->rowValue($row, 'base_price') ?? 0)),
+                'estimated_material_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_material_cost') ?? 0)),
+                'margin_percent' => $this->cleanNumber((float) ($this->rowValue($row, 'margin_percent') ?? 0)),
+                'service_count_in_period' => (int) ($this->rowValue($row, 'service_count_in_period') ?? 0),
+                'covered_branch_count' => (int) ($this->rowValue($row, 'covered_branch_count') ?? 0),
+                'total_active_branch' => (int) ($this->rowValue($row, 'total_active_branch') ?? 0),
+                'coverage_percent' => $this->cleanNumber((float) ($this->rowValue($row, 'coverage_percent') ?? 0)),
             ];
         }, DB::select($sql, [
             'p_start_date' => $startDate,
@@ -279,73 +284,558 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
         ]));
     }
 
-    public function getMostProfitableService(array $filters = []): ?array
+    /**
+     * Mo ta chuc nang:
+     * Lay dich vu ganh doanh thu toan chuoi trong ky loc.
+     *
+     * Input:
+     * - array $filters gom start_date, end_date tu DateRangeFilterRequest.
+     *
+     * Output:
+     * - Mot dong table gom rank_no, service_id, service_name, service_revenue,
+     *   total_service_revenue, revenue_percent va display_text hoac null.
+     *
+     * Ghi chu:
+     * - Dung paid_service_lines lam nguon doanh thu chuan de khong tinh doanh thu
+     *   phong/luu tru khong gan voi booking_service_pet.
+     */
+    public function getHighestRevenueService(array $filters = []): ?array
     {
-        $service = Service::query()
-            ->where('is_active', self::ACTIVE_VALUE)
-            ->with('serviceProductDetails.product')
-            ->get()
-            ->map(function (Service $service): array {
-                $estimatedMaterialCost = (float) $service->serviceProductDetails->sum(
-                    fn ($detail): float => (float) $detail->amount * (float) ($detail->product?->item_price ?? 0)
-                );
-                $estimatedProfit = (float) $service->base_price - $estimatedMaterialCost;
+        [$startDate, $endDate] = $this->dateRange($filters);
 
-                return [
-                    'service_id' => (int) $service->service_id,
-                    'service_name' => (string) $service->service_name,
-                    'selling_price' => $this->cleanNumber((float) $service->base_price),
-                    'estimated_material_cost' => $this->cleanNumber($estimatedMaterialCost),
-                    'estimated_profit' => $this->cleanNumber($estimatedProfit),
-                ];
-            })
-            ->sortByDesc('estimated_profit')
+        $sql = <<<'SQL'
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS p_start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS p_end_date
+                FROM dual
+            ),
+            paid_service_lines AS (
+                SELECT
+                    o.order_id,
+                    od.order_detail_id,
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
+                    s.service_name,
+                    od.line_total,
+                    NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) AS report_date
+                FROM orders o
+                JOIN order_details od
+                    ON od.order_id = o.order_id
+                JOIN booking_service_pet bsp
+                    ON bsp.booking_service_pet_id = od.booking_service_pet_id
+                JOIN services s
+                    ON s.service_id = bsp.service_id
+                CROSS JOIN params prm
+                WHERE od.booking_service_pet_id IS NOT NULL
+                  AND o.status IN ('PAID', 'COMPLETED', 'DONE')
+                  AND NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) >= prm.p_start_date
+                  AND NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) <  prm.p_end_date + 1
+            ),
+            service_revenue AS (
+                SELECT
+                    service_id,
+                    service_name,
+                    SUM(NVL(line_total, 0)) AS service_revenue
+                FROM paid_service_lines
+                GROUP BY
+                    service_id,
+                    service_name
+            ),
+            ranked_service AS (
+                SELECT
+                    ROW_NUMBER() OVER (
+                        ORDER BY service_revenue DESC, service_id
+                    ) AS rank_no,
+                    service_id,
+                    service_name,
+                    service_revenue,
+                    SUM(service_revenue) OVER () AS total_service_revenue
+                FROM service_revenue
+            )
+            SELECT
+                rank_no,
+                service_id,
+                service_name,
+                service_revenue,
+                total_service_revenue,
+
+                ROUND(
+                    service_revenue / NULLIF(total_service_revenue, 0) * 100,
+                    2
+                ) AS revenue_percent,
+
+                service_name
+                    || ' - chiếm '
+                    || ROUND(service_revenue / NULLIF(total_service_revenue, 0) * 100, 2)
+                    || '% tổng doanh thu dịch vụ' AS display_text
+            FROM ranked_service
+            WHERE rank_no = 1
+            SQL;
+
+        $row = DB::selectOne($sql, [
+            'p_start_date' => $startDate,
+            'p_end_date' => $endDate,
+        ]);
+
+        if ($row === null) {
+            return null;
+        }
+
+        return [
+            'rank_no' => (int) ($this->rowValue($row, 'rank_no') ?? 0),
+            'service_id' => (int) ($this->rowValue($row, 'service_id') ?? 0),
+            'service_name' => (string) ($this->rowValue($row, 'service_name') ?? ''),
+            'service_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'service_revenue') ?? 0)),
+            'total_service_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'total_service_revenue') ?? 0)),
+            'revenue_percent' => $this->cleanNumber((float) ($this->rowValue($row, 'revenue_percent') ?? 0)),
+            'display_text' => (string) ($this->rowValue($row, 'display_text') ?? ''),
+        ];
+    }
+
+    /**
+     * Mo ta chuc nang:
+     * Lay dich vu co doanh thu thap nhat nhung van co doanh thu trong ky loc.
+     *
+     * Input:
+     * - array $filters gom start_date, end_date tu DateRangeFilterRequest.
+     *
+     * Output:
+     * - Mang KPI rut gon gom service_id, service_name, revenue, revenue_share hoac null.
+     */
+    public function getLowestRevenueService(array $filters = []): ?array
+    {
+        $service = collect($this->getServiceRevenueList($filters))
+            ->filter(fn (array $service): bool => (float) $service['service_revenue'] > 0)
+            ->sortBy('service_revenue')
             ->values()
             ->first();
 
-        return $service ?: null;
+        return $service ? $this->kpiPayload($service) : null;
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay danh sach dich vu khong co doanh thu da thanh toan trong ky loc.
+     *
+     * Input:
+     * - array $filters gom start_date, end_date tu DateRangeFilterRequest.
+     *
+     * Output:
+     * - Mang dong table gom service_id, service_name, service_category_name,
+     *   base_price, is_active, booking_count_in_period va no_revenue_reason.
+     *
+     * Ghi chu:
+     * - Dich vu co booking nhung chua co doanh thu da thanh toan van duoc xem
+     *   la khong phat sinh doanh thu theo goc nhin CEO.
+     */
+    public function getNoActivityServices(array $filters = []): array
+    {
+        [$startDate, $endDate] = $this->dateRange($filters);
+
+        $sql = <<<'SQL'
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS p_start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS p_end_date
+                FROM dual
+            ),
+            paid_service_lines AS (
+                SELECT
+                    o.order_id,
+                    od.order_detail_id,
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
+                    s.service_name,
+                    od.line_total,
+                    NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) AS report_date
+                FROM orders o
+                JOIN order_details od
+                    ON od.order_id = o.order_id
+                JOIN booking_service_pet bsp
+                    ON bsp.booking_service_pet_id = od.booking_service_pet_id
+                JOIN services s
+                    ON s.service_id = bsp.service_id
+                CROSS JOIN params prm
+                WHERE od.booking_service_pet_id IS NOT NULL
+                  AND o.status IN ('PAID', 'COMPLETED', 'DONE')
+                  AND NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) >= prm.p_start_date
+                  AND NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) <  prm.p_end_date + 1
+            ),
+            service_revenue AS (
+                SELECT
+                    service_id,
+                    SUM(NVL(line_total, 0)) AS service_revenue
+                FROM paid_service_lines
+                GROUP BY
+                    service_id
+            ),
+            booking_activity AS (
+                SELECT
+                    bsp.service_id,
+                    COUNT(DISTINCT bsp.booking_service_pet_id) AS booking_count_in_period
+                FROM booking_service_pet bsp
+                CROSS JOIN params prm
+                WHERE CAST(bsp.scheduled_at AS DATE) >= prm.p_start_date
+                  AND CAST(bsp.scheduled_at AS DATE) <  prm.p_end_date + 1
+                GROUP BY
+                    bsp.service_id
+            )
+            SELECT
+                s.service_id,
+                s.service_name,
+                cs.service_category_name,
+                s.base_price,
+                s.is_active,
+
+                NVL(ba.booking_count_in_period, 0) AS booking_count_in_period,
+
+                CASE
+                    WHEN NVL(ba.booking_count_in_period, 0) = 0 THEN
+                        'Không có booking và không có doanh thu trong kỳ'
+                    ELSE
+                        'Có booking nhưng chưa có doanh thu đã thanh toán trong kỳ'
+                END AS no_revenue_reason
+            FROM services s
+            LEFT JOIN category_services cs
+                ON cs.service_category_id = s.service_category_id
+            LEFT JOIN booking_activity ba
+                ON ba.service_id = s.service_id
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM service_revenue sr
+                WHERE sr.service_id = s.service_id
+            )
+            ORDER BY
+                s.service_name
+            SQL;
+
+        return array_map(function (object $row): array {
+            return [
+                'service_id' => (int) ($this->rowValue($row, 'service_id') ?? 0),
+                'service_name' => (string) ($this->rowValue($row, 'service_name') ?? ''),
+                'service_category_name' => (string) ($this->rowValue($row, 'service_category_name') ?? ''),
+                'base_price' => $this->cleanNumber((float) ($this->rowValue($row, 'base_price') ?? 0)),
+                'is_active' => (int) ($this->rowValue($row, 'is_active') ?? 0),
+                'booking_count_in_period' => (int) ($this->rowValue($row, 'booking_count_in_period') ?? 0),
+                'no_revenue_reason' => (string) ($this->rowValue($row, 'no_revenue_reason') ?? ''),
+            ];
+        }, DB::select($sql, [
+            'p_start_date' => $startDate,
+            'p_end_date' => $endDate,
+        ]));
+    }
+
+    /**
+     * Mo ta chuc nang:
+     * Lay dich vu sieu loi nhuan toan chuoi theo doanh thu da thanh toan trong ky loc.
+     *
+     * Input:
+     * - array $filters gom start_date, end_date tu DateRangeFilterRequest.
+     *
+     * Output:
+     * - Mot dong table gom service_id, service_name, total_service_revenue,
+     *   total_material_cost, total_labor_cost, estimated_profit,
+     *   estimated_margin_percent, missing_employee_count, cost_warning va display_text.
+     *
+     * Ghi chu:
+     * - Neu thieu employee_id, labor_cost bang 0 va cost_warning se canh bao
+     *   so luot dich vu thieu nhan vien phu trach.
+     */
+    public function getMostProfitableService(array $filters = []): ?array
+    {
+        [$startDate, $endDate] = $this->dateRange($filters);
+
+        $sql = <<<'SQL'
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS p_start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS p_end_date
+                FROM dual
+            ),
+            paid_service_lines AS (
+                SELECT
+                    o.order_id,
+                    od.order_detail_id,
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
+                    s.service_name,
+                    bsp.employee_id,
+                    bsp.status AS booking_service_status,
+                    od.line_total,
+                    NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) AS report_date
+                FROM orders o
+                JOIN order_details od
+                    ON od.order_id = o.order_id
+                JOIN booking_service_pet bsp
+                    ON bsp.booking_service_pet_id = od.booking_service_pet_id
+                JOIN services s
+                    ON s.service_id = bsp.service_id
+                CROSS JOIN params prm
+                WHERE od.booking_service_pet_id IS NOT NULL
+                  AND o.status IN ('PAID', 'COMPLETED', 'DONE')
+                  AND NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) >= prm.p_start_date
+                  AND NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) <  prm.p_end_date + 1
+            ),
+            paid_done_service_instances AS (
+                SELECT
+                    booking_service_pet_id,
+                    service_id,
+                    service_name,
+                    employee_id,
+                    SUM(NVL(line_total, 0)) AS instance_revenue
+                FROM paid_service_lines
+                WHERE booking_service_status = 'DONE'
+                GROUP BY
+                    booking_service_pet_id,
+                    service_id,
+                    service_name,
+                    employee_id
+            ),
+            material_cost_per_service AS (
+                SELECT
+                    spd.service_id,
+                    SUM(NVL(spd.amount, 0) * NVL(p.item_price, 0)) AS material_cost_per_time
+                FROM service_product_detail spd
+                JOIN product p
+                    ON p.product_id = spd.product_id
+                GROUP BY
+                    spd.service_id
+            ),
+            service_instance_cost AS (
+                SELECT
+                    pdsi.booking_service_pet_id,
+                    pdsi.service_id,
+                    pdsi.service_name,
+                    pdsi.instance_revenue,
+
+                    NVL(mc.material_cost_per_time, 0) AS material_cost,
+
+                    CASE
+                        WHEN pdsi.employee_id IS NULL THEN 0
+                        ELSE
+                            (NVL(e.salary, 0) / 26 / 8)
+                            * (NVL(s.duration_minutes, 0) / 60)
+                    END AS labor_cost,
+
+                    CASE
+                        WHEN pdsi.employee_id IS NULL THEN 1
+                        ELSE 0
+                    END AS missing_employee_flag
+                FROM paid_done_service_instances pdsi
+                JOIN services s
+                    ON s.service_id = pdsi.service_id
+                LEFT JOIN employee e
+                    ON e.employee_id = pdsi.employee_id
+                LEFT JOIN material_cost_per_service mc
+                    ON mc.service_id = pdsi.service_id
+            ),
+            profit_by_service AS (
+                SELECT
+                    service_id,
+                    service_name,
+
+                    SUM(instance_revenue) AS total_service_revenue,
+
+                    SUM(material_cost) AS total_material_cost,
+
+                    SUM(labor_cost) AS total_labor_cost,
+
+                    SUM(instance_revenue)
+                    - SUM(material_cost)
+                    - SUM(labor_cost) AS estimated_profit,
+
+                    ROUND(
+                        (
+                            SUM(instance_revenue)
+                            - SUM(material_cost)
+                            - SUM(labor_cost)
+                        ) / NULLIF(SUM(instance_revenue), 0) * 100,
+                        2
+                    ) AS estimated_margin_percent,
+
+                    SUM(missing_employee_flag) AS missing_employee_count,
+
+                    CASE
+                        WHEN SUM(missing_employee_flag) > 0 THEN
+                            'Thiếu nhân viên phụ trách ở '
+                            || SUM(missing_employee_flag)
+                            || ' lượt dịch vụ, chi phí nhân công có thể bị thấp hơn thực tế'
+                        ELSE
+                            NULL
+                    END AS cost_warning
+                FROM service_instance_cost
+                GROUP BY
+                    service_id,
+                    service_name
+            ),
+            ranked_profit AS (
+                SELECT
+                    ROW_NUMBER() OVER (
+                        ORDER BY estimated_margin_percent DESC, estimated_profit DESC, service_id
+                    ) AS rank_no,
+
+                    service_id,
+                    service_name,
+                    total_service_revenue,
+                    total_material_cost,
+                    total_labor_cost,
+                    estimated_profit,
+                    estimated_margin_percent,
+                    missing_employee_count,
+                    cost_warning
+                FROM profit_by_service
+                WHERE total_service_revenue > 0
+            )
+            SELECT
+                service_id,
+                service_name,
+                total_service_revenue,
+                total_material_cost,
+                total_labor_cost,
+                estimated_profit,
+                estimated_margin_percent,
+                missing_employee_count,
+                cost_warning,
+
+                service_name
+                    || ' - margin tạm tính '
+                    || estimated_margin_percent
+                    || '%' AS display_text
+            FROM ranked_profit
+            WHERE rank_no = 1
+            SQL;
+
+        $row = DB::selectOne($sql, [
+            'p_start_date' => $startDate,
+            'p_end_date' => $endDate,
+        ]);
+
+        if ($row === null) {
+            return null;
+        }
+
+        return [
+            'service_id' => (int) ($this->rowValue($row, 'service_id') ?? 0),
+            'service_name' => (string) ($this->rowValue($row, 'service_name') ?? ''),
+            'total_service_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'total_service_revenue') ?? 0)),
+            'total_material_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'total_material_cost') ?? 0)),
+            'total_labor_cost' => $this->cleanNumber((float) ($this->rowValue($row, 'total_labor_cost') ?? 0)),
+            'estimated_profit' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_profit') ?? 0)),
+            'estimated_margin_percent' => $this->cleanNumber((float) ($this->rowValue($row, 'estimated_margin_percent') ?? 0)),
+            'missing_employee_count' => (int) ($this->rowValue($row, 'missing_employee_count') ?? 0),
+            'cost_warning' => $this->rowValue($row, 'cost_warning'),
+            'display_text' => (string) ($this->rowValue($row, 'display_text') ?? ''),
+        ];
+    }
+
+    /**
+     * Mo ta chuc nang:
+     * Lay bang doanh thu tung dich vu toan chuoi theo ky loc hien tai.
+     *
+     * Input:
+     * - array $filters gom start_date, end_date tu DateRangeFilterRequest.
+     *
+     * Output:
+     * - Mang xep hang doanh thu gom rank_no, service_id, service_name,
+     *   service_revenue, total_service_revenue, revenue_percent, order_count
+     *   va service_usage_count.
+     *
+     * Ghi chu:
+     * - Dung paid_service_lines lam nguon doanh thu chuan de dong nhat voi KPI.
+     */
     public function getServiceRevenueList(array $filters = []): array
     {
-        $usePayments = $this->hasSuccessfulPayments();
-        $revenueByService = $this->revenueByService($usePayments, $filters);
-        $servedCount30Days = $this->servedCountByServiceLast30Days($usePayments, $filters);
-        $activeBranchCount = $this->activeBranchCount();
-        $coverageBranchCount = $this->coverageBranchCountByService($usePayments, $filters);
-        $totalRevenue = (float) $revenueByService->sum();
+        [$startDate, $endDate] = $this->dateRange($filters);
 
-        $services = Service::query()
-            ->orderBy('service_name')
-            ->get()
-            ->map(function (Service $service) use (
-                $revenueByService,
-                $servedCount30Days,
-                $activeBranchCount,
-                $coverageBranchCount,
-                $totalRevenue
-            ): array {
-                $serviceId = (string) $service->service_id;
-                $revenue = (float) ($revenueByService->get($serviceId, 0) ?? 0);
-                $branchCount = (int) ($coverageBranchCount->get($serviceId, 0) ?? 0);
+        $sql = <<<'SQL'
+            WITH params AS (
+                SELECT
+                    TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS p_start_date,
+                    TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS p_end_date
+                FROM dual
+            ),
+            paid_service_lines AS (
+                SELECT
+                    o.order_id,
+                    od.order_detail_id,
+                    bsp.booking_service_pet_id,
+                    bsp.service_id,
+                    s.service_name,
+                    od.line_total,
+                    NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) AS report_date
+                FROM orders o
+                JOIN order_details od
+                    ON od.order_id = o.order_id
+                JOIN booking_service_pet bsp
+                    ON bsp.booking_service_pet_id = od.booking_service_pet_id
+                JOIN services s
+                    ON s.service_id = bsp.service_id
+                CROSS JOIN params prm
+                WHERE od.booking_service_pet_id IS NOT NULL
+                  AND o.status IN ('PAID', 'COMPLETED', 'DONE')
+                  AND NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) >= prm.p_start_date
+                  AND NVL(CAST(o.paid_at AS DATE), CAST(o.created_at AS DATE)) <  prm.p_end_date + 1
+            ),
+            service_revenue AS (
+                SELECT
+                    service_id,
+                    service_name,
+                    SUM(NVL(line_total, 0)) AS service_revenue,
+                    COUNT(DISTINCT order_id) AS order_count,
+                    COUNT(DISTINCT booking_service_pet_id) AS service_usage_count
+                FROM paid_service_lines
+                GROUP BY
+                    service_id,
+                    service_name
+            ),
+            ranked_service AS (
+                SELECT
+                    ROW_NUMBER() OVER (
+                        ORDER BY service_revenue DESC, service_id
+                    ) AS rank_no,
+                    service_id,
+                    service_name,
+                    service_revenue,
+                    SUM(service_revenue) OVER () AS total_service_revenue,
+                    order_count,
+                    service_usage_count
+                FROM service_revenue
+            )
+            SELECT
+                rank_no,
+                service_id,
+                service_name,
+                service_revenue,
+                total_service_revenue,
 
-                return [
-                    'service_id' => (int) $service->service_id,
-                    'service_name' => (string) $service->service_name,
-                    'served_count_30_days' => (int) ($servedCount30Days->get($serviceId, 0) ?? 0),
-                    'coverage_rate' => $this->coverageRate($branchCount, $activeBranchCount),
-                    'revenue' => $this->cleanNumber($revenue),
-                    'revenue_share' => $this->revenueShare($revenue, $totalRevenue),
-                    'status' => ((int) $service->is_active === self::ACTIVE_VALUE) ? 'active' : 'inactive',
-                ];
-            });
+                ROUND(
+                    service_revenue / NULLIF(total_service_revenue, 0) * 100,
+                    2
+                ) AS revenue_percent,
 
-        return $this->sortServices(
-            $this->applyFilters($services, $filters),
-            $filters
-        )
-            ->values()
-            ->all();
+                order_count,
+                service_usage_count
+            FROM ranked_service
+            ORDER BY
+                rank_no
+            SQL;
+
+        return array_map(function (object $row): array {
+            return [
+                'rank_no' => (int) ($this->rowValue($row, 'rank_no') ?? 0),
+                'service_id' => (int) ($this->rowValue($row, 'service_id') ?? 0),
+                'service_name' => (string) ($this->rowValue($row, 'service_name') ?? ''),
+                'service_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'service_revenue') ?? 0)),
+                'total_service_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'total_service_revenue') ?? 0)),
+                'revenue_percent' => $this->cleanNumber((float) ($this->rowValue($row, 'revenue_percent') ?? 0)),
+                'order_count' => (int) ($this->rowValue($row, 'order_count') ?? 0),
+                'service_usage_count' => (int) ($this->rowValue($row, 'service_usage_count') ?? 0),
+            ];
+        }, DB::select($sql, [
+            'p_start_date' => $startDate,
+            'p_end_date' => $endDate,
+        ]));
     }
 
     public function resolvePeriodRange(
@@ -358,13 +848,23 @@ class ServiceRevenueRepository implements ServiceRevenueRepositoryInterface
         return [];
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Chuyen mot dong doanh thu dich vu sang payload KPI rut gon.
+     *
+     * Input:
+     * - array $service gom service_id, service_name, service_revenue, revenue_percent.
+     *
+     * Output:
+     * - Mang KPI gom service_id, service_name, revenue, revenue_share.
+     */
     private function kpiPayload(array $service): array
     {
         return [
             'service_id' => $service['service_id'],
             'service_name' => $service['service_name'],
-            'revenue' => $service['revenue'],
-            'revenue_share' => $service['revenue_share'],
+            'revenue' => $service['service_revenue'],
+            'revenue_share' => $service['revenue_percent'],
         ];
     }
 

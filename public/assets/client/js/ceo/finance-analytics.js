@@ -1,9 +1,11 @@
 (function ($) {
     const root = document.getElementById("ceoFinancePage");
 
-    if (!root || !window.DashboardEngine) {
+    if (!root || !window.DashboardEngine || !window.DashboardKpiAdapter) {
         return;
     }
+
+    const Kpi = window.DashboardKpiAdapter;
 
     function toNumber(value) {
         const number = Number(value);
@@ -44,50 +46,20 @@
             .replaceAll("'", "&#039;");
     }
 
-    function setKpi(index, value, changePercent, options = {}) {
-        const card = root.querySelectorAll(".finance-kpi-grid--three:first-of-type .kpi-card-wrapper")[index];
-
-        if (!card) {
-            return;
-        }
-
-        const node = card.querySelector(".kpi-card__value");
-
-        if (node) {
-            node.textContent = value;
-        }
-
-        const trendNode = card.querySelector(".kpi-card__trend");
-        const arrowNode = card.querySelector(".kpi-card__arrow");
-        const trendValueNode = card.querySelector(".kpi-card__trend-value");
-
-        if (!trendNode || !arrowNode || !trendValueNode || typeof changePercent === "undefined") {
-            return;
-        }
-
-        if (changePercent === null) {
-            trendNode.className = "kpi-card__trend kpi-card__trend--neutral";
-            arrowNode.textContent = "=";
-            trendValueNode.textContent = "--";
-            return;
-        }
-
-        const numericChange = toNumber(changePercent);
-        const trend = options.trend || (numericChange > 0 ? "up" : numericChange < 0 ? "down" : "neutral");
-        const isIncrease = trend === "up";
-        const isDecrease = trend === "down";
-        const positiveWhenIncrease = options.positiveWhenIncrease !== false;
-        const isPositive = positiveWhenIncrease ? !isDecrease : !isIncrease;
-
-        trendNode.className = `kpi-card__trend ${
-            trend === "neutral"
-                ? "kpi-card__trend--neutral"
-                : isPositive
-                  ? "kpi-card__trend--positive"
-                  : "kpi-card__trend--negative"
-        }`;
-        arrowNode.textContent = isIncrease ? "\u25B2" : isDecrease ? "\u25BC" : "=";
-        trendValueNode.textContent = percent(numericChange);
+    function setKpi(key, value, changePercent, options = {}) {
+        Kpi.renderKpiCard(key, {
+            value,
+            comparison: {
+                change_percent: changePercent,
+                trend: options.trend,
+            },
+        }, {
+            root,
+            preserveTrend: typeof changePercent === "undefined",
+            positiveWhenIncrease: options.positiveWhenIncrease,
+            getValue: (payload) => payload.value,
+            getComparison: (payload) => payload.comparison,
+        });
     }
 
     function renderChart(id, config) {
@@ -102,20 +74,20 @@
     }
 
     function renderEstimatedTotalCost(data) {
-        setKpi(1, money(data?.current_value), data?.growth_percent, {
+        setKpi("finance-estimated-total-cost", money(data?.current_value), data?.growth_percent, {
             trend: data?.trend,
             positiveWhenIncrease: false,
         });
     }
 
     function renderEstimatedProfit(data) {
-        setKpi(2, money(data?.current_value), data?.growth_percent, {
+        setKpi("finance-estimated-profit", money(data?.current_value), data?.growth_percent, {
             trend: data?.trend,
         });
     }
 
     function renderEstimatedMargin(data) {
-        setKpi(3, signedPercent(data?.current_value), data?.growth_percent, {
+        setKpi("finance-estimated-margin", signedPercent(data?.current_value), data?.growth_percent, {
             trend: data?.trend,
         });
     }
@@ -566,15 +538,15 @@
     }
 
     function renderFinance(data) {
-        setKpi(0, money(data.kpi_cards?.total_revenue), data.kpi_cards?.revenue_growth_percent);
-        setKpi(1, money(data.kpi_cards?.estimated_total_cost ?? data.kpi_cards?.total_inventory_cost), data.kpi_cards?.cost_growth_percent, {
+        setKpi("finance-total-revenue", money(data.kpi_cards?.total_revenue), data.kpi_cards?.revenue_growth_percent);
+        setKpi("finance-estimated-total-cost", money(data.kpi_cards?.estimated_total_cost ?? data.kpi_cards?.total_inventory_cost), data.kpi_cards?.cost_growth_percent, {
             trend: data.kpi_cards?.cost_trend,
             positiveWhenIncrease: false,
         });
-        setKpi(2, money(data.kpi_cards?.estimated_profit ?? data.kpi_cards?.net_profit), data.kpi_cards?.profit_growth_percent, {
+        setKpi("finance-estimated-profit", money(data.kpi_cards?.estimated_profit ?? data.kpi_cards?.net_profit), data.kpi_cards?.profit_growth_percent, {
             trend: data.kpi_cards?.profit_trend,
         });
-        setKpi(3, signedPercent(data.kpi_cards?.estimated_margin_percent), data.kpi_cards?.margin_growth_percent, {
+        setKpi("finance-estimated-margin", signedPercent(data.kpi_cards?.estimated_margin_percent), data.kpi_cards?.margin_growth_percent, {
             trend: data.kpi_cards?.margin_trend,
         });
 
@@ -604,11 +576,11 @@
             {
                 url: root.dataset.financeUrl,
                 onBefore: function () {
-                    setKpi(1, "Dang tai...");
+                    setKpi("finance-estimated-total-cost", "Dang tai...");
                 },
                 onSuccess: renderFinance,
                 onError: function () {
-                    setKpi(1, "Khong tai duoc");
+                    setKpi("finance-estimated-total-cost", "Khong tai duoc");
                 },
             },
         ];
@@ -617,11 +589,11 @@
             financeApis.push({
                 url: root.dataset.estimatedCostUrl,
                 onBefore: function () {
-                    setKpi(1, "Dang tai...");
+                    setKpi("finance-estimated-total-cost", "Dang tai...");
                 },
                 onSuccess: renderEstimatedTotalCost,
                 onError: function () {
-                    setKpi(1, "Khong tai duoc");
+                    setKpi("finance-estimated-total-cost", "Khong tai duoc");
                 },
             });
         }
@@ -630,11 +602,11 @@
             financeApis.push({
                 url: root.dataset.estimatedProfitUrl,
                 onBefore: function () {
-                    setKpi(2, "Dang tai...");
+                    setKpi("finance-estimated-profit", "Dang tai...");
                 },
                 onSuccess: renderEstimatedProfit,
                 onError: function () {
-                    setKpi(2, "Khong tai duoc");
+                    setKpi("finance-estimated-profit", "Khong tai duoc");
                 },
             });
         }
@@ -643,11 +615,11 @@
             financeApis.push({
                 url: root.dataset.estimatedMarginUrl,
                 onBefore: function () {
-                    setKpi(3, "Dang tai...");
+                    setKpi("finance-estimated-margin", "Dang tai...");
                 },
                 onSuccess: renderEstimatedMargin,
                 onError: function () {
-                    setKpi(3, "Khong tai duoc");
+                    setKpi("finance-estimated-margin", "Khong tai duoc");
                 },
             });
         }

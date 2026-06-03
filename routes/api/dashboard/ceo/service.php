@@ -19,6 +19,8 @@ Route::prefix('services')
             Route::get('/summary', 'summary')->name('summary');
             Route::get('/highest-revenue', 'highestRevenue')->name('highest-revenue');
             Route::get('/lowest-revenue', 'lowestRevenue')->name('lowest-revenue');
+            Route::get('/no-activity', 'noActivity')->name('no-activity');
+            Route::get('/most-profitable', 'mostProfitable')->name('most-profitable');
             Route::get('/revenue-analysis', 'index')->name('revenue-analysis');
             Route::get('/', 'catalog')->name('index');
         });

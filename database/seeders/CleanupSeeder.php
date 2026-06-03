@@ -9,6 +9,12 @@ class CleanupSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! app()->environment(['local', 'testing'])) {
+            throw new \RuntimeException(
+                'CleanupSeeder chỉ được chạy trong môi trường local hoặc testing.'
+            );
+        }
+
         /*
          * Oracle does not support MySQL's SET FOREIGN_KEY_CHECKS. Delete rows
          * in reverse dependency order so foreign keys remain enabled.
