@@ -55,9 +55,6 @@ $speciesIcons = [
           <p>{{ $details ?: 'Chưa cập nhật thông tin' }}</p>
         </div>
 
-        <span class="pet-room-state {{ $isInRoom ? 'pet-room-state--active' : 'pet-room-state--idle' }}">
-          {{ $pet->room_status_label ?? ($isInRoom ? 'Đang ở trong phòng' : 'Không ở trong phòng') }}
-        </span>
       </div>
 
       <span class="pet-status">{{ filled($careNote) ? $careNote : 'Chưa có ghi chú chăm sóc' }}</span>
