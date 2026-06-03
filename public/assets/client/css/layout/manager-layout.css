@@ -4,17 +4,26 @@
 
 body {
     margin: 0;
-    background: #f4f7f6;
+    background: #f6f8fb;
     color: #0f172a;
-    font-family: Arial, sans-serif;
+    font-family: var(--font-sans, "Be Vietnam Pro", Arial, sans-serif);
 }
 
 .manager-layout {
     min-height: 100vh;
-    background: #f4f7f6;
+    background: #f6f8fb;
+    font-family: var(--font-sans, "Be Vietnam Pro", Arial, sans-serif);
 
     --sidebar-width: 280px;
     --content-gap: 20px;
+}
+
+.manager-layout button,
+.manager-layout input,
+.manager-layout select,
+.manager-layout textarea,
+.manager-layout .global-control-panel {
+    font-family: var(--font-sans, "Be Vietnam Pro", Arial, sans-serif);
 }
 
 .manager-layout--collapsed {
@@ -27,7 +36,7 @@ body {
     left: 0;
     width: var(--sidebar-width);
     height: 100vh;
-    background: #0f172a;
+    background: #0b1220;
     color: #ffffff;
     transition: width 0.3s ease;
     z-index: 1000;
@@ -66,6 +75,7 @@ body {
     justify-content: center;
     background: #1e293b;
     border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
     font-size: 20px;
 }
 
@@ -82,6 +92,7 @@ body {
     height: 34px;
     border: 1px solid rgba(255, 255, 255, 0.16);
     background: #1e293b;
+    border-radius: 10px;
     color: #ffffff;
     cursor: pointer;
     font-size: 18px;
@@ -105,15 +116,27 @@ body {
     align-items: center;
     gap: 12px;
     padding: 0 12px;
+    border-radius: 12px;
     color: #cbd5e1;
     text-decoration: none;
     font-size: 14px;
     font-weight: 700;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .manager-sidebar-link:hover {
     background: #1e293b;
+    color: #ffffff;
+}
+
+.manager-sidebar-link.active {
+    background: #2563eb;
+    box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22);
+    color: #ffffff;
+}
+
+.manager-sidebar-link.active:hover {
+    background: #1d4ed8;
     color: #ffffff;
 }
 
@@ -143,13 +166,110 @@ body {
 .manager-main-content {
     min-height: 100vh;
     margin-left: calc(var(--sidebar-width) + var(--content-gap));
-    padding: 20px;
+    padding: 24px;
     transition: margin-left 0.3s ease;
 }
 
 .manager-main-inner {
     width: 100%;
     max-width: 100%;
+}
+
+.manager-layout .global-control-panel {
+    align-items: flex-end;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    margin-bottom: 28px;
+    padding: 18px 20px;
+}
+
+.manager-layout .global-control-panel__title {
+    font-size: 26px;
+    letter-spacing: 0;
+}
+
+.manager-layout .global-control-panel__last-update {
+    color: #64748b;
+}
+
+.manager-layout .global-control-panel__period-group {
+    align-items: center;
+    gap: 12px;
+}
+
+.manager-layout .global-control-panel__period-label {
+    color: #475569;
+    font-weight: 700;
+    margin-right: 0;
+}
+
+.manager-layout .global-control-panel__date-picker-group {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.manager-layout .global-control-panel__date-input {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    color: #0f172a;
+    min-height: 38px;
+    outline: none;
+    padding: 7px 10px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.manager-layout .global-control-panel__date-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.manager-layout .global-control-panel__date-separator {
+    color: #94a3b8;
+    font-weight: 700;
+}
+
+.manager-layout .global-control-panel__apply-btn,
+.manager-layout .manager-layout__refresh-btn {
+    align-items: center;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 800;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 14px;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.manager-layout .global-control-panel__apply-btn {
+    background: #2563eb;
+    border: 1px solid #2563eb;
+    color: #ffffff;
+}
+
+.manager-layout .global-control-panel__apply-btn:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+}
+
+.manager-layout .manager-layout__refresh-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+}
+
+.manager-layout .manager-layout__refresh-btn:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
 }
 
 /* Khi sidebar thu gọn */
@@ -203,5 +323,23 @@ body {
     .manager-sidebar-link {
         justify-content: center;
         padding: 0;
+    }
+
+    .manager-layout .global-control-panel {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px;
+    }
+
+    .manager-layout .global-control-panel__period-group,
+    .manager-layout .global-control-panel__date-picker-group {
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .manager-layout .global-control-panel__date-input,
+    .manager-layout .global-control-panel__apply-btn,
+    .manager-layout .manager-layout__refresh-btn {
+        width: 100%;
     }
 }
