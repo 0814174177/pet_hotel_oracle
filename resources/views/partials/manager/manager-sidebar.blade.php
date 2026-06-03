@@ -34,6 +34,11 @@
             <span class="manager-sidebar-link-icon">%</span>
             <span class="manager-sidebar-link-text">Khuyến mãi</span>
         </a>
+
+        <a href="{{ route('manager.employees') }}" class="manager-sidebar-link {{ request()->routeIs('manager.employees*') ? 'active' : '' }}">
+            <span class="manager-sidebar-link-icon">NV</span>
+            <span class="manager-sidebar-link-text">Nhân viên</span>
+        </a>
     </nav>
 
     <div class="manager-sidebar-footer">
