@@ -11,7 +11,12 @@
     $promotionFormType = old('discount_type', 'PERCENT');
 @endphp
 
-<div id="ceoPromotionPage" class="ceo-promotion-page" data-promotion-has-errors="{{ $errors->any() ? '1' : '0' }}">
+<div
+    id="ceoPromotionPage"
+    class="ceo-promotion-page"
+    data-promotion-has-errors="{{ $errors->any() ? '1' : '0' }}"
+    data-end-url-template="{{ route('ceo.promotions.end', ['coupon' => '__COUPON_ID__']) }}"
+>
     <script type="application/json" id="ceoPromotionCouponsData">@json($coupons ?? [])</script>
 
     <header class="ceo-promotion-header">

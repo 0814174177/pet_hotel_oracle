@@ -409,18 +409,66 @@
         }
     }
 
-    function confirmToggle() {
-        if (pendingToggleId !== null) {
-            const coupon = coupons.find((item) => item.id === pendingToggleId);
+    function buildEndUrl(couponId) {
+        return String(root.dataset.endUrlTemplate || "").replace("__COUPON_ID__", encodeURIComponent(couponId));
+    }
 
-            if (coupon) {
-                coupon.active = false;
-                updateStats();
-                applyFilters();
-            }
+    function csrfToken() {
+        return root.querySelector('input[name="_token"]')?.value || "";
+    }
+
+    function setConfirmLoading(loading) {
+        const button = $(selectors.confirmToggle);
+
+        if (!button) {
+            return;
         }
 
-        hideConfirm();
+        if (!button.dataset.originalText) {
+            button.dataset.originalText = button.textContent;
+        }
+
+        button.disabled = loading;
+        button.textContent = loading ? "Đang xử lý..." : button.dataset.originalText;
+    }
+
+    async function confirmToggle() {
+        if (pendingToggleId === null) {
+            return;
+        }
+
+        const coupon = coupons.find((item) => item.id === pendingToggleId);
+
+        if (!coupon) {
+            hideConfirm();
+            return;
+        }
+
+        setConfirmLoading(true);
+
+        try {
+            const response = await fetch(buildEndUrl(coupon.id), {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRF-TOKEN": csrfToken(),
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Không thể kết thúc mã khuyến mãi.");
+            }
+
+            coupon.active = false;
+            updateStats();
+            applyFilters();
+            hideConfirm();
+        } catch (error) {
+            window.alert(error.message || "Không thể kết thúc mã khuyến mãi.");
+        } finally {
+            setConfirmLoading(false);
+        }
     }
 
     function bindEvents() {

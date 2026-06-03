@@ -17,6 +17,7 @@ Route::get('/vendors', [VendorController::class, 'index'])->name('vendors');
 Route::get('/finance', [FinanceController::class, 'index'])->name('finance');
 Route::get('/promotions', [PromotionController::class, 'index'])->name('promotions');
 Route::post('/promotions', [PromotionController::class, 'store'])->name('promotions.store');
+Route::post('/promotions/{coupon}/end', [PromotionController::class, 'end'])->name('promotions.end');
 Route::get('/employees', [EmployeeController::class, 'index'])->name('employees');
 Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
 Route::patch('/employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
