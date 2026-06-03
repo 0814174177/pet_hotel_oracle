@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\WebController;
 use App\Models\Coupon;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -132,6 +133,27 @@ class PromotionController extends WebController
         return redirect()
             ->route('ceo.promotions')
             ->with('status', 'Đã thêm mã khuyến mãi mới.');
+    }
+
+    public function end(Request $request, Coupon $coupon): RedirectResponse|JsonResponse
+    {
+        $coupon->update([
+            'is_active' => 0,
+        ]);
+
+        $message = 'Đã kết thúc mã khuyến mãi.';
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'coupon_id' => (int) $coupon->coupon_id,
+            ]);
+        }
+
+        return redirect()
+            ->route('ceo.promotions')
+            ->with('status', $message);
     }
 
     private function numberOrNull(mixed $value): ?float
