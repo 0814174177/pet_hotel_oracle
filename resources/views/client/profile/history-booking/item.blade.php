@@ -51,7 +51,7 @@
             @if ($booking['show_payment'])
                 <a href="{{ $booking['payment_url'] }}" class="bh-btn bh-btn-pay">Chưa thanh toán</a>
             @else
-                <span class="bh-btn bh-badge-paid">Đã thanh toán</span>
+                <span class="bh-btn bh-badge-status">{{ $booking['status_label'] ?? 'Đang xử lý' }}</span>
             @endif
         @endif
 
