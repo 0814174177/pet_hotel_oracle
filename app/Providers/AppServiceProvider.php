@@ -4,26 +4,26 @@ namespace App\Providers;
 
 use App\Models\Pet;
 use App\Policies\PetPolicy;
-use App\Repositories\Contracts\Branch\BranchInventoryMaterialRepositoryInterface;
-use App\Repositories\Contracts\Branch\BranchRevenueReportRepositoryInterface;
-use App\Repositories\Contracts\Branch\BranchServiceManagementRepositoryInterface;
 use App\Repositories\Contracts\Ceo\BranchNetworkRepositoryInterface;
 use App\Repositories\Contracts\Ceo\CeoDashboardRepositoryInterface;
 use App\Repositories\Contracts\Ceo\CeoFinanceRepositoryInterface;
 use App\Repositories\Contracts\Ceo\CeoVendorRepositoryInterface;
 use App\Repositories\Contracts\Ceo\ServiceRevenueRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
+use App\Repositories\Contracts\Manager\BranchScopedInventoryMaterialRepositoryInterface;
+use App\Repositories\Contracts\Manager\BranchScopedRevenueReportRepositoryInterface;
+use App\Repositories\Contracts\Manager\BranchScopedServiceManagementRepositoryInterface;
 use App\Repositories\Contracts\Manager\ManagerDashboardRepositoryInterface;
 use App\Repositories\Contracts\PaymentRepositoryInterface;
-use App\Repositories\Eloquent\Branch\BranchInventoryMaterialRepository;
-use App\Repositories\Eloquent\Branch\BranchRevenueReportRepository;
-use App\Repositories\Eloquent\Branch\BranchServiceManagementRepository;
 use App\Repositories\Eloquent\Ceo\BranchNetworkRepository;
 use App\Repositories\Eloquent\Ceo\CeoDashboardRepository;
 use App\Repositories\Eloquent\Ceo\CeoFinanceRepository;
 use App\Repositories\Eloquent\Ceo\CeoVendorRepository;
 use App\Repositories\Eloquent\Ceo\ServiceRevenueRepository;
 use App\Repositories\Eloquent\BookingRepository;
+use App\Repositories\Eloquent\Manager\BranchScopedInventoryMaterialRepository;
+use App\Repositories\Eloquent\Manager\BranchScopedRevenueReportRepository;
+use App\Repositories\Eloquent\Manager\BranchScopedServiceManagementRepository;
 use App\Repositories\Eloquent\Manager\ManagerDashboardRepository;
 use App\Repositories\Eloquent\PaymentRepository;
 use Illuminate\Support\Facades\Gate;
@@ -75,18 +75,18 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            BranchServiceManagementRepositoryInterface::class,
-            BranchServiceManagementRepository::class
+            BranchScopedServiceManagementRepositoryInterface::class,
+            BranchScopedServiceManagementRepository::class
         );
 
         $this->app->bind(
-            BranchRevenueReportRepositoryInterface::class,
-            BranchRevenueReportRepository::class
+            BranchScopedRevenueReportRepositoryInterface::class,
+            BranchScopedRevenueReportRepository::class
         );
 
         $this->app->bind(
-            BranchInventoryMaterialRepositoryInterface::class,
-            BranchInventoryMaterialRepository::class
+            BranchScopedInventoryMaterialRepositoryInterface::class,
+            BranchScopedInventoryMaterialRepository::class
         );
 
     }

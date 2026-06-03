@@ -292,8 +292,8 @@
                         ${isActive ? "" : `<span class="ceo-lock-badge">${escapeHtml(service.status_text || "Ngừng cung cấp")}</span>`}
                     </div>
                     <div class="text-center">
-                        <label class="branch-service-switch">
-                            <input type="checkbox" ${isVisible ? "checked" : ""} ${isActive ? "" : "disabled"}>
+                        <label class="branch-service-switch" title="Chuc nang cap nhat chua ho tro">
+                            <input type="checkbox" ${isVisible ? "checked" : ""} disabled>
                             <span></span>
                         </label>
                     </div>
@@ -301,7 +301,8 @@
                         <button
                             type="button"
                             class="${isLocked ? "branch-service-pause-btn branch-service-pause-btn--active" : "branch-service-pause-btn"}"
-                            ${isActive ? "" : "disabled"}
+                            disabled
+                            title="Chuc nang cap nhat chua ho tro"
                         >
                             ${isLocked ? "Đang khóa" : "Khóa tạm"}
                         </button>
@@ -310,7 +311,6 @@
                         <span class="branch-service-base-price">Gốc: ${escapeHtml(Kpi.formatCurrency(service.original_price))}</span>
                         <div class="branch-service-local-price">
                             ${escapeHtml(Kpi.formatCurrency(service.override_price_assumption))}
-                            <span class="branch-service-edit-icon">*</span>
                         </div>
                     </div>
                 </div>

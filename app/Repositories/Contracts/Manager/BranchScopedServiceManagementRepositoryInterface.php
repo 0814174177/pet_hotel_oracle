@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repositories\Contracts\Branch;
+namespace App\Repositories\Contracts\Manager;
 
-interface BranchServiceManagementRepositoryInterface
+interface BranchScopedServiceManagementRepositoryInterface
 {
     /**
      * Get the full branch service management overview structure.
@@ -86,33 +86,7 @@ interface BranchServiceManagementRepositoryInterface
     public function getServiceList(int|string $branchId, array $filters = []): array;
 
     /**
-     * Update website visibility for a service at the selected branch.
-     */
-    public function updateWebsiteVisibility(int|string $branchId, int|string $serviceId, bool $isVisible): array;
-
-    /**
-     * Update emergency lock status for a service at the selected branch.
-     */
-    public function updateEmergencyLock(int|string $branchId, int|string $serviceId, array $lockData): array;
-
-    /**
-     * Update branch-specific price override for a service.
-     */
-    public function updatePriceOverride(int|string $branchId, int|string $serviceId, array $priceData): array;
-
-    /**
      * Resolve the reporting period into a date range.
      */
     public function resolvePeriodRange(?string $periodType, ?string $date = null): array;
-
-    /**
-     * Log an action made to a branch service configuration.
-     */
-    public function logServiceAction(
-        int|string $branchId,
-        int|string $serviceId,
-        string $action,
-        int|string|null $userId = null,
-        array $metadata = []
-    ): void;
 }

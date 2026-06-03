@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Manager\InventoryController;
-use App\Http\Controllers\Api\Branch\BranchInventoryMaterialController;
+use App\Http\Controllers\Api\Manager\InventoryManagementController;
 
 // Quản lý kho tổng (Dành riêng cho Manager)
 Route::middleware('role:manager')
@@ -13,14 +13,13 @@ Route::middleware('role:manager')
 Route::middleware('role:manager,ceo')
     ->prefix('branches/{branchId}/inventory/materials')
     ->name('branches.inventory.materials.')
-    ->controller(BranchInventoryMaterialController::class)
+    ->controller(InventoryManagementController::class)
     ->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/kpi', 'kpi')->name('kpi');
         Route::get('/list', 'materials')->name('list');
+        Route::get('/out-of-stock', 'outOfStock')->name('out-of-stock');
+        Route::get('/low-stock', 'lowStock')->name('low-stock');
+        Route::get('/inventory-value-by-category', 'inventoryValueByCategory')->name('inventory-value-by-category');
         Route::get('/{materialId}', 'show')->name('show');
-        Route::post('/', 'store')->name('store');
-        Route::put('/{materialId}', 'update')->name('update');
-        Route::patch('/{materialId}/stop-import', 'stopImport')->name('stop-import');
-        Route::patch('/{materialId}/resume-import', 'resumeImport')->name('resume-import');
     });

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Repositories\Eloquent\Branch;
+namespace App\Repositories\Eloquent\Manager;
 
-use App\Repositories\Contracts\Branch\BranchServiceManagementRepositoryInterface;
+use App\Repositories\Contracts\Manager\BranchScopedServiceManagementRepositoryInterface;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 
-class BranchServiceManagementRepository implements BranchServiceManagementRepositoryInterface
+class BranchScopedServiceManagementRepository implements BranchScopedServiceManagementRepositoryInterface
 {
     /**
      * Temporary monthly service revenue target until a branch target table is added.
@@ -587,52 +587,12 @@ class BranchServiceManagementRepository implements BranchServiceManagementReposi
     }
 
     /**
-     * Update website visibility for a service at the selected branch.
-     */
-    public function updateWebsiteVisibility(int|string $branchId, int|string $serviceId, bool $isVisible): array
-    {
-        // TODO: Update website visibility for this branch service and log the action when persistence is implemented.
-        return [];
-    }
-
-    /**
-     * Update emergency lock status for a service at the selected branch.
-     */
-    public function updateEmergencyLock(int|string $branchId, int|string $serviceId, array $lockData): array
-    {
-        // TODO: Update emergency lock status, persist the optional reason, and log the action when implemented.
-        return [];
-    }
-
-    /**
-     * Update branch-specific price override for a service.
-     */
-    public function updatePriceOverride(int|string $branchId, int|string $serviceId, array $priceData): array
-    {
-        // TODO: Update branch price override; treat a null override as reverting to the base service price.
-        return [];
-    }
-
-    /**
      * Resolve the reporting period into a date range.
      */
     public function resolvePeriodRange(?string $periodType, ?string $date = null): array
     {
         // TODO: Resolve day, month, or year period filters into a start date, end date, and grouping rule.
         return [];
-    }
-
-    /**
-     * Log an action made to a branch service configuration.
-     */
-    public function logServiceAction(
-        int|string $branchId,
-        int|string $serviceId,
-        string $action,
-        int|string|null $userId = null,
-        array $metadata = []
-    ): void {
-        // TODO: Persist branch service management audit logs once the target storage is defined.
     }
 
     /**

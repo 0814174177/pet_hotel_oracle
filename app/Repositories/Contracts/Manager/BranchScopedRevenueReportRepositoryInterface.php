@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repositories\Contracts\Branch;
+namespace App\Repositories\Contracts\Manager;
 
-interface BranchRevenueReportRepositoryInterface
+interface BranchScopedRevenueReportRepositoryInterface
 {
     /**
      * Get the full branch revenue report dashboard structure.
@@ -10,9 +10,16 @@ interface BranchRevenueReportRepositoryInterface
     public function getDashboard(int|string $branchId, array $filters = []): array;
 
     /**
-     * Get revenue target progress for the selected branch and period.
+     * Mo ta chuc nang:
+     * Lay tien do muc tieu doanh thu thang cua chi nhanh Manager.
      */
     public function getTargetProgress(int|string $branchId, array $filters = []): array;
+
+    /**
+     * Mo ta chuc nang:
+     * Lay bieu do so sanh doanh thu theo ngay trong ky.
+     */
+    public function getRevenueComparisonChart(int|string $branchId, array $filters = []): array;
 
     /**
      * Get current-period and previous-period revenue comparison data.
@@ -20,9 +27,21 @@ interface BranchRevenueReportRepositoryInterface
     public function getRevenueComparison(int|string $branchId, array $filters = []): array;
 
     /**
+     * Mo ta chuc nang:
+     * Lay co cau doanh thu theo nhom dich vu cua chi nhanh Manager.
+     */
+    public function getServiceMix(int|string $branchId, array $filters = []): array;
+
+    /**
      * Get service revenue mix and average order value data.
      */
     public function getServiceMixAndAov(int|string $branchId, array $filters = []): array;
+
+    /**
+     * Mo ta chuc nang:
+     * Lay AOV, doanh thu va so don cua chi nhanh Manager.
+     */
+    public function getAovSummary(int|string $branchId, array $filters = []): array;
 
     /**
      * Get service revenue mix grouped by service category.
