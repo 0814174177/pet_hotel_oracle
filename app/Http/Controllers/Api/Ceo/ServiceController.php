@@ -14,62 +14,153 @@ class ServiceController extends ApiController
     ) {
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Dong goi du lieu tra ve tu repository theo JSON response chuan cua dashboard.
+     *
+     * Input:
+     * - mixed $data: du lieu da duoc repository xu ly.
+     *
+     * Output:
+     * - JsonResponse co dang { success: true, data: ... }.
+     */
+    private function respondData(mixed $data): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Mo ta chuc nang:
+     * Lay KPI tong quan dich vu theo khoang thoi gian filter.
+     *
+     * Input:
+     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
+     *
+     * Output:
+     * - JSON response chuan thong qua respondData().
+     */
     public function summary(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->serviceRevenues->getServiceSummary($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->serviceRevenues->getServiceSummary($this->filters($request))
+        );
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay danh sach catalog dich vu de hien thi tren trang quan tri dich vu CEO.
+     *
+     * Input:
+     * - DateRangeFilterRequest va cac filter bo sung neu co.
+     *
+     * Output:
+     * - JSON response chuan thong qua respondData().
+     */
     public function catalog(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->serviceRevenues->getServiceCatalog($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->serviceRevenues->getServiceCatalog($this->filters($request))
+        );
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay bang phan tich doanh thu tung dich vu theo filter hien tai.
+     *
+     * Input:
+     * - DateRangeFilterRequest va cac filter sap xep/loc doanh thu neu co.
+     *
+     * Output:
+     * - JSON response chuan thong qua respondData().
+     */
     public function index(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->serviceRevenues->getServiceRevenueList($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->serviceRevenues->getServiceRevenueList($this->filters($request))
+        );
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay dich vu ganh doanh thu toan chuoi trong khoang thoi gian filter.
+     *
+     * Input:
+     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
+     *
+     * Output:
+     * - JSON response chuan thong qua respondData().
+     */
     public function highestRevenue(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->serviceRevenues->getHighestRevenueService($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->serviceRevenues->getHighestRevenueService($this->filters($request))
+        );
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay dich vu co doanh thu thap nhat trong khoang thoi gian filter.
+     *
+     * Input:
+     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
+     *
+     * Output:
+     * - JSON response chuan thong qua respondData().
+     */
     public function lowestRevenue(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->serviceRevenues->getLowestRevenueService($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->serviceRevenues->getLowestRevenueService($this->filters($request))
+        );
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay danh sach dich vu khong phat sinh doanh thu da thanh toan trong ky loc.
+     *
+     * Input:
+     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
+     *
+     * Output:
+     * - JSON response chuan thong qua respondData().
+     */
     public function noActivity(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->serviceRevenues->getNoActivityServices($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->serviceRevenues->getNoActivityServices($this->filters($request))
+        );
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay dich vu sieu loi nhuan toan chuoi theo khoang thoi gian filter.
+     *
+     * Input:
+     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
+     *
+     * Output:
+     * - JSON response chuan thong qua respondData().
+     */
     public function mostProfitable(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->serviceRevenues->getMostProfitableService($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->serviceRevenues->getMostProfitableService($this->filters($request))
+        );
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Gom filter ngay tu DateRangeFilterRequest voi cac filter rieng cua trang dich vu.
+     *
+     * Input:
+     * - DateRangeFilterRequest gom start_date, end_date va query filter bo sung.
+     *
+     * Output:
+     * - Mang filter truyen xuong ServiceRevenueRepository.
+     */
     private function filters(DateRangeFilterRequest $request): array
     {
         return array_merge($request->getFiltersArray(), $request->validate([

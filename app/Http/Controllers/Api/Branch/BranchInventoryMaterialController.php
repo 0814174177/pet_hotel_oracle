@@ -18,6 +18,20 @@ class BranchInventoryMaterialController extends Controller
     ) {
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay tong hop dashboard vat tu ton kho cua chi nhanh hien tai.
+     *
+     * Input:
+     * - DateRangeFilterRequest $request: Bo loc ngay va bo loc danh sach.
+     * - int|string $branchId: Ma chi nhanh tu route.
+     *
+     * Output:
+     * - JSON { success: true, data: { kpi, materials } }.
+     *
+     * Ghi chu:
+     * - Controller chi truyen filter xuong Repository, khong xu ly SQL.
+     */
     public function index(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view inventory materials for this branch.
@@ -27,6 +41,17 @@ class BranchInventoryMaterialController extends Controller
         ]);
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay cac KPI ton kho cua chi nhanh hien tai.
+     *
+     * Input:
+     * - DateRangeFilterRequest $request: Bo loc ngay tu DashboardEngine.
+     * - int|string $branchId: Ma chi nhanh tu route.
+     *
+     * Output:
+     * - JSON { success: true, data: [...] }.
+     */
     public function kpi(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view inventory material KPI cards for this branch.
@@ -36,6 +61,17 @@ class BranchInventoryMaterialController extends Controller
         ]);
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Lay danh sach vat tu ton kho cua chi nhanh hien tai.
+     *
+     * Input:
+     * - DateRangeFilterRequest $request: Bo loc ngay va bo loc danh sach.
+     * - int|string $branchId: Ma chi nhanh tu route.
+     *
+     * Output:
+     * - JSON { success: true, data: [...] }.
+     */
     public function materials(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         // TODO: Authorize that the current user can view inventory material list data for this branch.
@@ -110,6 +146,16 @@ class BranchInventoryMaterialController extends Controller
         ]);
     }
 
+    /**
+     * Mo ta chuc nang:
+     * Gop bo loc ngay tu DateRangeFilterRequest voi bo loc danh sach vat tu.
+     *
+     * Input:
+     * - DateRangeFilterRequest $request: Request API inventory.
+     *
+     * Output:
+     * - Mang filter truyen truc tiep xuong Repository.
+     */
     private function filters(DateRangeFilterRequest $request): array
     {
         return array_merge($request->getFiltersArray(), $request->validate([

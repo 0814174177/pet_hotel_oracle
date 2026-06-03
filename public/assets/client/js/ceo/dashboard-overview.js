@@ -1,11 +1,12 @@
 (function ($) {
     const root = document.getElementById("ceoDashboard");
 
-    if (!root || !window.DashboardEngine) {
+    if (!root || !window.DashboardEngine || !window.DashboardKpiAdapter) {
         return;
     }
 
     const chartInstances = new Map();
+    const Kpi = window.DashboardKpiAdapter;
 
     function toNumber(value) {
         const number = Number(value);
@@ -27,6 +28,10 @@
     function formatDate(value) {
         const [year, month, day] = String(value || "").split("-");
         return day && month && year ? `${day}/${month}` : String(value || "");
+    }
+
+    function hasValue(value) {
+        return value !== null && typeof value !== "undefined" && value !== "";
     }
 
     function escapeHtml(value) {
@@ -63,52 +68,6 @@
             minute: "2-digit",
             second: "2-digit",
         }).format(new Date())} - Cập nhật thành công`;
-    }
-
-    function renderKpi(id, value, changePercent, options = {}) {
-        const card = document.getElementById(id);
-
-        if (!card) {
-            return;
-        }
-
-        const valueNode = card.querySelector("[data-kpi-value]");
-        const trendNode = card.querySelector("[data-kpi-trend]");
-        const arrowNode = card.querySelector("[data-kpi-arrow]");
-        const trendValueNode = card.querySelector("[data-kpi-trend-value]");
-
-        if (valueNode) {
-            valueNode.textContent = options.formatValue
-                ? options.formatValue(value)
-                : formatNumber(value);
-        }
-
-        if (!trendNode || !arrowNode || !trendValueNode) {
-            return;
-        }
-
-        if (changePercent === null || typeof changePercent === "undefined") {
-            trendNode.className = "kpi-card__trend kpi-card__trend--neutral";
-            arrowNode.textContent = "=";
-            trendValueNode.textContent = "Chưa có dữ liệu kỳ trước";
-            return;
-        }
-
-        const numericChange = toNumber(changePercent);
-        const isIncrease = numericChange > 0;
-        const isDecrease = numericChange < 0;
-        const isPositive =
-            options.positiveWhenIncrease === false ? !isIncrease : !isDecrease;
-
-        trendNode.className = `kpi-card__trend ${
-            numericChange === 0
-                ? "kpi-card__trend--neutral"
-                : isPositive
-                  ? "kpi-card__trend--positive"
-                  : "kpi-card__trend--negative"
-        }`;
-        arrowNode.textContent = isIncrease ? "▲" : isDecrease ? "▼" : "=";
-        trendValueNode.textContent = formatPercent(Math.abs(numericChange));
     }
 
     function baseChartOptions(formatValue) {
@@ -164,67 +123,66 @@
         chartInstances.set(id, new window.Chart(canvas, config));
     }
 
-    function renderCurrentOccupancy(data) {
-        const detailNode = document.querySelector(
-            "#occupancyRateKpi [data-kpi-detail]",
-        );
-
-        if (detailNode) {
-            detailNode.textContent = `${formatNumber(data.occupied_room)} phòng đang sử dụng / ${formatNumber(data.usable_room)} phòng khả dụng`;
-        }
-    }
-
     function renderOccupancyRate(data) {
-        renderKpi(
-            "occupancyRateKpi",
-            data.current?.occupancy_rate,
-            data.comparison?.change_percent,
-            {
-                formatValue: formatPercent,
+        Kpi.renderKpiCard("hotel-occupancy-rate", data, {
+            root,
+            getValue: (payload) =>
+                formatPercent(payload.current?.occupancy_rate ?? 0),
+            getComparison: (payload) => payload.comparison,
+            getDetail: (payload) => {
+                const current = payload.current || {};
+
+                return `${formatNumber(current.occupied_room ?? 0)} phòng đang sử dụng / ${formatNumber(current.total_room ?? 0)} phòng khả dụng`;
             },
-        );
+        });
     }
 
     function renderRevpar(data) {
-        renderKpi(
-            "revparKpi",
-            data.current?.revpar,
-            data.comparison?.change_percent,
-            {
-                formatValue: formatCurrency,
+        Kpi.renderKpiCard("revpar", data, {
+            root,
+            getValue: (payload) => {
+                const value = payload.current?.revpar;
+
+                return hasValue(value) ? formatCurrency(value) : null;
             },
-        );
+            getComparison: (payload) => payload.comparison,
+            getDetail: (payload) => {
+                const current = payload.current || {};
+                const revenueText = formatCurrency(current.total_room_revenue);
+                const roomText = hasValue(current.total_room)
+                    ? ` / ${formatNumber(current.total_room)} phòng`
+                    : "";
 
-        const detailNode = document.querySelector(
-            "#revparKpi [data-kpi-detail]",
-        );
-
-        if (detailNode) {
-            detailNode.textContent = `Doanh thu phòng: ${formatCurrency(data.current?.total_room_revenue)}`;
-        }
+                return `Doanh thu phòng: ${revenueText}${roomText}`;
+            },
+        });
     }
 
     function renderTotalRevenue(data) {
-        renderKpi(
-            "totalRevenueKpi",
-            data.current_total_revenue,
-            data.revenue_growth_percent,
-            {
-                formatValue: formatCurrency,
+        Kpi.renderKpiCard("total-revenue", data, {
+            root,
+            getValue: (payload) => {
+                const value = payload.current_total_revenue;
+
+                return hasValue(value) ? formatCurrency(value) : null;
             },
-        );
+            getComparison: (payload) => ({
+                change_percent: payload.revenue_growth_percent,
+            }),
+        });
     }
 
     function renderEstimatedCogs(data) {
-        renderKpi(
-            "estimatedCogsKpi",
-            data.current?.estimated_cogs,
-            data.comparison?.growth_percent,
-            {
-                formatValue: formatCurrency,
-                positiveWhenIncrease: false,
+        Kpi.renderKpiCard("estimated-cogs", data, {
+            root,
+            positiveWhenIncrease: false,
+            getValue: (payload) => {
+                const value = payload.current?.estimated_cogs;
+
+                return hasValue(value) ? formatCurrency(value) : null;
             },
-        );
+            getComparison: (payload) => payload.comparison,
+        });
     }
 
     function renderCustomerTrend(data) {
@@ -424,10 +382,6 @@
         setStatus("Đang tải dữ liệu báo cáo...");
 
         DashboardEngine.run([
-            {
-                url: root.dataset.currentOccupancyUrl,
-                onSuccess: renderCurrentOccupancy,
-            },
             {
                 url: root.dataset.occupancyRateUrl,
                 onSuccess: renderOccupancyRate,

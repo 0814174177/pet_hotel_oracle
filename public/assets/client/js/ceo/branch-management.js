@@ -1,41 +1,38 @@
 (function ($) {
     const root = document.getElementById("ceoBranchPage");
 
-    if (!root || !window.DashboardEngine) {
+    if (!root || !window.DashboardEngine || !window.DashboardKpiAdapter) {
         return;
     }
+
+    const Kpi = window.DashboardKpiAdapter;
 
     function number(value) {
         return new Intl.NumberFormat("vi-VN").format(Number(value) || 0);
     }
 
-    function setCard(index, value, trend) {
-        const card = root.querySelectorAll(".branch-stats .kpi-card-wrapper")[index];
-
-        if (!card) {
-            return;
-        }
-
-        const valueNode = card.querySelector(".kpi-card__value");
-        const trendNode = card.querySelector(".kpi-card__trend-value");
-
-        if (valueNode) valueNode.textContent = value;
-        if (trendNode && trend) trendNode.textContent = trend;
+    function setCard(key, value, trend) {
+        Kpi.renderKpiCard(key, { value, trend }, {
+            root,
+            periodLabel: "",
+            getValue: (payload) => payload.value,
+            getTrend: (payload) => payload.trend,
+        });
     }
 
     function renderActiveCount(data) {
-        setCard(0, `${data.value || 0} co so`, "He thong van hanh");
+        setCard("active-branch-count", `${data.value || 0} co so`, "He thong van hanh");
     }
 
     function renderHighest(data) {
         if (data) {
-            setCard(1, `${number(data.revenue)}d`, data.branch_name || "");
+            setCard("highest-revenue-branch", `${number(data.revenue)}d`, data.branch_name || "");
         }
     }
 
     function renderLowest(data) {
         if (data) {
-            setCard(2, `${data.occupancy_rate || 0}%`, data.branch_name || "");
+            setCard("lowest-occupancy-branch", `${data.occupancy_rate || 0}%`, data.branch_name || "");
         }
     }
 

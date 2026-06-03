@@ -62,6 +62,49 @@
     color: #d97706;
 }
 
+.manager-alert-title--green {
+    color: #047857;
+}
+
+.health-warning-summary,
+.inventory-warning-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 16px;
+}
+
+.health-warning-summary span,
+.inventory-warning-summary span {
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.health-warning-summary[data-severity="red"] span,
+.inventory-warning-summary[data-severity="red"] span {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.health-warning-summary[data-severity="yellow"] span,
+.inventory-warning-summary[data-severity="yellow"] span {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #b45309;
+}
+
+.health-warning-summary[data-severity="green"] span,
+.inventory-warning-summary[data-severity="green"] span {
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+    color: #047857;
+}
+
 .manager-grid-table {
     width: 100%;
     overflow-x: auto;
@@ -118,6 +161,11 @@
     grid-template-columns: 110px 220px 100px 150px 1fr 140px;
 }
 
+.manager-late-cancel-header,
+.manager-late-cancel-row {
+    grid-template-columns: 120px 170px 170px 170px 150px 150px 180px;
+}
+
 .manager-risk-header,
 .manager-risk-row {
     grid-template-columns: 120px 150px 150px 140px 150px 140px 150px 120px;
@@ -125,7 +173,46 @@
 
 .manager-debt-header,
 .manager-debt-row {
-    grid-template-columns: 120px 180px 160px 150px 150px;
+    grid-template-columns: 100px 170px 130px 110px 140px 140px 140px 170px 130px;
+}
+
+.debt-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 16px;
+}
+
+.debt-summary span {
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.manager-top-service-header,
+.manager-top-service-row {
+    grid-template-columns: 110px 1fr 170px 170px;
+}
+
+.manager-top-service-table {
+    margin-top: 18px;
+}
+
+.manager-revenue-structure-table {
+    margin-top: 18px;
+}
+
+.manager-revenue-structure-table .manager-grid-header,
+.manager-revenue-structure-table .manager-grid-row {
+    min-width: 0;
+}
+
+.manager-revenue-structure-header,
+.manager-revenue-structure-row {
+    grid-template-columns: 1fr 130px 100px;
 }
 
 .cell-bold {
@@ -197,6 +284,34 @@
     margin-bottom: 22px;
 }
 
+.financial-risk-warning {
+    margin: 0 0 22px;
+    padding: 12px 14px;
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.financial-risk-warning[data-severity="red"] {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.financial-risk-warning[data-severity="yellow"] {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #b45309;
+}
+
+.financial-risk-warning[data-severity="green"] {
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+    color: #047857;
+}
+
 .risk-summary-card {
     padding: 18px;
     border: 1px solid #fecaca;
@@ -244,6 +359,68 @@
     background: #fffbeb;
     color: #b45309;
     border-color: #fde68a;
+}
+
+.late-cancel-badge {
+    display: inline-flex;
+    justify-content: center;
+    min-width: 90px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 900;
+    border: 1px solid transparent;
+}
+
+.late-cancel-badge--red {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.late-cancel-badge--yellow {
+    background: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+.late-cancel-badge--orange {
+    background: #fff7ed;
+    color: #c2410c;
+    border-color: #fed7aa;
+}
+
+.late-cancel-badge--green {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: #bbf7d0;
+}
+
+.debt-badge {
+    display: inline-flex;
+    justify-content: center;
+    min-width: 90px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 900;
+    border: 1px solid transparent;
+}
+
+.debt-badge--red {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.debt-badge--yellow {
+    background: #fffbeb;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+.debt-badge--green {
+    background: #ecfdf5;
+    color: #047857;
+    border-color: #bbf7d0;
 }
 
 .empty-message {

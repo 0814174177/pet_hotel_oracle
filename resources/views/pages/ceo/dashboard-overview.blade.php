@@ -46,7 +46,7 @@
         </div>
 
         <div class="dashboard-metrics-row dashboard-metrics-row--three">
-            <div class="kpi-card-wrapper" id="occupancyRateKpi">
+            <div class="kpi-card-wrapper" id="occupancyRateKpi" data-kpi="hotel-occupancy-rate">
                 <div class="kpi-card">
                     <div class="kpi-card__content">
                         <p class="kpi-card__title">Tỷ lệ lấp đầy phòng Hotel</p>
@@ -61,7 +61,7 @@
                 </div>
             </div>
 
-            <div class="kpi-card-wrapper" id="revparKpi">
+            <div class="kpi-card-wrapper" id="revparKpi" data-kpi="revpar">
                 <div class="kpi-card">
                     <div class="kpi-card__content">
                         <p class="kpi-card__title">Doanh thu trên mỗi phòng (RevPAR)</p>
@@ -105,7 +105,7 @@
         </div>
 
         <div class="dashboard-metrics-row dashboard-metrics-row--two">
-            <div class="kpi-card-wrapper" id="totalRevenueKpi">
+            <div class="kpi-card-wrapper" id="totalRevenueKpi" data-kpi="total-revenue">
                 <div class="kpi-card">
                     <div class="kpi-card__content">
                         <p class="kpi-card__title">Tổng doanh thu toàn chuỗi</p>
@@ -119,7 +119,7 @@
                 </div>
             </div>
 
-            <div class="kpi-card-wrapper" id="estimatedCogsKpi">
+            <div class="kpi-card-wrapper" id="estimatedCogsKpi" data-kpi="estimated-cogs">
                 <div class="kpi-card">
                     <div class="kpi-card__content">
                         <p class="kpi-card__title">Chi phí vật tư tiêu hao ước tính (COGS)</p>

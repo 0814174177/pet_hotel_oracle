@@ -1,0 +1,61 @@
+# Dữ Liệu Demo Flow Đặt Phòng Pet Hotel
+
+File này đã được cập nhật để không còn dùng các tài khoản/tên phòng cũ như `manager.central`, `customer.small`, `Phòng tiêu chuẩn`.
+
+## Cách chạy
+
+```bash
+php artisan migrate:fresh
+php artisan db:seed --class=DemoBookingFlowSeeder
+```
+
+Hoặc chạy mặc định:
+
+```bash
+php artisan migrate:fresh
+php artisan db:seed
+```
+
+## Tài khoản demo chính
+
+Mật khẩu chung: `password123`
+
+| Email | Role | Mục đích |
+|---|---|---|
+| `admin.demo@pethotel.test` | ADMIN | Dashboard/quản trị |
+| `manager.govap@pethotel.test` | MANAGER | Quản lý Gò Vấp |
+| `manager.q1@pethotel.test` | MANAGER | Quản lý Quận 1 |
+| `manager.q7@pethotel.test` | MANAGER | Quản lý Quận 7 |
+| `manager.thuduc@pethotel.test` | MANAGER | Quản lý Thủ Đức |
+| `groomer.govap@pethotel.test` | GROOMER | Dịch vụ Gò Vấp |
+| `receptionist.govap@pethotel.test` | RECEPTIONIST | Lễ tân Gò Vấp |
+| `customer1001@pethotel.test` | CUSTOMER | Khách demo |
+| `customer1002@pethotel.test` | CUSTOMER | Khách demo |
+
+## Loại phòng hiện tại
+
+| Loại phòng | Max slot | Cân nặng | Giá/ngày |
+|---|---:|---|---:|
+| Phòng nhỏ | 2 | 0-10kg | 150.000đ |
+| Phòng vừa | 2 | 10-25kg | 220.000đ |
+| Phòng lớn | 1 | 25-50kg | 350.000đ |
+
+Mỗi chi nhánh có 30 phòng: 15 phòng chó và 15 phòng mèo, chia theo nhỏ/vừa/lớn. Một số phòng số 8 ở nhóm nhỏ đang `MAINTENANCE` để demo trạng thái bảo trì.
+
+## Flow dữ liệu nên demo
+
+1. Đăng nhập bằng admin hoặc manager.
+2. Xem dashboard tổng quan booking/order/payment.
+3. Chạy query phân bố trạng thái booking trong `# DEMO SQL Queries.txt`.
+4. Lọc nhóm booking `PENDING`, `CONFIRMED`, `CHECKED_IN` để demo phòng đang giữ.
+5. Kiểm tra tỷ lệ hủy theo chi nhánh: kỳ vọng quanh 4%, không có chi nhánh nào hủy tới 20%.
+6. Kiểm tra booking hủy: order phải bằng 0; payment `FAILED` lưu số tiền attempt dương và phải được loại khỏi doanh thu.
+7. Kiểm tra multi-pet room: một số booking có 2 pet cùng chủ ở chung phòng `max_slot = 2`.
+8. Kiểm tra dịch vụ mèo: `Tắm mèo`, `Grooming mèo`.
+
+## Ghi chú quan trọng
+
+- Seed này ưu tiên dashboard/thống kê và demo flow nghiệp vụ tổng quát.
+- Dữ liệu booking trải từ 12/2025 đến 05/2026.
+- Cuối tháng 05/2026 có thêm nhóm active booking để demo trạng thái đang xử lý.
+- Customer được tạo trước booking; query kiểm tra invalid booking phải trả về 0.

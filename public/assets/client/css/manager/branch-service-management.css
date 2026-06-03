@@ -9,6 +9,10 @@
     margin-bottom: 28px;
 }
 
+.branch-service-revenue-alert {
+    margin: -4px 0 28px;
+}
+
 .branch-service-main {
     background: #ffffff;
     border: 1px solid #d1d5db;
@@ -159,6 +163,34 @@
     color: #64748b;
     font-size: 12px;
     font-weight: 600;
+}
+
+.branch-service-metric {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.branch-service-revenue-warning {
+    width: fit-content;
+    padding: 3px 6px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.branch-service-revenue-warning--danger {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.branch-service-revenue-warning--success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
 }
 
 .ceo-lock-badge {

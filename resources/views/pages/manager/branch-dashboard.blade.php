@@ -9,6 +9,7 @@
 @section('content')
 
 @php
+    $managerBranchId = auth()->user()?->employee?->branch_id ?? 1;
     $period = 'tháng';
 
     /*
@@ -18,30 +19,34 @@
     */
     $kpiData = [
         [
+            'key' => 'check-in-schedule',
             'title' => 'Lịch Check-in',
-            'value' => '120 bé',
-            'trend' => '20%',
+            'value' => 'Đang tải...',
+            'trend' => 'Chưa có dữ liệu',
             'isPositive' => true,
             'period' => 'hôm qua',
         ],
         [
+            'key' => 'check-out-schedule',
             'title' => 'Lịch Check-out',
-            'value' => '115 bé',
-            'trend' => '5%',
+            'value' => 'Đang tải...',
+            'trend' => 'Chưa có dữ liệu',
             'isPositive' => true,
             'period' => 'hôm qua',
         ],
         [
+            'key' => 'grooming-schedule',
             'title' => 'Lịch Spa/Grooming',
-            'value' => '200 ca',
-            'trend' => '15%',
+            'value' => 'Đang tải...',
+            'trend' => 'Chưa có dữ liệu',
             'isPositive' => false,
             'period' => 'hôm qua',
         ],
         [
+            'key' => 'walk-in-available-rooms',
             'title' => 'Phòng trống (Walk-in)',
-            'value' => '5 chuồng',
-            'trend' => '3 chuồng',
+            'value' => 'Đang tải...',
+            'trend' => 'Chưa có dữ liệu',
             'isPositive' => false,
             'period' => 'hôm qua',
         ],
@@ -159,7 +164,14 @@
 <div
     class="manager-branch-dashboard"
     id="managerBranchDashboard"
-    data-overview-url="{{ route('api.dashboard.manager.overview') }}"
+    data-overview-url="{{ route('api.dashboard.manager.branches.overview', ['branchId' => $managerBranchId]) }}"
+    data-inventory-warning-url="{{ route('api.dashboard.manager.branches.inventory-warning', ['branchId' => $managerBranchId]) }}"
+    data-health-warning-url="{{ route('api.dashboard.manager.branches.health-warning', ['branchId' => $managerBranchId]) }}"
+    data-financial-risk-warning-url="{{ route('api.dashboard.manager.branches.financial-risk-warning', ['branchId' => $managerBranchId]) }}"
+    data-late-cancelled-bookings-url="{{ route('api.dashboard.manager.branches.late-cancelled-bookings', ['branchId' => $managerBranchId]) }}"
+    data-top-revenue-services-url="{{ route('api.dashboard.manager.branches.top-revenue-services', ['branchId' => $managerBranchId]) }}"
+    data-revenue-structure-url="{{ route('api.dashboard.manager.branches.revenue-structure', ['branchId' => $managerBranchId]) }}"
+    data-unpaid-invoices-url="{{ route('api.dashboard.manager.branches.unpaid-invoices', ['branchId' => $managerBranchId]) }}"
 >
 
     <x-global-control-panel
@@ -174,6 +186,7 @@
         <section class="manager-kpi-grid">
             @foreach ($kpiData as $item)
                 <x-kpi-card
+                    data-kpi="{{ $item['key'] }}"
                     :title="$item['title']"
                     :value="$item['value']"
                     :trend="$item['trend']"
@@ -193,14 +206,21 @@
 
                 {{-- Health alerts --}}
                 @if (count($healthAlerts) === 0)
-                    <div class="safe-state-card">
+                    <div class="safe-state-card" data-health-warning-card data-severity="green">
+                        <div class="health-warning-summary" data-health-warning-summary data-severity="green">
+                            <span><strong data-health-warning-count>0</strong> pet c&#7847;n theo d&#245;i</span>
+                        </div>
                         ✅ <span>0 Cảnh báo Y tế - Tất cả các bé đều đang khỏe mạnh và ăn uống tốt.</span>
                     </div>
                 @else
-                    <div class="manager-alert-card">
-                        <h3 class="manager-alert-title manager-alert-title--red">
+                    <div class="manager-alert-card" data-health-warning-card data-severity="yellow">
+                        <h3 class="manager-alert-title manager-alert-title--red" data-health-warning-text>
                             🚨 Báo động Y tế: {{ count($healthAlerts) }} bé có dấu hiệu bất thường!
                         </h3>
+
+                        <div class="health-warning-summary" data-health-warning-summary data-severity="yellow">
+                            <span><strong data-health-warning-count>{{ count($healthAlerts) }}</strong> pet c&#7847;n theo d&#245;i</span>
+                        </div>
 
                         <div class="manager-grid-table">
                             <div class="manager-grid-header manager-health-header">
@@ -234,14 +254,23 @@
 
                 {{-- Inventory alerts --}}
                 @if (count($inventoryAlerts) === 0)
-                    <div class="safe-state-card">
+                    <div class="safe-state-card" data-inventory-warning-card data-severity="green">
+                        <div class="inventory-warning-summary" data-inventory-warning-summary data-severity="green">
+                            <span><strong data-inventory-out-of-stock-count>0</strong> v&#7853;t t&#432; h&#7871;t h&#224;ng</span>
+                            <span><strong data-inventory-low-stock-count>0</strong> v&#7853;t t&#432; s&#7855;p h&#7871;t</span>
+                        </div>
                         📦 <span>0 Cảnh báo Kho - Vật tư tiêu hao đang ở mức an toàn.</span>
                     </div>
                 @else
-                    <div class="manager-alert-card">
-                        <h3 class="manager-alert-title manager-alert-title--orange">
+                    <div class="manager-alert-card" data-inventory-warning-card data-severity="yellow">
+                        <h3 class="manager-alert-title manager-alert-title--orange" data-inventory-warning-text>
                             ⚠️ Cảnh báo Tồn kho: {{ count($inventoryAlerts) }} vật tư sắp cạn!
                         </h3>
+
+                        <div class="inventory-warning-summary" data-inventory-warning-summary data-severity="yellow">
+                            <span><strong data-inventory-out-of-stock-count>0</strong> v&#7853;t t&#432; h&#7871;t h&#224;ng</span>
+                            <span><strong data-inventory-low-stock-count>{{ count($inventoryAlerts) }}</strong> v&#7853;t t&#432; s&#7855;p h&#7871;t</span>
+                        </div>
 
                         <div class="manager-grid-table">
                             <div class="manager-grid-header manager-inventory-header">
@@ -271,27 +300,67 @@
                     </div>
                 @endif
 
+                {{-- Late cancelled bookings --}}
+                <div class="manager-alert-card" data-late-cancelled-card>
+                    <h3 class="manager-alert-title manager-alert-title--orange">
+                        Booking h&#7911;y s&#225;t gi&#7901;:
+                        <span data-late-cancelled-total>&#272;ang t&#7843;i...</span> ca
+                    </h3>
+
+                    <div class="manager-grid-table">
+                        <div class="manager-grid-header manager-late-cancel-header">
+                            <div>M&#227; Booking</div>
+                            <div>Kh&#225;ch h&#224;ng</div>
+                            <div>Check-in d&#7921; ki&#7871;n</div>
+                            <div>Th&#7901;i &#273;i&#7875;m h&#7911;y</div>
+                            <div class="text-right">Gi&#7901; tr&#432;&#7899;c check-in</div>
+                            <div class="text-right">T&#7893;ng ti&#7873;n &#273;&#417;n</div>
+                            <div>C&#7843;nh b&#225;o</div>
+                        </div>
+
+                        <div class="manager-grid-body" data-late-cancelled-body>
+                            <div class="manager-grid-row manager-late-cancel-row">
+                                <div class="cell-note">&#272;ang t&#7843;i...</div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="empty-message" data-late-cancelled-empty hidden>
+                        Kh&#244;ng c&#243; booking h&#7911;y s&#225;t gi&#7901; trong k&#7923; n&#224;y.
+                    </div>
+                </div>
+
             </div>
         </section>
 
 
         {{-- FINANCIAL RISK REPORT --}}
-        <section class="manager-risk-section">
+        <section class="manager-risk-section" data-financial-risk-warning-card data-severity="yellow">
             <h2 class="manager-section-title">
                 <span>⚠️</span> Radar Cảnh Báo & Rủi Ro Tài Chính
             </h2>
 
             <div class="risk-summary-grid">
-                <div class="risk-summary-card">
+                <div class="risk-summary-card" data-financial-risk-count-card>
                     <p>Tổng số ca Hủy (Trong kỳ)</p>
-                    <strong>{{ $riskData['cancelCount'] }} <span>ca</span></strong>
+                    <strong><span data-financial-risk-cancelled-count>{{ $riskData['cancelCount'] }}</span> <span>ca</span></strong>
                 </div>
 
-                <div class="risk-summary-card">
+                <div class="risk-summary-card" data-financial-risk-amount-card>
                     <p>Tổng Giá Trị Thất Thoát</p>
-                    <strong class="text-red">{{ managerMoney($riskData['lostValue']) }}</strong>
+                    <strong class="text-red" data-financial-risk-lost-amount>{{ managerMoney($riskData['lostValue']) }}</strong>
                     <small>* Dựa trên grand_total của hóa đơn bị hủy</small>
                 </div>
+            </div>
+
+            <div class="financial-risk-warning" data-financial-risk-warning-text data-severity="yellow">
+                C&#7843;nh b&#225;o nh&#7865;: c&#243; &#273;&#417;n h&#7911;y/ho&#224;n.
             </div>
 
             @if (count($alertGrid) === 0)
@@ -345,45 +414,79 @@
 
                     <div class="manager-chart-wrapper">
                         <x-chart.bar
+                            id="managerTopRevenueServicesChart"
                             :data="$barData"
                             xAxisKey="name"
                             :barConfigs="$barConfigs"
-                            yAxisFormatter="raw"
+                            yAxisFormatter="currency"
                             height="320px"
                         />
                     </div>
+
+                    <div class="manager-grid-table manager-top-service-table" data-top-revenue-services-table>
+                        <div class="manager-grid-header manager-top-service-header">
+                            <div>Th&#7913; h&#7841;ng</div>
+                            <div>T&#234;n d&#7883;ch v&#7909;</div>
+                            <div class="text-right">Doanh thu</div>
+                            <div class="text-right">S&#7889; l&#432;&#7907;t s&#7917; d&#7909;ng</div>
+                        </div>
+
+                        <div class="manager-grid-body" data-top-revenue-services-body>
+                            <div class="manager-grid-row manager-top-service-row">
+                                <div class="cell-note">&#272;ang t&#7843;i...</div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="empty-message" data-top-revenue-services-empty hidden>
+                        Kh&#244;ng c&#243; d&#7919; li&#7879;u doanh thu d&#7883;ch v&#7909; trong k&#7923; n&#224;y.
+                    </div>
                 </div>
 
-                <div class="manager-card">
+                <div class="manager-card" data-unpaid-invoices-card>
                     <div class="manager-card-header">
                         <h3>Sổ Ghi Công Nợ (Hóa đơn chưa thanh toán đủ)</h3>
                     </div>
 
-                    @if (count($debtData) === 0)
-                        <div class="empty-message">Không có công nợ nào cần thu trong kỳ này.</div>
-                    @else
-                        <div class="manager-grid-table">
-                            <div class="manager-grid-header manager-debt-header">
-                                <div>Mã KH</div>
-                                <div>Khách hàng</div>
-                                <div class="text-right">Số tiền còn nợ</div>
-                                <div>Ngày phát sinh</div>
-                                <div>SĐT</div>
-                            </div>
+                    <div class="debt-summary" data-unpaid-invoices-summary>
+                        <span><strong data-unpaid-invoices-total>&#272;ang t&#7843;i...</strong> h&#243;a &#273;&#417;n c&#7847;n theo d&#245;i</span>
+                        <span>T&#7893;ng c&#244;ng n&#7907;: <strong data-unpaid-invoices-total-debt>&#272;ang t&#7843;i...</strong></span>
+                    </div>
 
-                            <div class="manager-grid-body">
-                                @foreach ($debtData as $item)
-                                    <div class="manager-grid-row manager-debt-row">
-                                        <div class="cell-medium">{{ $item['id'] }}</div>
-                                        <div>{{ $item['name'] }}</div>
-                                        <div class="text-right cell-red cell-bold">{{ managerMoney($item['debt']) }}</div>
-                                        <div>{{ $item['date'] }}</div>
-                                        <div>{{ $item['phone'] }}</div>
-                                    </div>
-                                @endforeach
+                    <div class="manager-grid-table" data-unpaid-invoices-table>
+                        <div class="manager-grid-header manager-debt-header">
+                            <div>M&#227; KH</div>
+                            <div>Kh&#225;ch h&#224;ng</div>
+                            <div>S&#272;T</div>
+                            <div>M&#227; &#273;&#417;n</div>
+                            <div class="text-right">T&#7893;ng ti&#7873;n</div>
+                            <div class="text-right">&#272;&#227; thanh to&#225;n</div>
+                            <div class="text-right">C&#242;n n&#7907;</div>
+                            <div>Ng&#224;y ph&#225;t sinh</div>
+                            <div>C&#7843;nh b&#225;o</div>
+                        </div>
+
+                        <div class="manager-grid-body" data-unpaid-invoices-body>
+                            <div class="manager-grid-row manager-debt-row">
+                                <div class="cell-note">&#272;ang t&#7843;i...</div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
                             </div>
                         </div>
-                    @endif
+                    </div>
+
+                    <div class="empty-message" data-unpaid-invoices-empty hidden>
+                        Kh&#244;ng c&#243; c&#244;ng n&#7907; n&#224;o c&#7847;n thu trong k&#7923; n&#224;y.
+                    </div>
                 </div>
 
             </div>
@@ -396,17 +499,39 @@
 
                     <div class="manager-pie-wrapper">
                         <x-chart.pie
+                            id="managerRevenueStructureChart"
                             :data="$pieData"
                             nameKey="name"
                             dataKey="value"
                             :colors="$pieColors"
+                            tooltipFormatter="currency"
                             height="320px"
                         />
                     </div>
 
-                    <div class="pie-summary">
+                    <div class="pie-summary" data-revenue-structure-summary>
                         Đang xem báo cáo theo: <strong>{{ $period }}</strong>.
                         Sự chênh lệch tỷ trọng sẽ giúp bạn quyết định điều hướng Marketing kịp thời.
+                    </div>
+
+                    <div class="manager-grid-table manager-revenue-structure-table" data-revenue-structure-table>
+                        <div class="manager-grid-header manager-revenue-structure-header">
+                            <div>Nh&#243;m doanh thu</div>
+                            <div class="text-right">Doanh thu</div>
+                            <div class="text-right">T&#7927; tr&#7885;ng</div>
+                        </div>
+
+                        <div class="manager-grid-body" data-revenue-structure-body>
+                            <div class="manager-grid-row manager-revenue-structure-row">
+                                <div class="cell-note">&#272;ang t&#7843;i...</div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="empty-message" data-revenue-structure-empty hidden>
+                        Kh&#244;ng c&#243; d&#7919; li&#7879;u c&#417; c&#7845;u doanh thu trong k&#7923; n&#224;y.
                     </div>
                 </div>
             </div>
