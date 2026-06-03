@@ -30,6 +30,7 @@
             <span class="manager-sidebar-link-icon">📦</span>
             <span class="manager-sidebar-link-text">Vật tư</span>
         </a>
+
         <a href="{{ route('manager.promotions') }}" class="manager-sidebar-link {{ request()->routeIs('manager.promotions') ? 'active' : '' }}">
             <span class="manager-sidebar-link-icon">%</span>
             <span class="manager-sidebar-link-text">Khuyến mãi</span>
@@ -42,7 +43,17 @@
     </nav>
 
     <div class="manager-sidebar-footer">
-        <span class="manager-sidebar-link-icon">👤</span>
-        <span class="manager-sidebar-link-text">Branch Manager</span>
+        <div class="manager-sidebar-role">
+            <span class="manager-sidebar-role-icon">👤</span>
+            <span class="manager-sidebar-link-text">Branch Manager</span>
+        </div>
+
+        <form action="{{ route('authentication.logout') }}" method="POST" class="manager-logout-form">
+            @csrf
+            <button type="submit" class="manager-logout-btn">
+                <span class="manager-sidebar-link-icon">↩</span>
+                <span class="manager-sidebar-link-text">Đăng xuất</span>
+            </button>
+        </form>
     </div>
 </div>
