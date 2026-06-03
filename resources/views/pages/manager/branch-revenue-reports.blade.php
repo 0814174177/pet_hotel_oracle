@@ -9,7 +9,8 @@
 @section('content')
 
 @php
-    $managerBranchId = auth()->user()?->employee?->branch_id ?? 1;
+    $managerBranchId = auth()->user()?->employee?->branch_id;
+    abort_if(blank($managerBranchId), 403, 'Manager account is not assigned to a branch.');
 
     /*
     |--------------------------------------------------------------------------
@@ -56,10 +57,10 @@
     $spaShare = $serviceData[2]['value'];
 
     $aovData = [
-        ['label' => 'Tháng này', 'value' => '485k', 'change' => '+12.4%', 'highlight' => true],
-        ['label' => 'Tháng trước', 'value' => '431.5k', 'change' => null, 'highlight' => false],
-        ['label' => 'Cao nhất/đơn', 'value' => '2.850k', 'change' => null, 'highlight' => false],
-        ['label' => 'Số đơn/tháng', 'value' => '786 đơn', 'change' => null, 'highlight' => false],
+        ['key' => 'current_aov', 'label' => 'Tháng này', 'value' => '485k', 'change' => '+12.4%', 'highlight' => true],
+        ['key' => 'previous_aov', 'label' => 'Tháng trước', 'value' => '431.5k', 'change' => null, 'highlight' => false],
+        ['key' => 'max_order_value', 'label' => 'Cao nhất/đơn', 'value' => '2.850k', 'change' => null, 'highlight' => false],
+        ['key' => 'current_orders', 'label' => 'Số đơn/tháng', 'value' => '786 đơn', 'change' => null, 'highlight' => false],
     ];
 
     /*
@@ -162,6 +163,7 @@
     data-target-progress-url="{{ route('api.dashboard.manager.branches.revenue-report.target-progress', ['branchId' => $managerBranchId]) }}"
     data-revenue-comparison-url="{{ route('api.dashboard.manager.branches.revenue-report.revenue-comparison', ['branchId' => $managerBranchId]) }}"
     data-service-mix-url="{{ route('api.dashboard.manager.branches.revenue-report.service-mix', ['branchId' => $managerBranchId]) }}"
+    data-aov-url="{{ route('api.dashboard.manager.branches.revenue-report.aov', ['branchId' => $managerBranchId]) }}"
     data-employee-performance-url="{{ route('api.dashboard.manager.branches.revenue-report.employee-performance', ['branchId' => $managerBranchId]) }}"
     data-customer-retention-url="{{ route('api.dashboard.manager.branches.revenue-report.customer-retention', ['branchId' => $managerBranchId]) }}"
 >
@@ -185,11 +187,14 @@
 
                     <h2>
                         <span data-target-current>{{ number_format($currentRevenue, 0, ',', '.') }}</span>
-                        <small>/ {{ number_format($targetRevenue, 0, ',', '.') }}tr</small>
+                        <small>/ <span data-target-month>{{ number_format($targetRevenue, 0, ',', '.') }}</span>tr</small>
                     </h2>
                 </div>
 
-                <div class="{{ $progress >= 80 ? 'progress-badge progress-badge--good' : ($progress >= 50 ? 'progress-badge progress-badge--warning' : 'progress-badge progress-badge--danger') }}">
+                <div
+                    class="{{ $progress >= 80 ? 'progress-badge progress-badge--good' : ($progress >= 50 ? 'progress-badge progress-badge--warning' : 'progress-badge progress-badge--danger') }}"
+                    data-target-progress-badge
+                >
                     <span data-target-progress>{{ number_format($progress, 1) }}%</span>
                 </div>
             </div>
@@ -199,20 +204,25 @@
                     <div
                         class="{{ $progress >= 80 ? 'progress-fill progress-fill--good' : ($progress >= 50 ? 'progress-fill progress-fill--warning' : 'progress-fill progress-fill--danger') }}"
                         style="width: {{ $progress }}%;"
+                        data-target-progress-fill
                     ></div>
                 </div>
 
                 <div class="progress-stats">
                     <span>
                         Còn thiếu:
-                        <strong>{{ number_format($remaining, 0, ',', '.') }}tr</strong>
+                        <strong data-target-remaining>{{ number_format($remaining, 0, ',', '.') }}tr</strong>
                     </span>
 
                     <span>
                         Cần/ngày:
-                        <strong class="orange">{{ number_format($dailyNeeded, 1) }}tr</strong>
-                        ({{ $daysLeft }} ngày còn lại)
+                        <strong class="orange" data-target-daily-needed>{{ number_format($dailyNeeded, 1) }}tr</strong>
+                        (<span data-target-days-left>{{ $daysLeft }}</span> ngày còn lại)
                     </span>
+                </div>
+
+                <div class="progress-badge progress-badge--warning" data-target-warning-badge>
+                    <span data-target-warning>Đang cập nhật tiến độ</span>
                 </div>
             </div>
 
@@ -222,6 +232,7 @@
 
             <div class="chart-area">
                 <x-chart.line
+                    id="managerRevenueComparisonChart"
                     :data="$revenueTrendData"
                     xAxisKey="label"
                     :lineConfigs="$revenueLineConfigs"
@@ -260,6 +271,7 @@
             <div class="service-chart-layout">
                 <div class="service-chart">
                     <x-chart.pie
+                        id="managerServiceMixChart"
                         :data="$serviceData"
                         nameKey="name"
                         dataKey="value"
@@ -268,7 +280,7 @@
                     />
                 </div>
 
-                <div class="service-legend">
+                <div class="service-legend" data-service-mix-legend>
                     @foreach ($serviceData as $service)
                         <div class="service-legend-item">
                             <div>
@@ -289,12 +301,15 @@
 
                 <div class="aov-grid">
                     @foreach ($aovData as $item)
-                        <div class="{{ $item['highlight'] ? 'aov-card aov-card--highlight' : 'aov-card' }}">
+                        <div
+                            class="{{ $item['highlight'] ? 'aov-card aov-card--highlight' : 'aov-card' }}"
+                            data-aov-card="{{ $item['key'] }}"
+                        >
                             <div class="aov-label">{{ $item['label'] }}</div>
-                            <div class="aov-value">{{ $item['value'] }}</div>
+                            <div class="aov-value" data-aov-value="{{ $item['key'] }}">{{ $item['value'] }}</div>
 
                             @if ($item['change'])
-                                <div class="aov-change">▲ {{ $item['change'] }} so tháng trước</div>
+                                <div class="aov-change" data-aov-change>▲ {{ $item['change'] }} so tháng trước</div>
                             @endif
                         </div>
                     @endforeach

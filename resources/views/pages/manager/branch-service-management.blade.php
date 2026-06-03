@@ -146,9 +146,9 @@
         <div class="branch-service-grid-wrapper">
             <div class="branch-service-grid-header">
                 <div>Mã / Tên dịch vụ / Chỉ số doanh thu</div>
-                <div class="text-center">Hiển thị Website</div>
-                <div class="text-center">Khóa khẩn cấp</div>
-                <div>Tùy chỉnh Giá (Override)</div>
+                <div class="text-center">Website (read-only)</div>
+                <div class="text-center">Khóa (read-only)</div>
+                <div>Giá tham chiếu</div>
             </div>
 
             <div class="branch-service-grid-body">
