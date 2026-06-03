@@ -245,7 +245,7 @@
         if (!vendors.length) {
             tbody.innerHTML = `
                 <tr>
-                    <td class="partner-empty-row" colspan="5">Chua co du lieu doi tac.</td>
+                    <td class="partner-empty-row" colspan="5">Chưa có dữ liệu đối tác.</td>
                 </tr>
             `;
             return;
@@ -256,7 +256,7 @@
                 <td>
                     <div class="partner-vendor-name">${escapeHtml(vendor.partner_name)}</div>
                     <div class="partner-vendor-category">
-                        ${Number(vendor.item_count) || 0} mat hang dang cung cap
+                        ${Number(vendor.item_count) || 0} mặt hàng đang cung cấp
                     </div>
                     <div class="partner-purchaser">${escapeHtml(vendor.warning_text)}</div>
                 </td>
@@ -271,7 +271,7 @@
                         <small>(${decimal(vendor.performance_rate)}%)</small>
                     </div>
                 </td>
-                <td><button type="button" class="partner-detail-btn">Chi tiet</button></td>
+                <td><button type="button" class="partner-detail-btn">Chi tiết</button></td>
             </tr>
         `).join("");
     }
@@ -322,7 +322,7 @@
         }
 
         if (alertCountNode) {
-            alertCountNode.textContent = `${lowVendorCount} doi tac`;
+            alertCountNode.textContent = `${lowVendorCount} đối tác`;
         }
 
         if (alertMessageNode) {
@@ -360,11 +360,11 @@
 
         if (trendNode) {
             trendNode.className = payablesTrendClass(summary.status);
-            trendNode.textContent = `${signedPercent(summary.growth_percent)} so voi thang truoc`;
+            trendNode.textContent = `${signedPercent(summary.growth_percent)} so với tháng trước`;
         }
 
         if (insightNode) {
-            insightNode.innerHTML = `<strong>Phan tich rui ro:</strong> ${escapeHtml(summary.warning_text || "Khong co canh bao dong tien.")}`;
+            insightNode.innerHTML = `<strong>Phân tích rủi ro:</strong> ${escapeHtml(summary.warning_text || "Không có cảnh báo dòng tiền.")}`;
         }
 
         renderChart("vendorPayablesChart", {
@@ -430,7 +430,7 @@
         if (!items.length) {
             tbody.innerHTML = `
                 <tr>
-                    <td class="partner-empty-row" colspan="5">Chua co canh bao bien dong gia nhap.</td>
+                    <td class="partner-empty-row" colspan="5">Chưa có cảnh báo biến động giá nhập.</td>
                 </tr>
             `;
             return;

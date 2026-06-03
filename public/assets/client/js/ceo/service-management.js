@@ -12,7 +12,7 @@
     }
 
     function money(value) {
-        return `${number(value)}d`;
+        return `${number(value)}đ`;
     }
 
     /**
@@ -73,18 +73,18 @@
     function renderSummary(data) {
         setCard(
             "top-revenue-service",
-            data?.top_revenue_service || "Chua co du lieu",
-            `${money(data?.top_revenue_amount)} - ${number(data?.top_revenue_percent)}% doanh thu dich vu`,
+            data?.top_revenue_service || "Chưa có dữ liệu",
+            `${money(data?.top_revenue_amount)} - ${number(data?.top_revenue_percent)}% doanh thu dịch vụ`,
         );
         setCard(
             "active-service-count",
-            `${number(data?.active_service_count)} dich vu`,
-            "Toan chuoi",
+            `${number(data?.active_service_count)} dịch vụ`,
+            "Toàn chuỗi",
         );
         setCard(
             "no-revenue-service-count",
-            `${number(data?.no_revenue_service_count)} dich vu`,
-            "Khong co doanh thu da thanh toan trong ky loc",
+            `${number(data?.no_revenue_service_count)} dịch vụ`,
+            "Không có doanh thu đã thanh toán trong kỳ lọc",
         );
     }
 
@@ -111,7 +111,7 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="service-empty">
-                        Khong tim thay du lieu dich vu phu hop voi bo loc.
+                        Không tìm thấy dữ liệu dịch vụ phù hợp với bộ lọc.
                     </td>
                 </tr>
             `;
@@ -129,7 +129,7 @@
                     <td>
                         <div class="service-name">${escapeHtml(service.service_name)}</div>
                         <div class="service-code">SV-${escapeHtml(service.service_id)}</div>
-                        <div class="service-code">${escapeHtml(service.service_category_name || "Chua phan loai")}</div>
+                        <div class="service-code">${escapeHtml(service.service_category_name || "Chưa phân loại")}</div>
                     </td>
                     <td><span class="service-status ${active ? "service-status--active" : "service-status--paused"}">${escapeHtml(status)}</span></td>
                     <td>
@@ -141,10 +141,10 @@
                             <span class="${margin >= 50 ? "service-margin-high" : "service-margin-low"}">${number(margin)}%</span>
                         </div>
                     </td>
-                    <td class="text-center">${number(service.service_count_in_period)} luot</td>
+                    <td class="text-center">${number(service.service_count_in_period)} lượt</td>
                     <td>
                         <div class="service-coverage">
-                            <span>${number(service.covered_branch_count)}/${number(service.total_active_branch)} chi nhanh (${number(service.coverage_percent)}%)</span>
+                            <span>${number(service.covered_branch_count)}/${number(service.total_active_branch)} chi nhánh (${number(service.coverage_percent)}%)</span>
                             <div class="service-progress">
                                 <div style="width: ${coverage}%;"></div>
                             </div>
@@ -153,7 +153,7 @@
                     <td>
                         <div class="service-action-group">
                             <button type="button" class="service-action-btn">Xem</button>
-                            <button type="button" class="service-action-btn">Sua</button>
+                            <button type="button" class="service-action-btn">Sửa</button>
                         </div>
                     </td>
                 </tr>
@@ -183,7 +183,7 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="service-empty">
-                        Khong co doanh thu dich vu trong ky loc.
+                        Không có doanh thu dịch vụ trong kỳ lọc.
                     </td>
                 </tr>
             `;
@@ -227,7 +227,7 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="service-empty">
-                        Khong co doanh thu dich vu trong ky loc.
+                        Không có doanh thu dịch vụ trong kỳ lọc.
                     </td>
                 </tr>
             `;
@@ -272,7 +272,7 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="7" class="service-empty">
-                        Khong co dich vu hoan tat va co doanh thu trong ky loc.
+                        Không có dịch vụ hoàn tất và có doanh thu trong kỳ lọc.
                     </td>
                 </tr>
             `;
@@ -281,7 +281,7 @@
 
         const warning = data.cost_warning
             ? `${data.cost_warning}`
-            : "Khong co canh bao";
+            : "Không có cảnh báo";
 
         tbody.innerHTML = `
             <tr>
@@ -297,7 +297,7 @@
                 <td>${number(data.estimated_margin_percent)}%</td>
                 <td>
                     ${escapeHtml(warning)}
-                    ${Number(data.missing_employee_count) > 0 ? ` (${number(data.missing_employee_count)} luot)` : ""}
+                    ${Number(data.missing_employee_count) > 0 ? ` (${number(data.missing_employee_count)} lượt)` : ""}
                 </td>
             </tr>
         `;
@@ -325,7 +325,7 @@
             tbody.innerHTML = `
                 <tr>
                     <td colspan="6" class="service-empty">
-                        Tat ca dich vu deu co doanh thu da thanh toan trong ky loc.
+                        Tất cả dịch vụ đều có doanh thu đã thanh toán trong kỳ lọc.
                     </td>
                 </tr>
             `;
@@ -340,16 +340,16 @@
                     <td>
                         <div class="service-name">${escapeHtml(service.service_name)}</div>
                         <div class="service-code">SV-${escapeHtml(service.service_id)}</div>
-                        <div class="service-code">${escapeHtml(service.service_category_name || "Chua phan loai")}</div>
+                        <div class="service-code">${escapeHtml(service.service_category_name || "Chưa phân loại")}</div>
                     </td>
-                    <td><span class="service-status ${active ? "service-status--active" : "service-status--paused"}">${active ? "Hoat dong" : "Da an/Ngung"}</span></td>
+                    <td><span class="service-status ${active ? "service-status--active" : "service-status--paused"}">${active ? "Hoạt động" : "Đã ẩn/Ngừng"}</span></td>
                     <td>${money(service.base_price)}</td>
                     <td class="text-center">${number(service.booking_count_in_period)}</td>
                     <td>${escapeHtml(service.no_revenue_reason)}</td>
                     <td>
                         <div class="service-action-group">
                             <button type="button" class="service-action-btn">Xem</button>
-                            <button type="button" class="service-action-btn service-action-btn--danger">Xem xet tam an</button>
+                            <button type="button" class="service-action-btn service-action-btn--danger">Xem xét tạm ẩn</button>
                         </div>
                     </td>
                 </tr>

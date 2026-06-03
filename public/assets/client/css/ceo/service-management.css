@@ -115,6 +115,10 @@ body {
     border: 1px solid #e5e7eb;
 }
 
+.ceo-service-grid-wrapper + .ceo-service-grid-wrapper {
+    margin-top: 24px;
+}
+
 .ceo-service-table {
     width: 100%;
     min-width: 1050px;

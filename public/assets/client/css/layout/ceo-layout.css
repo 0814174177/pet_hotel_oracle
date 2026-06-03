@@ -6,7 +6,7 @@ body {
     margin: 0;
     background: #f4f7f6;
     color: #0f172a;
-    font-family: Arial, sans-serif;
+    font-family: var(--font-sans, Arial, sans-serif);
 }
 
 .ceo-layout {
@@ -15,6 +15,15 @@ body {
 
     --sidebar-width: 280px;
     --content-gap: 20px;
+}
+
+.ceo-layout,
+.ceo-layout .global-control-panel,
+.ceo-layout button,
+.ceo-layout input,
+.ceo-layout select,
+.ceo-layout textarea {
+    font-family: var(--font-sans, Arial, sans-serif);
 }
 
 .ceo-layout--collapsed {
@@ -119,6 +128,17 @@ body {
     color: #ffffff;
 }
 
+.ceo-sidebar-link.active {
+    background: #e0f2fe;
+    color: #0369a1;
+    box-shadow: inset 4px 0 0 #38bdf8;
+}
+
+.ceo-sidebar-link.active:hover {
+    background: #bae6fd;
+    color: #075985;
+}
+
 .ceo-sidebar-link-icon {
     flex: 0 0 28px;
     width: 28px;
@@ -152,6 +172,58 @@ body {
 .ceo-main-inner {
     width: 100%;
     max-width: 100%;
+}
+
+.ceo-layout .global-control-panel__date-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ceo-layout .global-control-panel__date-input {
+    min-height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #334155;
+    padding: 7px 10px;
+}
+
+.ceo-layout .global-control-panel__apply-btn,
+.ceo-layout .global-control-panel__refresh-btn {
+    min-height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.ceo-layout .global-control-panel__apply-btn {
+    background: #0ea5e9;
+    border: 1px solid #0ea5e9;
+    color: #ffffff;
+}
+
+.ceo-layout .global-control-panel__apply-btn:hover {
+    background: #0284c7;
+    border-color: #0284c7;
+}
+
+.ceo-layout .global-control-panel__refresh-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+}
+
+.ceo-layout .global-control-panel__refresh-btn:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
 }
 
 /* Khi sidebar thu gọn */
