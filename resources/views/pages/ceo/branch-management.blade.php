@@ -100,6 +100,7 @@
         title="Mạng lưới Chi nhánh"
         period="tháng"
         lastUpdate="14:58 - Cập nhật thành công"
+        :export-url="route('ceo.branches.export')"
     />
 
     <section class="branch-stats">
