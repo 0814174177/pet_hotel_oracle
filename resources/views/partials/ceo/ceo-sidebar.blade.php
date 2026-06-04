@@ -30,6 +30,13 @@
     <a href="{{ route('ceo.vendors') }}" class="ceo-sidebar-link {{ request()->routeIs('ceo.vendors') ? 'active' : '' }}">
       <span class="ceo-sidebar-link-text">Đối tác</span>
     </a>
+
+    <a href="{{ route('ceo.promotions') }}" class="ceo-sidebar-link {{ request()->routeIs('ceo.promotions') ? 'active' : '' }}">
+      <span class="ceo-sidebar-link-text">Khuyến mãi</span>
+    </a>
+    <a href="{{ route('ceo.employees') }}" class="ceo-sidebar-link {{ request()->routeIs('ceo.employees') ? 'active' : '' }}">
+      <span class="ceo-sidebar-link-text">Nhân viên</span>
+    </a>
   </nav>
 
   <form action="{{ route('authentication.logout') }}" method="POST" class="ceo-logout-form">

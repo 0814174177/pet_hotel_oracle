@@ -1,0 +1,864 @@
+.ceo-promotion-page {
+    color: #1a1a2e;
+    min-height: 100vh;
+    padding: 32px;
+}
+
+.ceo-promotion-header {
+    align-items: flex-start;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.ceo-promotion-header h1 {
+    color: #0f172a;
+    font-size: 30px;
+    font-weight: 800;
+    margin: 0 0 8px;
+}
+
+.ceo-promotion-header p {
+    color: #64748b;
+    font-size: 15px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.ceo-promotion-stats-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 22px;
+}
+
+.ceo-promotion-stat-card,
+.ceo-promotion-filter-card,
+.ceo-promotion-table-card,
+.ceo-promotion-form-card {
+    background: #ffffff;
+    border: 1px solid #e8ebf0;
+}
+
+.ceo-promotion-stat-card {
+    border-radius: 12px;
+    padding: 16px 18px;
+}
+
+.ceo-promotion-stat-label {
+    color: #7a8194;
+    font-size: 12px;
+    margin-bottom: 6px;
+}
+
+.ceo-promotion-stat-value {
+    color: #1a1a2e;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.ceo-promotion-stat-value--active {
+    color: #16a34a;
+}
+
+.ceo-promotion-stat-value--warning {
+    color: #f59e0b;
+}
+
+.ceo-promotion-stat-sub {
+    color: #a0a8b8;
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+.ceo-promotion-stat-dot {
+    border-radius: 50%;
+    display: inline-block;
+    height: 8px;
+    margin-right: 5px;
+    width: 8px;
+}
+
+.ceo-promotion-stat-dot--active {
+    background: #22c55e;
+}
+
+.ceo-promotion-flash {
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+}
+
+.ceo-promotion-flash--success {
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+
+.ceo-promotion-filter-card {
+    border-radius: 12px;
+    margin-bottom: 16px;
+    padding: 16px 20px;
+}
+
+.ceo-promotion-filter-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ceo-promotion-search-box {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #dde1e7;
+    border-radius: 8px;
+    display: flex;
+    flex: 1;
+    gap: 8px;
+    min-width: 220px;
+    padding: 0 12px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ceo-promotion-search-box:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.ceo-promotion-search-icon {
+    color: #a0a8b8;
+    font-size: 14px;
+}
+
+.ceo-promotion-search-box input {
+    background: transparent;
+    border: 0;
+    color: #1a1a2e;
+    font-size: 14px;
+    outline: none;
+    padding: 9px 0;
+    width: 100%;
+}
+
+.ceo-promotion-filter-select {
+    background: #ffffff;
+    border: 1px solid #dde1e7;
+    border-radius: 8px;
+    color: #1a1a2e;
+    cursor: pointer;
+    font-size: 13px;
+    min-height: 38px;
+    outline: none;
+    padding: 8px 12px;
+    transition: border-color 0.15s ease;
+}
+
+.ceo-promotion-filter-select:focus {
+    border-color: #3b82f6;
+}
+
+.ceo-promotion-btn-add,
+.ceo-promotion-btn-primary {
+    background: #2563eb;
+    border: 0;
+    border-radius: 8px;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ceo-promotion-btn-add {
+    align-items: center;
+    display: flex;
+    gap: 7px;
+    min-height: 38px;
+    padding: 9px 18px;
+    white-space: nowrap;
+}
+
+.ceo-promotion-btn-add:hover,
+.ceo-promotion-btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.ceo-promotion-table-card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.ceo-promotion-table-header {
+    align-items: center;
+    border-bottom: 1px solid #e8ebf0;
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 20px;
+}
+
+.ceo-promotion-table-title {
+    color: #1a1a2e;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.ceo-promotion-table-count {
+    color: #7a8194;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.ceo-promotion-table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+}
+
+.ceo-promotion-table {
+    background: #ffffff;
+    border-collapse: collapse;
+    min-width: 1080px;
+    width: 100%;
+}
+
+.ceo-promotion-table thead th {
+    background: #f8f9fb;
+    border-bottom: 1px solid #e8ebf0;
+    color: #7a8194;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 10px 16px;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.ceo-promotion-table tbody tr {
+    border-bottom: 1px solid #f0f2f5;
+    transition: background-color 0.1s ease;
+}
+
+.ceo-promotion-table tbody tr:last-child {
+    border-bottom: 0;
+}
+
+.ceo-promotion-table tbody tr:hover {
+    background: #f8f9fb;
+}
+
+.ceo-promotion-table tbody td {
+    color: #1a1a2e;
+    font-size: 13px;
+    padding: 13px 16px;
+    vertical-align: middle;
+}
+
+.ceo-promotion-table tbody tr.is-inactive {
+    background: #fafafa;
+    opacity: 0.55;
+}
+
+.ceo-promotion-text-center {
+    text-align: center;
+}
+
+.ceo-promotion-table thead th.ceo-promotion-col-active,
+.ceo-promotion-table tbody td.ceo-promotion-col-active {
+    text-align: center;
+    width: 96px;
+}
+
+.ceo-promotion-table tbody td.ceo-promotion-col-active {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.ceo-promotion-col-active .ceo-promotion-toggle {
+    margin: 0 auto;
+}
+
+.ceo-promotion-coupon-code {
+    background: #eff6ff;
+    border-radius: 5px;
+    color: #2563eb;
+    display: inline-block;
+    font-family: "Courier New", monospace;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 3px 8px;
+}
+
+.ceo-promotion-badge {
+    align-items: center;
+    border-radius: 20px;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+}
+
+.ceo-promotion-badge--percent {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.ceo-promotion-badge--fixed {
+    background: #fefce8;
+    color: #ca8a04;
+}
+
+.ceo-promotion-badge-expired {
+    align-items: center;
+    background: #fefce8;
+    border: 1px solid #fde047;
+    border-radius: 12px;
+    color: #ca8a04;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 700;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 2px 8px;
+}
+
+.ceo-promotion-badge-status {
+    align-items: center;
+    border-radius: 12px;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 700;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 2px 8px;
+}
+
+.ceo-promotion-badge-status--expired {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.ceo-promotion-badge-status--ended {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+}
+
+.ceo-promotion-progress-bar {
+    background: #f0f2f5;
+    border-radius: 4px;
+    height: 5px;
+    margin-top: 4px;
+    overflow: hidden;
+    width: 80px;
+}
+
+.ceo-promotion-progress-fill {
+    background: #3b82f6;
+    border-radius: 4px;
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.ceo-promotion-progress-fill--warn {
+    background: #f59e0b;
+}
+
+.ceo-promotion-progress-fill--danger {
+    background: #ef4444;
+}
+
+.ceo-promotion-uses-text,
+.ceo-promotion-date-text {
+    color: #7a8194;
+    font-size: 12px;
+}
+
+.ceo-promotion-date-text {
+    white-space: nowrap;
+}
+
+.ceo-promotion-date-text--expired {
+    color: #ef4444;
+}
+
+.ceo-promotion-divider {
+    border-top: 2px dashed #e8ebf0;
+    margin: 4px 0;
+}
+
+.ceo-promotion-toggle {
+    display: inline-block;
+    flex-shrink: 0;
+    height: 20px;
+    position: relative;
+    width: 36px;
+}
+
+.ceo-promotion-toggle input {
+    height: 0;
+    opacity: 0;
+    width: 0;
+}
+
+.ceo-promotion-slider {
+    background: #c9cdd6;
+    border-radius: 20px;
+    cursor: pointer;
+    inset: 0;
+    position: absolute;
+    transition: background-color 0.2s ease;
+}
+
+.ceo-promotion-slider::before {
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    content: "";
+    height: 14px;
+    left: 3px;
+    position: absolute;
+    top: 3px;
+    transition: transform 0.2s ease;
+    width: 14px;
+}
+
+.ceo-promotion-toggle input:checked + .ceo-promotion-slider {
+    background: #22c55e;
+}
+
+.ceo-promotion-toggle input:checked + .ceo-promotion-slider::before {
+    transform: translateX(16px);
+}
+
+.ceo-promotion-toggle--disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.ceo-promotion-empty-state {
+    color: #a0a8b8;
+    padding: 48px;
+    text-align: center;
+}
+
+.ceo-promotion-empty-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.ceo-promotion-empty-state p {
+    font-size: 14px;
+    margin: 0;
+}
+
+.ceo-promotion-overlay,
+.ceo-promotion-confirm-overlay {
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    inset: 0;
+    position: fixed;
+    z-index: 1100;
+}
+
+.ceo-promotion-overlay.show,
+.ceo-promotion-confirm-overlay.show {
+    display: flex;
+}
+
+.ceo-promotion-overlay {
+    align-items: flex-start;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 40px 18px;
+}
+
+.ceo-promotion-modal {
+    background: #f4f6f9;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    margin: 0 auto 40px;
+    max-width: 720px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.ceo-promotion-modal-topbar {
+    align-items: center;
+    background: #ffffff;
+    border-bottom: 1px solid #e8ebf0;
+    display: flex;
+    justify-content: space-between;
+    padding: 16px 22px;
+}
+
+.ceo-promotion-modal-title {
+    color: #1a1a2e;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.ceo-promotion-modal-sub {
+    color: #7a8194;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.ceo-promotion-btn-close {
+    background: none;
+    border: 0;
+    border-radius: 6px;
+    color: #7a8194;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    padding: 2px 6px;
+}
+
+.ceo-promotion-btn-close:hover {
+    background: #f0f2f5;
+    color: #1a1a2e;
+}
+
+.ceo-promotion-modal-body {
+    padding: 20px;
+}
+
+.ceo-promotion-form-card {
+    border-radius: 12px;
+    margin-bottom: 12px;
+    padding: 18px 20px;
+}
+
+.ceo-promotion-form-errors {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    color: #b91c1c;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+}
+
+.ceo-promotion-form-section {
+    color: #a0a8b8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.ceo-promotion-form-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ceo-promotion-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ceo-promotion-form-group--full {
+    grid-column: 1 / -1;
+}
+
+.ceo-promotion-form-label {
+    align-items: center;
+    color: #555d6e;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 12px;
+    font-weight: 700;
+    gap: 6px;
+}
+
+.ceo-promotion-required {
+    color: #e24b4a;
+}
+
+.ceo-promotion-input,
+.ceo-promotion-textarea {
+    background: #ffffff;
+    border: 1px solid #dde1e7;
+    border-radius: 8px;
+    color: #1a1a2e;
+    font-size: 14px;
+    outline: none;
+    padding: 8px 12px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    width: 100%;
+}
+
+.ceo-promotion-input:focus,
+.ceo-promotion-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.ceo-promotion-textarea {
+    min-height: 68px;
+    resize: vertical;
+}
+
+.ceo-promotion-field-note {
+    color: #a0a8b8;
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.ceo-promotion-type-row {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 14px;
+}
+
+.ceo-promotion-type-option {
+    align-items: center;
+    background: #ffffff;
+    border: 1.5px solid #dde1e7;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    gap: 9px;
+    padding: 11px 14px;
+    text-align: left;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.ceo-promotion-type-option:hover {
+    background: #f8f9fb;
+}
+
+.ceo-promotion-type-option.active {
+    background: #eff6ff;
+    border-color: #3b82f6;
+}
+
+.ceo-promotion-type-icon {
+    font-size: 20px;
+}
+
+.ceo-promotion-type-label,
+.ceo-promotion-type-desc {
+    display: block;
+}
+
+.ceo-promotion-type-label {
+    color: #1a1a2e;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ceo-promotion-type-desc {
+    color: #7a8194;
+    font-size: 11px;
+    margin-top: 1px;
+}
+
+.ceo-promotion-addon {
+    border: 1px solid #dde1e7;
+    border-radius: 8px;
+    display: flex;
+    overflow: hidden;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ceo-promotion-addon:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.ceo-promotion-addon input {
+    background: #ffffff;
+    border: 0;
+    color: #1a1a2e;
+    flex: 1;
+    font-size: 14px;
+    min-width: 0;
+    outline: none;
+    padding: 8px 12px;
+}
+
+.ceo-promotion-addon-text {
+    align-items: center;
+    background: #f8f9fb;
+    border-left: 1px solid #dde1e7;
+    color: #7a8194;
+    display: flex;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0 12px;
+    white-space: nowrap;
+}
+
+.ceo-promotion-status-row {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.ceo-promotion-status-title {
+    color: #1a1a2e;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.ceo-promotion-status-desc {
+    color: #7a8194;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.ceo-promotion-preview-box {
+    background: #f8f9fb;
+    border-left: 3px solid #3b82f6;
+    border-radius: 0 8px 8px 0;
+    margin-top: 10px;
+    padding: 10px 14px;
+}
+
+.ceo-promotion-preview-label {
+    color: #7a8194;
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.ceo-promotion-preview-code {
+    color: #1a1a2e;
+    font-family: "Courier New", monospace;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    overflow-wrap: anywhere;
+}
+
+.ceo-promotion-modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.ceo-promotion-btn-cancel,
+.ceo-promotion-btn-confirm-cancel {
+    background: #ffffff;
+    border: 1px solid #dde1e7;
+    border-radius: 8px;
+    color: #555d6e;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 9px 20px;
+    transition: background-color 0.15s ease;
+}
+
+.ceo-promotion-btn-cancel:hover,
+.ceo-promotion-btn-confirm-cancel:hover {
+    background: #f0f2f5;
+}
+
+.ceo-promotion-btn-primary {
+    padding: 9px 22px;
+}
+
+.ceo-promotion-confirm-overlay {
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+}
+
+.ceo-promotion-confirm-box {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    max-width: 380px;
+    padding: 28px 28px 22px;
+    text-align: center;
+    width: 90%;
+}
+
+.ceo-promotion-confirm-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+}
+
+.ceo-promotion-confirm-title {
+    color: #1a1a2e;
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.ceo-promotion-confirm-msg {
+    color: #7a8194;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 22px;
+}
+
+.ceo-promotion-confirm-btns {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.ceo-promotion-btn-confirm-ok {
+    background: #ef4444;
+    border: 0;
+    border-radius: 8px;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 9px 22px;
+}
+
+.ceo-promotion-btn-confirm-ok:hover {
+    background: #dc2626;
+}
+
+.ceo-promotion-hidden {
+    display: none !important;
+}
+
+@media (max-width: 1200px) {
+    .ceo-promotion-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .ceo-promotion-page {
+        padding: 20px;
+    }
+
+    .ceo-promotion-stats-grid,
+    .ceo-promotion-form-grid,
+    .ceo-promotion-type-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ceo-promotion-filter-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .ceo-promotion-search-box,
+    .ceo-promotion-filter-select,
+    .ceo-promotion-btn-add {
+        width: 100%;
+    }
+
+    .ceo-promotion-modal-footer,
+    .ceo-promotion-confirm-btns {
+        flex-direction: column;
+    }
+}
