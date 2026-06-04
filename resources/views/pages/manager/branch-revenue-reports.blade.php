@@ -172,6 +172,7 @@
         title="Chi nhánh Quận 1"
         period="tháng"
         lastUpdate="14:58 - Cập nhật thành công"
+        :export-url="route('manager.reports.export')"
     />
 
     <div class="branch-revenue-grid">

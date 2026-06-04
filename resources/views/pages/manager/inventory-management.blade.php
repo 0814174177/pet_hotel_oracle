@@ -28,6 +28,7 @@
         title="Quản trị Danh mục Vật tư"
         period="tháng"
         lastUpdate="14:58 - Cập nhật thành công"
+        :export-url="route('manager.inventory.export')"
     />
 
     {{-- KPI SECTION --}}
