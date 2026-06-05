@@ -5,91 +5,97 @@
 </p>
 
 <h1 align="center">ĐỒ ÁN</h1>
-<h2 align="center">Môn học: HỆ QUẢN TRỊ CƠ SỞ DỮ LIỆU</h2>
-<h3 align="center">Mã lớp: IS210.Q22</h3>
-<h3 align="center">Đề tài: Hệ thống quản lý chuỗi khách sạn thú cưng</h3>
-<h3 align="center">Nhóm thực hiện: Nhóm 9</h3>
-<h3 align="center">GVHD: ThS. Đỗ Thị Minh Phụng</h3>
+<h2 align="center">Môn học: Phát triển ứng dụng Web</h2>
+<h3 align="center">Mã lớp: IS207.Q23</h3>
+<h3 align="center">Đề tài: Xây dựng Website Hệ thống quản lý chuỗi khách sạn thú cưng</h3>
+<h3 align="center">Nhóm thực hiện: Nhóm sinh viên thực hiện</h3>
+<h3 align="center">GVHD: ThS. Trình Trọng Tín</h3>
 
 ---
 
 ## NHÓM THỰC HIỆN
 
-| STT | MSSV | Họ và tên |
-|-----|------|-----------|
-| 1 | 24521045 | Trần Đức Mạnh |
-| 2 | 24521034 | Châu Gia Lương |
-| 3 | 24521081 | Nguyễn Văn Minh |
-| 4 | 24521093 | Nguyễn Thế Mỹ |
+| STT | MSSV     | Họ và tên         |
+| --- | -------- | ----------------- |
+| 1   | 22520419 | Nguyễn Thanh Hiển |
+| 2   | 24521045 | Trần Đức Mạnh     |
+| 3   | 24521060 | Lê Quang Minh     |
+| 4   | 24521078 | Nguyễn Trọng Minh |
+| 5   | 24522027 | Thành Công Vinh   |
+| 6   | 24590003 | Trần Quốc Danh    |
 
 ---
 
-# Pet Hotel Laravel - Oracle Setup
+# Pet Hotel - Website quản lý chuỗi khách sạn thú cưng
 
-Dự án **Pet Hotel** được xây dựng bằng **Laravel** và đã được chuẩn bị để chạy với **Oracle Database** thông qua package `yajra/laravel-oci8`.
+**Pet Hotel** là website quản lý chuỗi khách sạn thú cưng, hỗ trợ các nghiệp vụ đặt phòng, chăm sóc thú cưng, quản lý dịch vụ, thanh toán và theo dõi dữ liệu vận hành theo từng chi nhánh.
 
-Oracle Database được giả định là đã được cài đặt sẵn trên máy. Người clone project chỉ cần cấu hình đúng thông tin Oracle user/schema trong file `.env`, sau đó chạy migration, seeder và khởi động website.
+Hệ thống hỗ trợ khách hàng xem thông tin dịch vụ, chi nhánh, loại phòng, quản lý hồ sơ thú cưng, tạo booking, áp dụng mã giảm giá và thanh toán. Bên cạnh đó, các vai trò Manager và CEO có thể theo dõi dashboard, doanh thu, dịch vụ, khuyến mãi, nhân viên, vật tư và tồn kho.
 
 ---
 
-## 1. Yêu cầu môi trường
+## 1. Công nghệ sử dụng
 
-Trước khi chạy project, cần đảm bảo máy đã cài đặt:
+| Nhóm công nghệ     | Nội dung                                                                                      |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| Frontend           | HTML5, CSS3, JavaScript, Laravel Blade, Vite, TailwindCSS, Chart.js, Leaflet, Font Awesome    |
+| Backend            | PHP 8.2, Laravel 12, Eloquent ORM, Middleware, FormRequest, Repository pattern, Service layer |
+| Database           | Oracle Database, package `yajra/laravel-oci8`, Laravel migration và seeder                    |
+| Công cụ phát triển | XAMPP, Composer, Node.js, npm, Laravel Artisan, Git, GitHub                                   |
 
-- PHP 8.2 trở lên
-- Composer
-- Node.js và npm
-- Oracle Database service đang chạy, ví dụ `FREEPDB1`
-- Oracle user/schema, ví dụ `PET_HOTEL`
-- PHP extension `oci8` đã được bật
-- Package `yajra/laravel-oci8` đã có trong project
+---
 
-Kiểm tra PHP extension `oci8`:
+## 2. Hướng dẫn cài đặt
+
+### 2.1. Phần mềm cần cài đặt
+
+Trước khi chạy project, cần chuẩn bị các phần mềm sau:
+
+| Phần mềm              | Mục đích                            |
+| --------------------- | ----------------------------------- |
+| PHP 8.2 trở lên       | Chạy Laravel backend                |
+| Composer              | Cài đặt thư viện PHP                |
+| Node.js và npm        | Cài đặt và build frontend bằng Vite |
+| Oracle Database       | Lưu trữ dữ liệu chính của hệ thống  |
+| Oracle Instant Client | Cho phép PHP kết nối Oracle         |
+| PHP extension `oci8`  | Extension Oracle cho PHP            |
+| Git                   | Clone và quản lý mã nguồn           |
+
+Kiểm tra nhanh các công cụ trong Terminal:
+
+```bash
+php -v
+composer -V
+node -v
+npm -v
+git --version
+```
+
+Kiểm tra PHP đã nhận extension `oci8`:
 
 ```bash
 php -m
 php --ri oci8
 ```
 
-Nếu kết quả có hiển thị `oci8`, nghĩa là PHP đã nhận extension Oracle.
+Nếu kết quả có hiển thị `oci8`, PHP đã có thể kết nối Oracle.
 
----
+### 2.2. Clone project và cài dependency
 
-## 2. Clone project và di chuyển vào thư mục project
-
-Clone source code từ GitHub:
+Clone source code từ GitHub và di chuyển vào thư mục project:
 
 ```bash
 git clone <repo-url>
 cd pet-hotel
 ```
 
-Nếu project nằm trong thư mục khác, cần di chuyển đúng vào thư mục chứa project.
-
-Ví dụ trên Windows:
+Nếu project đã có sẵn trên máy, mở Terminal tại thư mục chứa source code. Ví dụ:
 
 ```bash
-cd D:\test\PetHotel_Group9
+cd D:\zInstall\PHP\htdocs\pet-hotel-v2\pet_hotel_oracle
 ```
 
-Nếu terminal đang ở thư mục khác, có thể dùng lệnh `cd ../` để quay lại thư mục cha, sau đó dùng `cd <tên_thư_mục>` để vào đúng folder project.
-
-Ví dụ:
-
-```bash
-cd ../
-cd ../
-cd test
-cd PetHotel_Group9
-```
-
-Khi terminal hiển thị đúng đường dẫn project, có thể tiếp tục chạy các lệnh cài đặt.
-
----
-
-## 3. Cài đặt dependency
-
-Chạy các lệnh sau để cài đặt thư viện PHP và frontend:
+Cài đặt thư viện PHP và frontend:
 
 ```bash
 composer install
@@ -97,37 +103,29 @@ npm install
 npm run build
 ```
 
-Sau đó tạo file môi trường `.env` từ file mẫu:
+Tạo file môi trường `.env` từ file mẫu:
 
 ```bash
 cp .env.example .env
 ```
 
-Trên Windows PowerShell có thể copy file `.env` bằng:
+Trên Windows PowerShell có thể dùng:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Hoặc dùng Command Prompt:
-
-```cmd
-copy .env.example .env
-```
-
-Tiếp theo, tạo application key cho Laravel:
+Tạo application key cho Laravel:
 
 ```bash
 php artisan key:generate
 ```
 
----
+### 2.3. Cấu hình Oracle trong file `.env`
 
-## 4. Cấu hình Oracle trong file `.env`
+Mở file `.env` và cập nhật thông tin kết nối Oracle theo máy đang chạy project.
 
-Mở file `.env` và cập nhật phần cấu hình database theo Oracle trên máy cá nhân.
-
-Ví dụ:
+Ví dụ cấu hình:
 
 ```env
 DB_CONNECTION=oracle
@@ -143,32 +141,25 @@ DB_SERVER_VERSION=11g
 ORA_MAX_NAME_LEN=30
 ```
 
-Giải thích một số thông tin quan trọng:
+Ý nghĩa các biến chính:
 
-| Biến cấu hình | Ý nghĩa |
-|---|---|
-| `DB_CONNECTION` | Loại database sử dụng. Với project này là `oracle` |
-| `DB_HOST` | Địa chỉ Oracle Database, thường là `127.0.0.1` nếu chạy local |
-| `DB_PORT` | Cổng Oracle, thường là `1521` |
-| `DB_DATABASE` | Tên service/PDB Oracle, ví dụ `FREEPDB1` |
-| `DB_SERVICE_NAME` | Tên service Oracle, thường giống `DB_DATABASE` |
-| `DB_USERNAME` | Oracle user/schema dùng cho project |
-| `DB_PASSWORD` | Mật khẩu của Oracle user/schema |
-| `DB_CHARSET` | Bộ mã ký tự, nên dùng `AL32UTF8` để hỗ trợ tiếng Việt |
-| `ORA_MAX_NAME_LEN` | Giới hạn độ dài tên object Oracle, nên để `30` |
+| Biến cấu hình      | Ý nghĩa                                                       |
+| ------------------ | ------------------------------------------------------------- |
+| `DB_CONNECTION`    | Loại database, dùng `oracle`                                  |
+| `DB_HOST`          | Địa chỉ Oracle Database, thường là `127.0.0.1` khi chạy local |
+| `DB_PORT`          | Cổng Oracle, thường là `1521`                                 |
+| `DB_DATABASE`      | Tên service/PDB Oracle, ví dụ `FREEPDB1`                      |
+| `DB_SERVICE_NAME`  | Tên service Oracle, thường giống `DB_DATABASE`                |
+| `DB_USERNAME`      | Oracle user/schema dùng cho project                           |
+| `DB_PASSWORD`      | Mật khẩu của Oracle user/schema                               |
+| `DB_CHARSET`       | Bộ mã ký tự, nên dùng `AL32UTF8` để hỗ trợ tiếng Việt         |
+| `ORA_MAX_NAME_LEN` | Giới hạn độ dài tên object Oracle, nên để `30`                |
 
-Lưu ý:
+Không commit file `.env` thật hoặc mật khẩu Oracle thật lên GitHub.
 
-- Các giá trị như `DB_DATABASE`, `DB_SERVICE_NAME`, `DB_USERNAME` và `DB_PASSWORD` phải được thay đổi theo cấu hình Oracle trên máy cá nhân.
-- Không commit file `.env` thật hoặc password Oracle thật lên GitHub.
+### 2.4. Tạo Oracle user/schema
 
----
-
-## 5. Tạo Oracle user/schema nếu chưa có
-
-Nếu chưa có user/schema Oracle, có thể tạo bằng tài khoản có quyền DBA.
-
-Ví dụ đăng nhập bằng tài khoản quản trị Oracle rồi chạy:
+Nếu chưa có Oracle user/schema cho project, đăng nhập Oracle bằng tài khoản có quyền DBA rồi chạy:
 
 ```sql
 CREATE USER PET_HOTEL IDENTIFIED BY your_password;
@@ -178,28 +169,16 @@ GRANT CONNECT, RESOURCE TO PET_HOTEL;
 ALTER USER PET_HOTEL QUOTA UNLIMITED ON USERS;
 ```
 
-Trong đó:
-
-| Thành phần | Ý nghĩa |
-|---|---|
-| `PET_HOTEL` | Tên user/schema Oracle dùng cho project |
-| `your_password` | Mật khẩu của user/schema |
-| `CONNECT` | Quyền kết nối vào Oracle |
-| `RESOURCE` | Quyền tạo một số object như table, sequence, procedure |
-| `QUOTA UNLIMITED ON USERS` | Cho phép user tạo dữ liệu trong tablespace `USERS` |
-
-Sau khi tạo xong user/schema, cập nhật lại `.env`:
+Sau đó cập nhật lại `.env`:
 
 ```env
 DB_USERNAME=PET_HOTEL
 DB_PASSWORD=your_password
 ```
 
----
+### 2.5. Chạy migration, seeder và khởi động web
 
-## 6. Xóa cache cấu hình Laravel
-
-Sau khi chỉnh file `.env`, chạy các lệnh sau để Laravel nhận lại cấu hình mới:
+Sau khi chỉnh `.env`, xóa cache cấu hình để Laravel nhận thông tin mới:
 
 ```bash
 php artisan config:clear
@@ -208,24 +187,13 @@ php artisan route:clear
 php artisan view:clear
 ```
 
----
-
-## 7. Chạy migration, seeder và web
-
-Chạy lệnh sau để tạo lại toàn bộ bảng và dữ liệu mẫu:
+Tạo bảng và nạp dữ liệu mẫu:
 
 ```bash
 php artisan migrate:fresh --seed
 ```
 
-Lệnh này sẽ:
-
-- Xóa các bảng cũ nếu có
-- Tạo lại database schema bằng migration
-- Chạy seeder để thêm dữ liệu mẫu
-- Tạo tài khoản demo, chi nhánh, phòng, khách hàng, thú cưng, booking, order, payment và các dữ liệu liên quan
-
-Sau đó khởi động Laravel server:
+Khởi động Laravel server:
 
 ```bash
 php artisan serve
@@ -239,7 +207,7 @@ http://127.0.0.1:8000
 
 ---
 
-## 8. Tài khoản demo
+## 3. Tài khoản demo
 
 Các tài khoản seed mặc định sử dụng chung mật khẩu:
 
@@ -251,39 +219,28 @@ Một số tài khoản demo có thể dùng:
 
 ```text
 admin.demo@pethotel.test
-manager.govap@pethotel.test
-groomer.govap@pethotel.test
+manager.central@pethotel.test
 customer.small@pethotel.test
 customer.medium@pethotel.test
 customer.large@pethotel.test
-customer.capacity@pethotel.test
 ```
 
 Ngoài ra, người dùng cũng có thể tự tạo tài khoản khách hàng mới trực tiếp trên website thông qua trang đăng ký.
 
 ---
 
-## 9. Luồng demo chính
+## 4. Luồng demo chính
 
-Luồng demo tập trung vào chức năng phía khách hàng:
+Luồng demo chính của hệ thống gồm:
 
-1. Đăng ký tài khoản khách hàng mới
-2. Đăng nhập tài khoản khách hàng
-3. Xem và cập nhật hồ sơ cá nhân
-4. Xem danh sách thú cưng
-5. Thêm thú cưng mới
-6. Cập nhật thông tin thú cưng
-7. Tạo booking đặt phòng
-8. Chọn dịch vụ đi kèm
-9. Áp dụng mã giảm giá
-10. Thanh toán
-11. Xem lịch sử booking
-12. Xem chi tiết booking
-13. Demo truy xuất đồng thời bằng hai tài khoản khách hàng
+1. Public: xem trang chủ, dịch vụ, chi nhánh, khách sạn cho chó, khách sạn cho mèo và chi tiết loại phòng.
+2. Customer: đăng ký, đăng nhập, cập nhật hồ sơ, quản lý thú cưng, tạo booking, chọn dịch vụ, áp dụng coupon, thanh toán và xem lịch sử booking.
+3. Manager: xem dashboard, quản lý dịch vụ, khuyến mãi, nhân viên, vật tư và tồn kho theo phạm vi quản lý.
+4. CEO: xem dashboard tổng quan, thống kê doanh thu, báo cáo vận hành và dữ liệu tổng hợp toàn hệ thống.
 
 ---
 
-## 10. Một số đường dẫn thường dùng
+## 5. Một số đường dẫn thường dùng
 
 ```text
 /authentication/register
@@ -307,9 +264,9 @@ API kiểm tra phòng trống:
 
 ---
 
-## 11. Ghi chú về Oracle Migration
+## 6. Ghi chú về cơ sở dữ liệu Oracle
 
-Project đã được cấu hình ưu tiên sử dụng Oracle để tránh chạy nhầm sang MySQL hoặc SQLite.
+Project sử dụng Oracle Database làm cơ sở dữ liệu chính và đã được cấu hình để tránh chạy nhầm sang MySQL hoặc SQLite.
 
 Các điểm đã cấu hình gồm:
 
@@ -323,7 +280,27 @@ Vì vậy, khi clone project về, người dùng chỉ cần cấu hình đúng
 
 ---
 
-## 12. Lệnh chạy nhanh
+## 7. Tổ chức mã nguồn
+
+| Thư mục/file               | Vai trò                                                                         |
+| -------------------------- | ------------------------------------------------------------------------------- |
+| `app/Http/Controllers/Web` | Xử lý các trang web theo nhóm Authentication, Customer, Manager, CEO và Default |
+| `app/Http/Controllers/Api` | Xử lý API JSON cho dashboard, báo cáo, tài chính, dịch vụ và tồn kho            |
+| `app/Http/Requests`        | Chứa các lớp validate dữ liệu đầu vào                                           |
+| `app/Http/Middleware`      | Chứa middleware phân quyền và kiểm soát truy cập                                |
+| `app/Models`               | Chứa Eloquent model ánh xạ với các bảng Oracle                                  |
+| `app/Repositories`         | Tách phần truy vấn dữ liệu theo interface và implementation                     |
+| `app/Services`             | Xử lý nghiệp vụ booking và các logic dùng lại                                   |
+| `routes/web`               | Route giao diện web, tách theo public, customer, manager, ceo và authentication |
+| `routes/api`               | Route API trả JSON                                                              |
+| `resources/views`          | Chứa Blade template, layout, component và các trang giao diện                   |
+| `public/assets`            | Chứa CSS, JavaScript và hình ảnh                                                |
+| `database/migrations`      | Định nghĩa cấu trúc bảng                                                        |
+| `database/seeders`         | Tạo dữ liệu mẫu phục vụ demo                                                    |
+
+---
+
+## 8. Lệnh chạy nhanh
 
 Nếu đã cài đủ môi trường và cấu hình `.env`, có thể chạy nhanh theo thứ tự sau:
 
@@ -336,12 +313,14 @@ npm run build
 cp .env.example .env
 php artisan key:generate
 php artisan config:clear
-php artisan cache:clear -- nếu lỗi có thể bỏ qua
-php artisan route:clear -- nếu lỗi có thể bỏ qua
+php artisan cache:clear
+php artisan route:clear
 php artisan view:clear
 php artisan migrate:fresh --seed
 php artisan serve
 ```
+
+Nếu `cache:clear` hoặc `route:clear` báo lỗi do cache chưa được tạo, có thể bỏ qua và chạy tiếp các lệnh còn lại.
 
 Trên Windows PowerShell, nếu lệnh `cp` không chạy thì dùng:
 
@@ -357,9 +336,9 @@ http://127.0.0.1:8000
 
 ---
 
-## 13. Ghi chú khi demo
+## 9. Ghi chú khi demo
 
-Một số phần quản lý như Manager và CEO có thể đang là giao diện placeholder, nhưng API đã đọc dữ liệu thật từ database.
+Một số màn hình quản lý sử dụng API và dữ liệu seed để phục vụ demo, kiểm thử và nghiệm thu.
 
 Luồng khách hàng, booking và payment là luồng chính dùng để demo. Đây là luồng có tạo dữ liệu thật và có xử lý transaction.
 

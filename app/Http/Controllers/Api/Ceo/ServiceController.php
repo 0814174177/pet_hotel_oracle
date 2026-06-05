@@ -7,22 +7,27 @@ use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Ceo\ServiceRevenueRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Controller quản lý các API liên quan đến danh mục và doanh thu dịch vụ
+ * cung cấp số liệu phân tích chuyên sâu cho CEO.
+ */
 class ServiceController extends ApiController
 {
+    /**
+     * Khởi tạo ServiceController.
+     *
+     * @param ServiceRevenueRepositoryInterface $serviceRevenues Giao diện xử lý dữ liệu doanh thu dịch vụ.
+     */
     public function __construct(
         protected ServiceRevenueRepositoryInterface $serviceRevenues
     ) {
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay KPI tong quan dich vu theo khoang thoi gian filter.
+     * Lấy dữ liệu KPI tổng quan của các dịch vụ theo khoảng thời gian lọc.
      *
-     * Input:
-     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa các tham số bắt đầu, kết thúc và kỳ trước.
+     * @return JsonResponse Trả về đối tượng JSON chứa dữ liệu tổng quan.
      */
     public function summary(DateRangeFilterRequest $request): JsonResponse
     {
@@ -32,14 +37,10 @@ class ServiceController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach catalog dich vu de hien thi tren trang quan tri dich vu CEO.
+     * Lấy danh sách danh mục (catalog) dịch vụ để hiển thị trên trang quản trị của CEO.
      *
-     * Input:
-     * - DateRangeFilterRequest va cac filter bo sung neu co.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian và các điều kiện lọc bổ sung.
+     * @return JsonResponse Trả về đối tượng JSON chứa danh mục dịch vụ.
      */
     public function catalog(DateRangeFilterRequest $request): JsonResponse
     {
@@ -49,14 +50,10 @@ class ServiceController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay bang phan tich doanh thu tung dich vu theo filter hien tai.
+     * Lấy bảng phân tích chi tiết doanh thu của từng dịch vụ dựa trên bộ lọc.
      *
-     * Input:
-     * - DateRangeFilterRequest va cac filter sap xep/loc doanh thu neu co.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian và tham số sắp xếp/lọc doanh thu.
+     * @return JsonResponse Trả về đối tượng JSON chứa danh sách doanh thu dịch vụ.
      */
     public function index(DateRangeFilterRequest $request): JsonResponse
     {
@@ -66,14 +63,10 @@ class ServiceController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay dich vu ganh doanh thu toan chuoi trong khoang thoi gian filter.
+     * Lấy thông tin dịch vụ mang lại doanh thu cao nhất toàn chuỗi trong kỳ lọc.
      *
-     * Input:
-     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa các tham số lọc thời gian.
+     * @return JsonResponse Trả về đối tượng JSON chứa thông tin dịch vụ doanh thu cao nhất.
      */
     public function highestRevenue(DateRangeFilterRequest $request): JsonResponse
     {
@@ -83,14 +76,10 @@ class ServiceController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay dich vu co doanh thu thap nhat trong khoang thoi gian filter.
+     * Lấy thông tin dịch vụ có doanh thu thấp nhất toàn chuỗi trong kỳ lọc.
      *
-     * Input:
-     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa các tham số lọc thời gian.
+     * @return JsonResponse Trả về đối tượng JSON chứa thông tin dịch vụ doanh thu thấp nhất.
      */
     public function lowestRevenue(DateRangeFilterRequest $request): JsonResponse
     {
@@ -100,14 +89,10 @@ class ServiceController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach dich vu khong phat sinh doanh thu da thanh toan trong ky loc.
+     * Lấy danh sách các dịch vụ không phát sinh doanh thu (không hoạt động) trong kỳ lọc.
      *
-     * Input:
-     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa các tham số lọc thời gian.
+     * @return JsonResponse Trả về đối tượng JSON chứa danh sách dịch vụ không có doanh thu.
      */
     public function noActivity(DateRangeFilterRequest $request): JsonResponse
     {
@@ -117,14 +102,10 @@ class ServiceController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay dich vu sieu loi nhuan toan chuoi theo khoang thoi gian filter.
+     * Lấy thông tin dịch vụ mang lại tỷ suất lợi nhuận cao nhất toàn chuỗi trong kỳ lọc.
      *
-     * Input:
-     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa các tham số lọc thời gian.
+     * @return JsonResponse Trả về đối tượng JSON chứa thông tin dịch vụ sinh lời cao nhất.
      */
     public function mostProfitable(DateRangeFilterRequest $request): JsonResponse
     {
@@ -134,14 +115,10 @@ class ServiceController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Gom filter ngay tu DateRangeFilterRequest voi cac filter rieng cua trang dich vu.
+     * Xử lý, xác thực và hợp nhất các điều kiện lọc thời gian với các điều kiện lọc dành riêng cho dịch vụ.
      *
-     * Input:
-     * - DateRangeFilterRequest gom start_date, end_date va query filter bo sung.
-     *
-     * Output:
-     * - Mang filter truyen xuong ServiceRevenueRepository.
+     * @param DateRangeFilterRequest $request Request chứa dữ liệu đầu vào.
+     * @return array Mảng chứa các quy tắc lọc đã được xác thực truyền xuống Repository.
      */
     private function filters(DateRangeFilterRequest $request): array
     {

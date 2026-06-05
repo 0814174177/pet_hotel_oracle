@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Web\Ceo;
 
 use App\Exports\Ceo\BranchNetworkExport;
+use App\Exports\Ceo\DashboardOverviewExport;
 use App\Exports\Ceo\FinanceExport;
 use App\Http\Controllers\Web\WebController;
 use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Ceo\BranchNetworkRepositoryInterface;
+use App\Repositories\Contracts\Ceo\CeoDashboardRepositoryInterface;
 use App\Repositories\Contracts\Ceo\CeoFinanceRepositoryInterface;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -15,8 +17,19 @@ class ExportController extends WebController
 {
     public function __construct(
         private readonly CeoFinanceRepositoryInterface $financeRepository,
-        private readonly BranchNetworkRepositoryInterface $branchRepository
+        private readonly BranchNetworkRepositoryInterface $branchRepository,
+        private readonly CeoDashboardRepositoryInterface $dashboardRepository
     ) {
+    }
+
+    public function dashboard(DateRangeFilterRequest $request): BinaryFileResponse
+    {
+        $filters = $request->getFiltersArray();
+
+        return Excel::download(
+            new DashboardOverviewExport($this->dashboardRepository->getDashboard($filters), $filters),
+            $this->filename('ceo-dashboard')
+        );
     }
 
     public function finance(DateRangeFilterRequest $request): BinaryFileResponse

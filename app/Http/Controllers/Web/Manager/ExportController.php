@@ -79,7 +79,7 @@ class ExportController extends WebController
 
     private function currentManagerBranchId(): int
     {
-        $branchId = auth()->user()?->employee?->branch_id;
+        $branchId = auth()->user()?->managerBranchId();
 
         abort_if($branchId === null, 403, 'Manager account is not assigned to a branch.');
 

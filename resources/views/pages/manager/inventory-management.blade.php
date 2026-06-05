@@ -37,6 +37,7 @@
 
     <x-global-control-panel
         :title="$managerPanelTitle"
+        :export-url="route('manager.inventory.export')"
     />
 
     {{-- KPI SECTION --}}

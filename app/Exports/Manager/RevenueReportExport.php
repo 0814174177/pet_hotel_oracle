@@ -16,11 +16,12 @@ class RevenueReportExport implements WithMultipleSheets
     public function sheets(): array
     {
         return [
-            new ArraySheetExport('Tong quan', ['Chi so', 'Gia tri', 'Ky truoc Nguong', 'Ghi chu'], $this->summaryRows(), [
+            new ArraySheetExport('Tong quan', ['Chi so', 'Hien tai', 'Ky truoc', 'Tang truong', 'Ghi chu'], $this->summaryRows(), [
                 'B' => '#,##0.00',
                 'C' => '#,##0.00',
+                'D' => '0.00',
             ]),
-            new ArraySheetExport('So sanh doanh thu', ['Ngay', 'Doanh thu hien tai', 'Doanh thu ky truoc', 'Tang truong (%)'], $this->comparisonRows(), [
+            new ArraySheetExport('So sanh doanh thu', ['Ngay', 'Doanh thu ky nay', 'Doanh thu ky truoc', 'Tang truong (%)'], $this->revenueComparisonRows(), [
                 'B' => '#,##0',
                 'C' => '#,##0',
                 'D' => '0.00',
@@ -29,15 +30,12 @@ class RevenueReportExport implements WithMultipleSheets
                 'B' => '#,##0',
                 'C' => '0.00',
             ]),
-            new ArraySheetExport('Hieu suat NV', ['Ma NV', 'Nhan vien', 'Doanh thu', 'So don', 'Ty le upsell (%)', 'Canh bao'], $this->employeeRows(), [
+            new ArraySheetExport('Nhan vien', ['Nhan vien', 'Vai tro', 'Doanh thu', 'Upsell', 'Ghi chu'], $this->employeeRows(), [
                 'C' => '#,##0',
                 'D' => '#,##0',
-                'E' => '0.00',
             ]),
-            new ArraySheetExport('Khach hang', ['Chi so', 'Gia tri', 'Ky truoc', 'Tang truong (%)', 'Xu huong'], $this->customerRows(), [
+            new ArraySheetExport('Khach hang', ['Chi so', 'Gia tri', 'Ghi chu'], $this->customerRows(), [
                 'B' => '#,##0.00',
-                'C' => '#,##0.00',
-                'D' => '0.00',
             ]),
         ];
     }
@@ -48,21 +46,19 @@ class RevenueReportExport implements WithMultipleSheets
         $aov = $this->data['aov'] ?? [];
 
         return [
-            ['Doanh thu hien tai', $this->value($target, 'current_revenue'), null, 'VND'],
-            ['Target thang', $this->value($target, 'target_month'), null, 'VND'],
-            ['Con lai de dat target', $this->value($target, 'remaining_to_target'), null, 'VND'],
-            ['Tien do target (%)', $this->value($target, 'progress_percent'), null, (string) $this->value($target, 'target_warning', '')],
-            ['Doanh thu can moi ngay', $this->value($target, 'required_revenue_per_day'), null, 'VND'],
-            ['So ngay con lai', $this->value($target, 'days_left'), null, 'Ngay'],
-            ['AOV hien tai', $this->value($aov, 'current_aov'), $this->value($aov, 'previous_aov'), (string) $this->value($aov, 'trend', '')],
-            ['So don hien tai', $this->value($aov, 'current_orders'), $this->value($aov, 'previous_orders'), 'Don'],
-            ['Doanh thu AOV', $this->value($aov, 'current_revenue'), $this->value($aov, 'previous_revenue'), 'VND'],
-            ['Tang truong AOV (%)', $this->value($aov, 'aov_growth_percent'), null, ''],
-            ['Gia tri don cao nhat', $this->value($aov, 'max_order_value'), null, 'VND'],
+            ['Khoang ngay', $this->dateRangeLabel($this->filters), null, null, ''],
+            ['Doanh thu hien tai', $this->value($target, 'current_revenue'), null, null, ''],
+            ['Muc tieu thang', $this->value($target, 'target_month'), null, $this->value($target, 'progress_percent'), (string) $this->value($target, 'target_warning', '')],
+            ['Con thieu target', $this->value($target, 'remaining_to_target'), null, null, ''],
+            ['Can moi ngay', $this->value($target, 'required_revenue_per_day'), null, null, 'So ngay con lai: '.$this->value($target, 'days_left', 0)],
+            ['So don ky nay', $this->value($aov, 'current_orders'), $this->value($aov, 'previous_orders'), null, ''],
+            ['Doanh thu ky nay', $this->value($aov, 'current_revenue'), $this->value($aov, 'previous_revenue'), null, ''],
+            ['AOV', $this->value($aov, 'current_aov'), $this->value($aov, 'previous_aov'), $this->value($aov, 'aov_growth_percent'), (string) $this->value($aov, 'trend', '')],
+            ['Gia tri don cao nhat', $this->value($aov, 'max_order_value'), null, null, ''],
         ];
     }
 
-    private function comparisonRows(): array
+    private function revenueComparisonRows(): array
     {
         return array_map(fn (array $row): array => [
             $this->value($row, 'revenue_date'),
@@ -84,24 +80,39 @@ class RevenueReportExport implements WithMultipleSheets
     private function employeeRows(): array
     {
         return array_map(fn (array $row): array => [
-            $this->value($row, 'employee_id'),
-            $this->value($row, 'employee_name'),
+            $this->value($row, 'employee_name', $this->value($row, 'name')),
+            $this->value($row, 'role_name', $this->value($row, 'role')),
             $this->value($row, 'revenue'),
-            $this->value($row, 'order_count'),
-            $this->value($row, 'upsell_rate'),
-            $this->value($row, 'warning_text'),
+            $this->value($row, 'upsell_value', $this->value($row, 'upsell_count')),
+            $this->value($row, 'warning_text', ''),
         ], $this->data['employee_performance'] ?? []);
     }
 
     private function customerRows(): array
     {
-        return array_map(fn (array $row): array => [
-            $this->value($row, 'metric'),
-            $this->value($row, 'value'),
-            $this->value($row, 'previous_value'),
-            $this->value($row, 'growth_percent'),
-            $this->value($row, 'trend'),
-        ], $this->data['customer_retention'] ?? []);
+        $retention = $this->data['customer_retention'] ?? [];
+
+        if ($retention === []) {
+            return [];
+        }
+
+        return [
+            ['Ty le quay lai', $this->value($retention, 'retention_rate'), (string) $this->value($retention, 'trend', '')],
+            ['Khach moi', $this->value($retention, 'new_customers'), ''],
+            ['Khach trung thanh', $this->value($retention, 'loyal_customers'), ''],
+        ];
+    }
+
+    private function dateRangeLabel(array $filters): string
+    {
+        $start = $filters['start_date'] ?? null;
+        $end = $filters['end_date'] ?? null;
+
+        if ($start && $end) {
+            return "{$start} - {$end}";
+        }
+
+        return 'Mac dinh theo he thong';
     }
 
     private function value(array $row, string $key, mixed $default = null): mixed

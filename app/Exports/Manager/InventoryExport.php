@@ -19,22 +19,22 @@ class InventoryExport implements WithMultipleSheets
             new ArraySheetExport('Tong quan', ['Chi so', 'Gia tri', 'Ghi chu'], $this->summaryRows(), [
                 'B' => '#,##0.00',
             ]),
-            new ArraySheetExport('Danh sach vat tu', ['Ma vat tu', 'Ten vat tu', 'Nhom', 'Don vi', 'Don gia', 'Ton kho', 'Nguong nhap', 'Trang thai', 'Canh bao', 'Cap nhat luc'], $this->materialRows(), [
+            new ArraySheetExport('Vat tu', ['Ma VT', 'Ten vat tu', 'Nhom', 'Don vi', 'Don gia', 'Ton kho', 'Nguong', 'Trang thai', 'Canh bao', 'Cap nhat'], $this->materialRows(), [
                 'E' => '#,##0',
-                'F' => '#,##0',
-                'G' => '#,##0',
+                'F' => '#,##0.00',
+                'G' => '#,##0.00',
             ]),
-            new ArraySheetExport('Het hang', ['ID SP', 'Ten vat tu', 'Nhom', 'Ton kho', 'Nguong nhap', 'Don vi', 'Canh bao', 'Cap nhat luc'], $this->warningRows('out_of_stock'), [
-                'D' => '#,##0',
-                'E' => '#,##0',
+            new ArraySheetExport('Het hang', ['ID', 'Ten vat tu', 'Nhom', 'Ton kho', 'Nguong', 'Don vi', 'Canh bao', 'Cap nhat'], $this->warningRows('out_of_stock'), [
+                'D' => '#,##0.00',
+                'E' => '#,##0.00',
             ]),
-            new ArraySheetExport('Sap het hang', ['ID SP', 'Ten vat tu', 'Nhom', 'Ton kho', 'Nguong nhap', 'Don vi', 'Canh bao', 'Cap nhat luc'], $this->warningRows('low_stock'), [
-                'D' => '#,##0',
-                'E' => '#,##0',
+            new ArraySheetExport('Sap het', ['ID', 'Ten vat tu', 'Nhom', 'Ton kho', 'Nguong', 'Don vi', 'Canh bao', 'Cap nhat'], $this->warningRows('low_stock'), [
+                'D' => '#,##0.00',
+                'E' => '#,##0.00',
             ]),
-            new ArraySheetExport('Gia tri theo nhom', ['Nhom vat tu', 'So loai vat tu', 'Tong so luong', 'Gia tri ton kho'], $this->categoryRows(), [
+            new ArraySheetExport('Gia tri theo nhom', ['Nhom vat tu', 'So loai', 'Tong so luong', 'Gia tri ton kho'], $this->categoryValueRows(), [
                 'B' => '#,##0',
-                'C' => '#,##0',
+                'C' => '#,##0.00',
                 'D' => '#,##0',
             ]),
         ];
@@ -43,18 +43,18 @@ class InventoryExport implements WithMultipleSheets
     private function summaryRows(): array
     {
         $kpi = $this->data['kpi'] ?? [];
-        $comparison = $this->value($kpi, 'material_type_comparison', []);
-        $comparison = is_array($comparison) ? $comparison : [];
+        $comparison = $kpi['material_type_comparison'] ?? [];
 
         return [
-            ['Tong vat tu', $this->value($kpi, 'total_materials'), 'Dang hoat dong tai chi nhanh'],
-            ['Het hang', $this->value($kpi, 'out_of_stock_count'), 'Can nhap bo sung ngay'],
-            ['Sap het hang', $this->value($kpi, 'low_stock_count'), 'Bang hoac duoi nguong nhap lai'],
-            ['Gia tri ton kho', $this->value($kpi, 'inventory_value'), 'VND'],
-            ['Gia dinh bien loi nhuan (%)', $this->value($kpi, 'margin_percent_assumption'), ''],
-            ['Canh bao ton kho', null, $this->value($kpi, 'inventory_warning')],
+            ['Khoang ngay', $this->dateRangeLabel($this->filters), ''],
+            ['Tong vat tu', $this->value($kpi, 'total_materials'), ''],
+            ['Het hang', $this->value($kpi, 'out_of_stock_count'), ''],
+            ['Sap het', $this->value($kpi, 'low_stock_count'), ''],
+            ['Gia tri ton kho', $this->value($kpi, 'inventory_value'), ''],
+            ['Margin tam tinh (%)', $this->value($kpi, 'margin_percent_assumption'), ''],
+            ['Canh bao', $this->value($kpi, 'inventory_warning'), (string) $this->value($kpi, 'warning_level', '')],
             ['Bien dong so loai vat tu', $this->value($comparison, 'delta_materials'), (string) $this->value($comparison, 'trend', '')],
-            ['Ty le bien dong (%)', $this->value($comparison, 'change_percent'), ''],
+            ['Tang truong so loai (%)', $this->value($comparison, 'change_percent'), ''],
         ];
     }
 
@@ -88,7 +88,7 @@ class InventoryExport implements WithMultipleSheets
         ], $this->data[$key] ?? []);
     }
 
-    private function categoryRows(): array
+    private function categoryValueRows(): array
     {
         return array_map(fn (array $row): array => [
             $this->value($row, 'product_category_name'),
@@ -96,6 +96,18 @@ class InventoryExport implements WithMultipleSheets
             $this->value($row, 'total_quantity'),
             $this->value($row, 'inventory_value'),
         ], $this->data['inventory_value_by_category'] ?? []);
+    }
+
+    private function dateRangeLabel(array $filters): string
+    {
+        $start = $filters['start_date'] ?? null;
+        $end = $filters['end_date'] ?? null;
+
+        if ($start && $end) {
+            return "{$start} - {$end}";
+        }
+
+        return 'Mac dinh theo he thong';
     }
 
     private function value(array $row, string $key, mixed $default = null): mixed

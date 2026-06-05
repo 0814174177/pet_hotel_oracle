@@ -36,6 +36,7 @@
 
     <x-global-control-panel
         :title="$managerPanelTitle"
+        :export-url="route('manager.reports.export')"
     />
 
     <div class="branch-revenue-grid">
