@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Web\Manager\DashboardController;
 use App\Http\Controllers\Web\Manager\EmployeeController;
+use App\Http\Controllers\Web\Manager\ExportController;
 use App\Http\Controllers\Web\Manager\InventoryController;
 use App\Http\Controllers\Web\Manager\PromotionController;
 use App\Http\Controllers\Web\Manager\ReportController;

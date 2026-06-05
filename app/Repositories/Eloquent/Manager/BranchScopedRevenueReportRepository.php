@@ -58,7 +58,7 @@ class BranchScopedRevenueReportRepository implements BranchScopedRevenueReportRe
                     :p_branch_id AS branch_id,
                     TO_DATE(:p_start_date, 'YYYY-MM-DD') AS start_date,
                     TO_DATE(:p_end_date, 'YYYY-MM-DD') AS end_date,
-                    :p_target_month AS target_month
+                    TO_NUMBER(:p_target_month) AS target_month
                 FROM dual
             ),
             revenue AS (

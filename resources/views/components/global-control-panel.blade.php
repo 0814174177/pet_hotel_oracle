@@ -16,6 +16,30 @@
 {{-- Load JS --}}
 @once
 @push('scripts')
+<script>
+  document.addEventListener('click', function (event) {
+    const exportButton = event.target.closest('.js-export-excel');
+
+    if (!exportButton) {
+      return;
+    }
+
+    const panel = exportButton.closest('.global-control-panel');
+    const startDate = panel?.querySelector('.js-start-date')?.value;
+    const endDate = panel?.querySelector('.js-end-date')?.value;
+    const url = new URL(exportButton.dataset.exportUrl, window.location.origin);
+
+    if (startDate) {
+      url.searchParams.set('start_date', startDate);
+    }
+
+    if (endDate) {
+      url.searchParams.set('end_date', endDate);
+    }
+
+    exportButton.href = url.toString();
+  });
+</script>
 {{-- Hàm asset() sẽ tự động tạo URL tuyệt đối trỏ vào thư mục public của dự án --}}
 <script>
 (() => {
@@ -102,6 +126,13 @@ $defaultEndDate = $endDate
       <button type="button" class="js-apply-filter global-control-panel__apply-btn">
         Lọc
       </button>
+
+      @if ($exportUrl)
+        <a href="{{ $exportUrl }}" class="js-export-excel global-control-panel__export-btn" data-export-url="{{ $exportUrl }}">
+          <span class="global-control-panel__export-icon">XLSX</span>
+          <span>Xu&#7845;t Excel</span>
+        </a>
+      @endif
     </div>
   </div>
 </div>
