@@ -1,5 +1,12 @@
 @php
-    $managerBranchId = auth()->user()?->managerBranchId();
+    $managerUser = auth()->user();
+    $managerEmployee = $managerUser?->employee;
+    $managerBranchId = $managerUser?->managerBranchId();
+    $managerName = $managerEmployee?->full_name
+        ?? $managerUser?->name
+        ?? 'Branch Manager';
+    $managerBranchName = $managerEmployee?->branch?->branch_name
+        ?? ($managerBranchId ? 'Chi nhánh #'.$managerBranchId : 'Chưa gán chi nhánh');
     $managerDashboardUrl = $managerBranchId
         ? route('manager.branches.dashboard', ['branchId' => $managerBranchId])
         : route('manager.dashboard');
@@ -17,7 +24,7 @@
 <div class="manager-sidebar-inner">
     <div class="manager-sidebar-header">
         <div class="manager-sidebar-logo">
-            <span class="manager-sidebar-logo-icon">🐾</span>
+            <img src="{{ asset('assets/client/images/logo&banner/logo.jpg') }}" alt="Pet Hotel Logo" class="manager-sidebar-logo-img">
             <span class="manager-sidebar-logo-text">Pet Hotel</span>
         </div>
 
@@ -79,7 +86,10 @@
     <div class="manager-sidebar-footer">
         <div class="manager-sidebar-role">
             <span class="manager-sidebar-role-icon">👤</span>
-            <span class="manager-sidebar-link-text">Branch Manager</span>
+            <span class="manager-sidebar-role-copy">
+                <span class="manager-sidebar-link-text manager-sidebar-role-name">{{ $managerName }}</span>
+                <span class="manager-sidebar-link-text manager-sidebar-role-branch">Branch Manager - {{ $managerBranchName }}</span>
+            </span>
         </div>
 
         <form action="{{ route('authentication.logout') }}" method="POST" class="manager-logout-form">

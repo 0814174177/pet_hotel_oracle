@@ -80,7 +80,7 @@ $stats = [
         </select>
 
         <button type="button" class="ceo-service-add-btn">
-          + Thêm dịch vụ mới
+          Thêm dịch vụ mới
         </button>
       </div>
     </div>

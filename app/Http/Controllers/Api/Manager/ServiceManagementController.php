@@ -54,11 +54,14 @@ class ServiceManagementController extends ApiController
     public function revenueProgress(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+        $filters = array_merge($request->getFiltersArray(), $request->validate([
+            'target_service_revenue' => ['nullable', 'numeric', 'min:0'],
+        ]));
 
         return $this->respondData(
             $this->branchServiceManagementRepository->getRevenueProgress(
                 $branchId,
-                $request->getFiltersArray()
+                $filters
             )
         );
     }

@@ -80,6 +80,17 @@ body {
     font-size: 20px;
 }
 
+.manager-sidebar-logo-img {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    display: block;
+    object-fit: contain;
+    background: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+}
+
 .manager-sidebar-logo-text {
     color: #ffffff;
     font-size: 18px;
@@ -174,6 +185,28 @@ body {
     align-items: center;
     gap: 8px;
     padding: 0 12px;
+}
+
+.manager-sidebar-role-copy {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.manager-sidebar-role-name,
+.manager-sidebar-role-branch {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.manager-sidebar-role-name {
+    color: #ffffff;
+}
+
+.manager-sidebar-role-branch {
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .manager-sidebar-role-icon {

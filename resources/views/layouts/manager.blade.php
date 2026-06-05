@@ -25,9 +25,10 @@
 
     {{-- CSS riêng từng page --}}
     @stack('styles')
+    <link rel="stylesheet" href="{{ asset('assets/shared/css/no-icons.css') }}?v={{ time() }}">
   </head>
 
-  <body>
+  <body class="app-no-icons">
 
     <div class="manager-layout" id="managerLayout">
       <aside class="manager-sidebar" id="managerSidebar">

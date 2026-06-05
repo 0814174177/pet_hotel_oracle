@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Employee;
 use App\Repositories\Contracts\Ceo\BranchNetworkRepositoryInterface;
 use DateTimeInterface;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -591,7 +592,7 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
         return $row->{$key} ?? $row->{strtoupper($key)} ?? null;
     }
 
-    private function applyDateFilters($query, string $column, array $filters): void
+    private function applyDateFilters(QueryBuilder $query, string $column, array $filters): void
     {
         if (! empty($filters['start_date'])) {
             $query->where($column, '>=', $this->dateValue($filters['start_date']));

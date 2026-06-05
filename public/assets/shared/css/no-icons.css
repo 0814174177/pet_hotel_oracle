@@ -1,0 +1,107 @@
+.app-no-icons i[class^="fa-"],
+.app-no-icons i[class*=" fa-"] {
+    display: none !important;
+}
+
+.app-no-icons .toggle-password i[class^="fa-"],
+.app-no-icons .toggle-password i[class*=" fa-"],
+.app-no-icons .booking-modal-close i[class^="fa-"],
+.app-no-icons .booking-modal-close i[class*=" fa-"],
+.app-no-icons .home-success-close i[class^="fa-"],
+.app-no-icons .home-success-close i[class*=" fa-"],
+.app-no-icons .booking-calendar-nav i[class^="fa-"],
+.app-no-icons .booking-calendar-nav i[class*=" fa-"],
+.app-no-icons .pet-edit-btn i[class^="fa-"],
+.app-no-icons .pet-edit-btn i[class*=" fa-"],
+.app-no-icons .pet-delete-btn i[class^="fa-"],
+.app-no-icons .pet-delete-btn i[class*=" fa-"] {
+    display: inline-block !important;
+}
+
+.app-no-icons .manager-sidebar-logo-icon,
+.app-no-icons .manager-sidebar-link-icon,
+.app-no-icons .manager-sidebar-role-icon,
+.app-no-icons .manager-logout-icon,
+.app-no-icons .ceo-sidebar-logo-icon,
+.app-no-icons .ceo-sidebar-link-icon,
+.app-no-icons .ceo-logout-icon,
+.app-no-icons .global-control-panel__clock,
+.app-no-icons .global-control-panel__export-icon,
+.app-no-icons .global-control-panel__refresh-icon,
+.app-no-icons .kpi-card__arrow,
+.app-no-icons .alert-box__icon,
+.app-no-icons .finance-loss-alert__icon,
+.app-no-icons .ceo-employee-stat-icon,
+.app-no-icons .ceo-employee-search-icon,
+.app-no-icons .ceo-employee-empty-icon,
+.app-no-icons .manager-employee-stat-icon,
+.app-no-icons .manager-employee-search-icon,
+.app-no-icons .manager-employee-empty-icon,
+.app-no-icons .ceo-promotion-search-icon,
+.app-no-icons .ceo-promotion-empty-icon,
+.app-no-icons .ceo-promotion-type-icon,
+.app-no-icons .ceo-promotion-confirm-icon,
+.app-no-icons .branch-service-edit-icon,
+.app-no-icons .branch-service-empty-icon,
+.app-no-icons .process-icon,
+.app-no-icons .quality-icon,
+.app-no-icons .standard-icon,
+.app-no-icons .cat-standard-icon,
+.app-no-icons .grooming-service-icon,
+.app-no-icons .nav-hotel-icon,
+.app-no-icons .method-icon,
+.app-no-icons .ps-icon-ring,
+.app-no-icons .ps-card-header-icon,
+.app-no-icons .ps-paw-badge,
+.app-no-icons .ps-divider-paw,
+.app-no-icons .bh-contact-icon,
+.app-no-icons .section-icon,
+.app-no-icons .room-icon,
+.app-no-icons .booking-history-icon,
+.app-no-icons .home-success-icon,
+.app-no-icons .pet-icon:not(.pet-icon--image) {
+    display: none !important;
+}
+
+.app-no-icons .ps-total-block::before {
+    content: none !important;
+}
+
+.app-no-icons .manager-sidebar-link,
+.app-no-icons .ceo-sidebar-link,
+.app-no-icons .manager-logout-btn,
+.app-no-icons .ceo-logout-btn,
+.app-no-icons .global-control-panel__last-update,
+.app-no-icons .global-control-panel__export-btn,
+.app-no-icons .global-control-panel__refresh-btn {
+    gap: 0 !important;
+}
+
+.app-no-icons .manager-layout--collapsed {
+    --sidebar-width: 220px;
+}
+
+.app-no-icons .ceo-layout--collapsed {
+    --sidebar-width: 220px;
+}
+
+.app-no-icons .manager-layout--collapsed .manager-sidebar-logo-text,
+.app-no-icons .manager-layout--collapsed .manager-sidebar-link-text,
+.app-no-icons .manager-layout--collapsed .manager-sidebar-footer .manager-sidebar-link-text,
+.app-no-icons .ceo-layout--collapsed .ceo-sidebar-logo-text,
+.app-no-icons .ceo-layout--collapsed .ceo-sidebar-link-text,
+.app-no-icons .ceo-layout--collapsed .ceo-sidebar-footer .ceo-sidebar-link-text {
+    display: inline !important;
+}
+
+.app-no-icons .manager-layout--collapsed .manager-sidebar-link,
+.app-no-icons .ceo-layout--collapsed .ceo-sidebar-link {
+    justify-content: flex-start !important;
+}
+
+.app-no-icons .manager-employee-action-btn,
+.app-no-icons .ceo-employee-action-btn {
+    min-width: 48px !important;
+    padding: 0 10px !important;
+    width: auto !important;
+}

@@ -17,8 +17,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     @stack('styles')
+    <link rel="stylesheet" href="{{ asset('assets/shared/css/no-icons.css') }}?v={{ time() }}">
 </head>
-<body>
+<body class="app-no-icons">
 
     @yield('content')
 

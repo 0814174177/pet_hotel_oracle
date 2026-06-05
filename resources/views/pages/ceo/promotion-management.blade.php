@@ -3,7 +3,7 @@
 @section('title', 'Quản lý khuyến mãi')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/client/css/ceo/promotion-management.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/client/css/manager/promotion-management.css') }}?v={{ time() }}">
 @endpush
 
 @section('content')
@@ -31,32 +31,33 @@
     @endif
 
     <section class="ceo-promotion-stats-grid" aria-label="Tổng quan khuyến mãi">
-        <article class="ceo-promotion-stat-card">
-            <div class="ceo-promotion-stat-label">Tổng mã coupon</div>
-            <div class="ceo-promotion-stat-value" data-stat-total>0</div>
-            <div class="ceo-promotion-stat-sub">Trong hệ thống</div>
-        </article>
+        <x-kpi-card
+            title="Tổng mã coupon"
+            value="0"
+            detail="Trong hệ thống"
+            :value-attributes="['data-stat-total' => true]"
+        />
 
-        <article class="ceo-promotion-stat-card">
-            <div class="ceo-promotion-stat-label">Đang hoạt động</div>
-            <div class="ceo-promotion-stat-value ceo-promotion-stat-value--active" data-stat-active>0</div>
-            <div class="ceo-promotion-stat-sub">
-                <span class="ceo-promotion-stat-dot ceo-promotion-stat-dot--active"></span>
-                Mã còn hiệu lực
-            </div>
-        </article>
+        <x-kpi-card
+            title="Đang hoạt động"
+            value="0"
+            detail="Mã còn hiệu lực"
+            :value-attributes="['data-stat-active' => true]"
+        />
 
-        <article class="ceo-promotion-stat-card">
-            <div class="ceo-promotion-stat-label">Tổng lượt dùng</div>
-            <div class="ceo-promotion-stat-value" data-stat-used>0</div>
-            <div class="ceo-promotion-stat-sub">Tổng lượt đã sử dụng</div>
-        </article>
+        <x-kpi-card
+            title="Tổng lượt dùng"
+            value="0"
+            detail="Tổng lượt đã sử dụng"
+            :value-attributes="['data-stat-used' => true]"
+        />
 
-        <article class="ceo-promotion-stat-card">
-            <div class="ceo-promotion-stat-label">Sắp hết hạn</div>
-            <div class="ceo-promotion-stat-value ceo-promotion-stat-value--warning" data-stat-expiring>0</div>
-            <div class="ceo-promotion-stat-sub">Trong 30 ngày tới</div>
-        </article>
+        <x-kpi-card
+            title="Sắp hết hạn"
+            value="0"
+            detail="Trong 30 ngày tới"
+            :value-attributes="['data-stat-expiring' => true]"
+        />
     </section>
 
     <section class="ceo-promotion-filter-card" aria-label="Bộ lọc khuyến mãi">

@@ -9,13 +9,20 @@
 
 @php
     $period = 'tháng';
+    $managerUser = auth()->user();
+    $managerEmployee = $managerUser?->employee;
     $managerBranchId = $managerBranchId ?? auth()->user()?->managerBranchId();
 
     abort_if($managerBranchId === null, 403, 'Manager branch is required.');
 
-    $managerPanelTitle = $managerPanelTitle
-        ?? auth()->user()?->employee?->full_name
+    $managerBranchName = $managerBranchName
+        ?? $managerEmployee?->branch?->branch_name
         ?? 'Chi nhánh #'.$managerBranchId;
+    $managerName = $managerEmployee?->full_name
+        ?? $managerUser?->name
+        ?? $managerBranchName;
+    $managerPanelTitle = $managerPanelTitle
+        ?? $managerName.' - Branch Manager - '.$managerBranchName;
 @endphp
 
 <div

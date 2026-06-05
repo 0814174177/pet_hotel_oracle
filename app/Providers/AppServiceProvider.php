@@ -10,22 +10,26 @@ use App\Repositories\Contracts\Ceo\CeoFinanceRepositoryInterface;
 use App\Repositories\Contracts\Ceo\CeoVendorRepositoryInterface;
 use App\Repositories\Contracts\Ceo\ServiceRevenueRepositoryInterface;
 use App\Repositories\Contracts\BookingRepositoryInterface;
+use App\Repositories\Contracts\EmployeeManagementRepositoryInterface;
 use App\Repositories\Contracts\Manager\BranchScopedInventoryMaterialRepositoryInterface;
 use App\Repositories\Contracts\Manager\BranchScopedRevenueReportRepositoryInterface;
 use App\Repositories\Contracts\Manager\BranchScopedServiceManagementRepositoryInterface;
 use App\Repositories\Contracts\Manager\ManagerDashboardRepositoryInterface;
 use App\Repositories\Contracts\PaymentRepositoryInterface;
+use App\Repositories\Contracts\PromotionRepositoryInterface;
 use App\Repositories\Eloquent\Ceo\BranchNetworkRepository;
 use App\Repositories\Eloquent\Ceo\CeoDashboardRepository;
 use App\Repositories\Eloquent\Ceo\CeoFinanceRepository;
 use App\Repositories\Eloquent\Ceo\CeoVendorRepository;
 use App\Repositories\Eloquent\Ceo\ServiceRevenueRepository;
 use App\Repositories\Eloquent\BookingRepository;
+use App\Repositories\Eloquent\EmployeeManagementRepository;
 use App\Repositories\Eloquent\Manager\BranchScopedInventoryMaterialRepository;
 use App\Repositories\Eloquent\Manager\BranchScopedRevenueReportRepository;
 use App\Repositories\Eloquent\Manager\BranchScopedServiceManagementRepository;
 use App\Repositories\Eloquent\Manager\ManagerDashboardRepository;
 use App\Repositories\Eloquent\PaymentRepository;
+use App\Repositories\Eloquent\PromotionRepository;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -42,6 +46,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             PaymentRepositoryInterface::class,
             PaymentRepository::class
+        );
+
+        $this->app->bind(
+            EmployeeManagementRepositoryInterface::class,
+            EmployeeManagementRepository::class
+        );
+
+        $this->app->bind(
+            PromotionRepositoryInterface::class,
+            PromotionRepository::class
         );
 
         $this->app->bind(

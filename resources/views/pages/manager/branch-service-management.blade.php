@@ -9,14 +9,18 @@
 @section('content')
 
 @php
+    $managerUser = auth()->user();
+    $managerEmployee = $managerUser?->employee;
     $managerBranchId = $managerBranchId ?? auth()->user()?->managerBranchId();
     abort_if(blank($managerBranchId), 403, 'Manager account is not assigned to a branch.');
     $branchName = $managerBranchName
-        ?? auth()->user()?->employee?->branch?->branch_name
+        ?? $managerEmployee?->branch?->branch_name
         ?? 'Chi nhánh #'.$managerBranchId;
-    $managerPanelTitle = $managerPanelTitle
-        ?? auth()->user()?->employee?->full_name
+    $managerName = $managerEmployee?->full_name
+        ?? $managerUser?->name
         ?? $branchName;
+    $managerPanelTitle = $managerPanelTitle
+        ?? $managerName.' - Branch Manager - '.$branchName;
     $serviceSearch = trim((string) request('search', ''));
     $serviceGroup = trim((string) request('service_group', ''));
     $serviceStatus = trim((string) request('status', ''));

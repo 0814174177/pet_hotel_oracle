@@ -9,12 +9,12 @@ class ManagerBranchScopeService
 {
     public function currentBranchId(): int
     {
-        return $this->resolveForManager(Auth::user());
+        return $this->resolveForManager($this->currentUser());
     }
 
     public function ensureCanAccessBranch(int $routeBranchId): int
     {
-        $user = Auth::user();
+        $user = $this->currentUser();
 
         abort_if(! $user, 403, 'Authentication is required.');
 
@@ -46,5 +46,12 @@ class ManagerBranchScopeService
         abort_if($branchId === null, 403, 'Manager branch is required.');
 
         return $branchId;
+    }
+
+    private function currentUser(): ?User
+    {
+        $user = Auth::user();
+
+        return $user instanceof User ? $user : null;
     }
 }

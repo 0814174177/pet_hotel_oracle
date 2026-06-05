@@ -9,14 +9,18 @@
 @section('content')
 
 @php
+    $managerUser = auth()->user();
+    $managerEmployee = $managerUser?->employee;
     $managerBranchId = $managerBranchId ?? auth()->user()?->managerBranchId();
     abort_if(blank($managerBranchId), 403, 'Manager account is not assigned to a branch.');
     $managerBranchName = $managerBranchName
-        ?? auth()->user()?->employee?->branch?->branch_name
+        ?? $managerEmployee?->branch?->branch_name
         ?? 'Chi nhánh #'.$managerBranchId;
-    $managerPanelTitle = $managerPanelTitle
-        ?? auth()->user()?->employee?->full_name
+    $managerName = $managerEmployee?->full_name
+        ?? $managerUser?->name
         ?? $managerBranchName;
+    $managerPanelTitle = $managerPanelTitle
+        ?? $managerName.' - Branch Manager - '.$managerBranchName;
     $period = 'kỳ lọc';
 
     /*
@@ -161,7 +165,7 @@
         {{-- FINANCIAL RISK REPORT --}}
         <section class="manager-risk-section" data-financial-risk-warning-card data-severity="yellow">
             <h2 class="manager-section-title">
-                <span>⚠️</span> Radar Cảnh Báo & Rủi Ro Tài Chính
+                Radar Cảnh Báo & Rủi Ro Tài Chính
             </h2>
 
             <div class="risk-summary-grid">
