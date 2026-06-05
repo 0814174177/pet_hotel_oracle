@@ -12,9 +12,10 @@ class PreventBackHistory
     {
         $response = $next($request);
 
-        return $response
-            ->header('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate, private')
-            ->header('Pragma', 'no-cache')
-            ->header('Expires', 'Fri, 01 Jan 1990 00:00:00 GMT');
+        $response->headers->set('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate, private');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', 'Fri, 01 Jan 1990 00:00:00 GMT');
+
+        return $response;
     }
 }
