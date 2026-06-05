@@ -55,10 +55,10 @@ class BranchScopedRevenueReportRepository implements BranchScopedRevenueReportRe
         $sql = <<<'SQL'
             WITH params AS (
                 SELECT
-                    :p_branch_id AS branch_id,
+                    CAST(:p_branch_id AS NUMBER) AS branch_id,
                     TO_DATE(:p_start_date, 'YYYY-MM-DD') AS start_date,
                     TO_DATE(:p_end_date, 'YYYY-MM-DD') AS end_date,
-                    :p_target_month AS target_month
+                    CAST(:p_target_month AS NUMBER) AS target_month
                 FROM dual
             ),
             revenue AS (
@@ -134,7 +134,7 @@ class BranchScopedRevenueReportRepository implements BranchScopedRevenueReportRe
         $sql = <<<'SQL'
             WITH params AS (
                 SELECT
-                    :p_branch_id AS branch_id,
+                    CAST(:p_branch_id AS NUMBER) AS branch_id,
                     TO_DATE(:p_start_date, 'YYYY-MM-DD') AS start_date,
                     TO_DATE(:p_end_date, 'YYYY-MM-DD') AS end_date,
                     TO_DATE(:p_prev_start_date, 'YYYY-MM-DD') AS prev_start_date
@@ -227,7 +227,7 @@ class BranchScopedRevenueReportRepository implements BranchScopedRevenueReportRe
         $sql = <<<'SQL'
             WITH params AS (
                 SELECT
-                    :p_branch_id AS branch_id,
+                    CAST(:p_branch_id AS NUMBER) AS branch_id,
                     TO_DATE(:p_start_date, 'YYYY-MM-DD') AS start_date,
                     TO_DATE(:p_end_date, 'YYYY-MM-DD') AS end_date
                 FROM dual
@@ -347,7 +347,7 @@ class BranchScopedRevenueReportRepository implements BranchScopedRevenueReportRe
         $sql = <<<'SQL'
             WITH params AS (
                 SELECT
-                    :p_branch_id AS branch_id,
+                    CAST(:p_branch_id AS NUMBER) AS branch_id,
                     TO_DATE(:p_start_date, 'YYYY-MM-DD') AS start_date,
                     TO_DATE(:p_end_date, 'YYYY-MM-DD') AS end_date,
                     TO_DATE(:p_prev_start_date, 'YYYY-MM-DD') AS prev_start_date,
