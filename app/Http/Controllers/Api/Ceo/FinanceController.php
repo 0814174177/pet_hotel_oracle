@@ -7,26 +7,54 @@ use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Ceo\CeoFinanceRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Controller quản lý các API liên quan đến số liệu tài chính và cảnh báo rủi ro
+ * dành riêng cho cấp bậc Giám đốc điều hành (CEO).
+ */
 class FinanceController extends ApiController
 {
     /**
-     * Alert thresholds can be tuned here without changing repository SQL.
+     * Các ngưỡng cảnh báo có thể được điều chỉnh tại đây mà không cần thay đổi câu truy vấn SQL trong Repository.
+     * * Ngưỡng cảnh báo chi nhánh có mức lợi nhuận âm.
      */
     private const NEGATIVE_BRANCH_PROFIT_THRESHOLD = 0.0;
 
+    /**
+     * Ngưỡng cảnh báo biên lợi nhuận dịch vụ chạm mức thấp.
+     */
     private const LOW_SERVICE_MARGIN_THRESHOLD = 20.0;
 
+    /**
+     * Ngưỡng cảnh báo biên lợi nhuận dịch vụ chạm mức rủi ro cao.
+     */
     private const HIGH_SERVICE_MARGIN_THRESHOLD = 10.0;
 
+    /**
+     * Ngưỡng cảnh báo tốc độ tăng trưởng chi phí vượt mức bình thường.
+     */
     private const COST_GROWTH_THRESHOLD = 20.0;
 
+    /**
+     * Ngưỡng cảnh báo tốc độ tăng trưởng chi phí ở mức độ nguy hiểm.
+     */
     private const HIGH_COST_GROWTH_THRESHOLD = 40.0;
 
+    /**
+     * Khởi tạo FinanceController.
+     *
+     * @param CeoFinanceRepositoryInterface $financeRepository Interface xử lý truy xuất dữ liệu tài chính.
+     */
     public function __construct(
         protected CeoFinanceRepositoryInterface $financeRepository
     ) {
     }
 
+    /**
+     * Lấy dữ liệu tổng quan về tình hình tài chính.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function index(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -35,6 +63,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Lấy số liệu hiển thị thẻ (Card) Tổng doanh thu toàn chuỗi.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function totalChainRevenue(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -43,6 +77,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Lấy số liệu hiển thị thẻ (Card) Ước tính tổng chi phí.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function estimatedTotalCost(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -51,6 +91,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Lấy số liệu hiển thị thẻ (Card) Ước tính tổng lợi nhuận.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function estimatedProfit(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -59,6 +105,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Lấy số liệu hiển thị thẻ (Card) Ước tính biên lợi nhuận.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function estimatedMargin(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -67,6 +119,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Lấy dữ liệu phục vụ biểu đồ xu hướng tài chính chung.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function trend(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -75,6 +133,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Lấy dữ liệu phục vụ biểu đồ xu hướng tài chính chi tiết theo từng tháng.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function monthlyTrend(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -83,6 +147,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Lấy dữ liệu phục vụ biểu đồ cơ cấu phân bổ chi phí.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function costStructure(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -91,6 +161,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Lấy bảng thống kê ước tính lợi nhuận chi tiết theo từng chi nhánh.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function branchEstimatedProfit(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -99,6 +175,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Lấy bảng thống kê ước tính lợi nhuận chi tiết theo từng loại dịch vụ.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function serviceEstimatedProfit(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -107,6 +189,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Lấy danh sách các dịch vụ có mức biên lợi nhuận thấp nhất trong hệ thống.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function lowestMarginServices(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -115,6 +203,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Truy xuất các cảnh báo rủi ro đối với những chi nhánh có lợi nhuận chạm mức âm.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function negativeBranchProfitAlerts(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -126,6 +220,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Truy xuất các cảnh báo rủi ro đối với những dịch vụ có biên lợi nhuận thấp.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function lowServiceMarginAlerts(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(
@@ -138,6 +238,12 @@ class FinanceController extends ApiController
         );
     }
 
+    /**
+     * Truy xuất các cảnh báo rủi ro khi tốc độ tăng trưởng chi phí vượt mức kiểm soát.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @return JsonResponse
+     */
     public function costGrowthAlerts(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(

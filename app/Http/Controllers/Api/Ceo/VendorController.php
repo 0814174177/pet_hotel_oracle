@@ -7,10 +7,15 @@ use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Ceo\CeoVendorRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Controller quản lý các API liên quan đến đối tác, nhà cung cấp, hiệu suất giao hàng 
+ * và công nợ phục vụ cho Bảng điều khiển (Dashboard) của CEO.
+ */
 class VendorController extends ApiController
 {
     /**
-     * Vendor ranking thresholds can be tuned here without changing repository SQL.
+     * Các ngưỡng xếp hạng hiệu suất của nhà cung cấp. 
+     * Có thể tinh chỉnh tại đây mà không cần can thiệp vào SQL trong Repository.
      */
     private const PLATINUM_PERFORMANCE_THRESHOLD = 95.0;
 
@@ -23,7 +28,7 @@ class VendorController extends ApiController
     private const LOW_STOCK_PENALTY = 8.0;
 
     /**
-     * Payable growth thresholds can be tuned here without changing repository SQL.
+     * Các ngưỡng cảnh báo tốc độ tăng trưởng công nợ phải trả.
      */
     private const PAYABLE_LIGHT_GROWTH_THRESHOLD = 10.0;
 
@@ -32,7 +37,7 @@ class VendorController extends ApiController
     private const PAYABLE_CRITICAL_GROWTH_THRESHOLD = 35.0;
 
     /**
-     * Price variance thresholds can be tuned here without changing repository SQL. 
+     * Các ngưỡng cảnh báo mức độ biến động giá nhập hàng.
      */
     private const PRICE_VARIANCE_WATCH_THRESHOLD = 10.0;
 
@@ -41,7 +46,7 @@ class VendorController extends ApiController
     private const PRICE_VARIANCE_CRITICAL_THRESHOLD = 30.0;
 
     /**
-     * OTD thresholds can be tuned here without changing repository SQL.
+     * Các ngưỡng đánh giá tỷ lệ giao hàng đúng hạn (OTD - On-Time Delivery) và độ trễ.
      */
     private const OTD_EXCELLENT_THRESHOLD = 95.0;
 
@@ -59,21 +64,22 @@ class VendorController extends ApiController
 
     private const WATCH_DELAY_HOURS = 3.0;
 
+    /**
+     * Khởi tạo VendorController.
+     *
+     * @param CeoVendorRepositoryInterface $vendors Giao diện xử lý dữ liệu nhà cung cấp.
+     */
     public function __construct(
         protected CeoVendorRepositoryInterface $vendors
     ) {
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach va phan hang doi tac/nha cung cap theo suc khoe ton kho hien tai.
+     * Lấy danh sách và phân hạng đối tác/nhà cung cấp dựa trên sức khỏe tồn kho hiện tại.
+     * Áp dụng các ngưỡng phân hạng và điểm phạt tồn kho cấu hình nội bộ.
      *
-     * Input:
-     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
-     * - Cac nguong phan hang, diem phat ton kho cau hinh tai controller.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa tham số lọc thời gian.
+     * @return JsonResponse Trả về danh sách nhà cung cấp đã được xếp hạng.
      */
     public function index(DateRangeFilterRequest $request): JsonResponse
     {
@@ -91,15 +97,11 @@ class VendorController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay hieu suat giao hang dung han OTD va cac canh bao lien quan cho dashboard CEO.
+     * Lấy dữ liệu phân tích hiệu suất giao hàng đúng hạn (OTD) và các cảnh báo liên quan.
+     * Áp dụng các ngưỡng OTD, chất lượng và thời gian trễ.
      *
-     * Input:
-     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
-     * - Cac nguong OTD, chat luong va thoi gian tre cau hinh tai controller.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa tham số lọc thời gian.
+     * @return JsonResponse Trả về dữ liệu chi tiết hiệu suất giao hàng.
      */
     public function onTimeDeliveryPerformance(DateRangeFilterRequest $request): JsonResponse
     {
@@ -120,15 +122,11 @@ class VendorController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay tong hop OTD toan chuoi de hien thi dong ho ty le dung han tren dashboard CEO.
+     * Lấy chỉ số tổng hợp giao hàng đúng hạn (OTD) của toàn hệ thống.
+     * Phục vụ hiển thị tỷ lệ dung hạn trên biểu đồ tổng quan (Dashboard).
      *
-     * Input:
-     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
-     * - Cac nguong OTD cau hinh tai controller.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa tham số lọc thời gian.
+     * @return JsonResponse Trả về chỉ số tổng hợp OTD.
      */
     public function onTimeDeliverySummary(DateRangeFilterRequest $request): JsonResponse
     {
@@ -143,15 +141,11 @@ class VendorController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay bieu do dong tien va cong no phai tra nha cung cap theo thang.
+     * Lấy dữ liệu biểu đồ dòng tiền và công nợ phải trả cho nhà cung cấp phân bổ theo tháng.
+     * Áp dụng các ngưỡng cảnh báo tăng trưởng công nợ.
      *
-     * Input:
-     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
-     * - Cac nguong tang truong cong no cau hinh tai controller.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa tham số lọc thời gian.
+     * @return JsonResponse Trả về dữ liệu biểu đồ dòng tiền công nợ.
      */
     public function payableCashflow(DateRangeFilterRequest $request): JsonResponse
     {
@@ -167,15 +161,11 @@ class VendorController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach canh bao bien dong gia nhap de phong chong nhap sai gia/gian lan.
+     * Lấy danh sách các cảnh báo về biến động giá nhập hàng từ nhà cung cấp.
+     * Hỗ trợ rà soát phòng chống việc nhập sai giá hoặc gian lận giá cả.
      *
-     * Input:
-     * - DateRangeFilterRequest tu xu ly start_date, end_date va ky truoc.
-     * - Cac nguong bien dong gia cau hinh tai controller.
-     *
-     * Output:
-     * - JSON response chuan thong qua respondData().
+     * @param DateRangeFilterRequest $request Chứa tham số lọc thời gian.
+     * @return JsonResponse Trả về danh sách cảnh báo biến động giá.
      */
     public function priceVarianceAlerts(DateRangeFilterRequest $request): JsonResponse
     {

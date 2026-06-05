@@ -8,14 +8,31 @@ use App\Repositories\Contracts\Manager\BranchScopedServiceManagementRepositoryIn
 use App\Services\Manager\ManagerBranchScopeService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Controller quản lý các API liên quan đến quản trị dịch vụ và theo dõi hiệu suất
+ * dành riêng cho cấp Quản lý (Manager) theo phạm vi chi nhánh được phân quyền.
+ */
 class ServiceManagementController extends ApiController
 {
+    /**
+     * Khởi tạo ServiceManagementController.
+     *
+     * @param BranchScopedServiceManagementRepositoryInterface $branchServiceManagementRepository Repository xử lý dữ liệu dịch vụ.
+     * @param ManagerBranchScopeService $branchScope Service kiểm tra quyền và phạm vi chi nhánh của Manager.
+     */
     public function __construct(
         protected BranchScopedServiceManagementRepositoryInterface $branchServiceManagementRepository,
         protected ManagerBranchScopeService $branchScope
     ) {
     }
 
+    /**
+     * Lấy dữ liệu tổng quan về tình hình quản lý dịch vụ tại chi nhánh.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian và các điều kiện lọc mở rộng.
+     * @param int|string $branchId ID của chi nhánh (từ route).
+     * @return JsonResponse Trả về JSON chứa dữ liệu tổng quan.
+     */
     public function index(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
@@ -26,6 +43,13 @@ class ServiceManagementController extends ApiController
         );
     }
 
+    /**
+     * Truy xuất các thẻ chỉ số KPI tổng quan về dịch vụ của chi nhánh.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chu kỳ.
+     * @param int|string $branchId ID của chi nhánh (từ route).
+     * @return JsonResponse Trả về JSON chứa các thông số KPI.
+     */
     public function kpi(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
@@ -37,19 +61,13 @@ class ServiceManagementController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay KPI tien do doanh thu dich vu cua chi nhanh Manager trong ky loc.
+     * Lấy KPI tiến độ đạt mục tiêu doanh thu dịch vụ của chi nhánh trong kỳ lọc.
+     * Bao gồm: Doanh thu hiện tại, chỉ tiêu, phần trăm hoàn thành, mức tăng/giảm và cảnh báo.
+     * Ghi chú: Controller không chứa SQL và không trực tiếp tính KPI, chỉ truyền filters.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest: Tu xu ly start_date, end_date va ky truoc.
-     *
-     * Output:
-     * - JSON { success: true, data: ... } gom doanh thu hien tai, chi tieu,
-     *   phan tram hoan thanh, tang/giam va canh bao tien do.
-     *
-     * Ghi chu:
-     * - Controller khong chua SQL va khong tinh KPI; chi truyen filters xuong Repository.
+     * @param DateRangeFilterRequest $request Tự xử lý start_date, end_date và kỳ trước.
+     * @param int|string $branchId ID của chi nhánh (từ route).
+     * @return JsonResponse Trả về JSON tiến độ doanh thu dịch vụ.
      */
     public function revenueProgress(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -67,18 +85,11 @@ class ServiceManagementController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach canh bao dich vu co doanh thu giam manh tai chi nhanh Manager.
+     * Lấy danh sách cảnh báo các dịch vụ có doanh thu giảm sút mạnh tại chi nhánh.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest: Tu xu ly start_date, end_date va ky truoc.
-     *
-     * Output:
-     * - JSON { success: true, data: ... } gom revenue_drop_alerts, summary va warning_level.
-     *
-     * Ghi chu:
-     * - Controller khong chua SQL; chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Tự xử lý start_date, end_date và kỳ trước.
+     * @param int|string $branchId ID của chi nhánh (từ route).
+     * @return JsonResponse JSON chứa danh sách cảnh báo, tóm tắt và mức độ cảnh báo (warning_level).
      */
     public function revenueDropAlerts(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -93,19 +104,12 @@ class ServiceManagementController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay KPI ty le upsell cua booking phong tai chi nhanh Manager.
+     * Lấy KPI tỷ lệ bán chéo (upsell) dịch vụ kèm theo các booking phòng tại chi nhánh.
+     * Bao gồm: Số lượng booking phòng, số booking có sử dụng dịch vụ, tỷ lệ upsell và đánh giá hiệu suất.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest: Tu xu ly start_date, end_date va ky truoc.
-     *
-     * Output:
-     * - JSON { success: true, data: ... } gom so booking phong, booking co dich vu,
-     *   ty le upsell va muc danh gia.
-     *
-     * Ghi chu:
-     * - Controller khong chua SQL; chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Tự xử lý start_date, end_date và kỳ trước.
+     * @param int|string $branchId ID của chi nhánh (từ route).
+     * @return JsonResponse Trả về JSON chứa KPI tỷ lệ upsell.
      */
     public function upsellRate(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -120,18 +124,14 @@ class ServiceManagementController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach dich vu quan tri cho chi nhanh Manager.
+     * Lấy danh sách chi tiết các dịch vụ để phục vụ công tác quản trị tại chi nhánh.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest: Nhan filter ngay va bo loc danh sach neu co.
-     *
-     * Output:
-     * - JSON { success: true, data: [...] } gom cac dong dich vu da normalize.
-     *
-     * Ghi chu:
-     * - Controller khong chua SQL; chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Chứa các bộ lọc thời gian và dữ liệu khác.
+     * @param int|string $branchId ID của chi nhánh (từ route).
+     * @param string|null $search Từ khóa tìm kiếm dịch vụ (truyền qua URL path).
+     * @param string|null $serviceGroup Bộ lọc nhóm dịch vụ (truyền qua URL path).
+     * @param string|null $status Bộ lọc trạng thái dịch vụ (truyền qua URL path).
+     * @return JsonResponse Trả về JSON chứa danh sách các dịch vụ đã được chuẩn hóa.
      */
     public function services(
         DateRangeFilterRequest $request,
@@ -143,6 +143,7 @@ class ServiceManagementController extends ApiController
     {
         $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
         $filters = $this->validateFilters($request);
+        
         $filters['search'] = $this->pathFilterValue($search) ?? ($filters['search'] ?? null);
         $filters['service_group'] = $this->pathFilterValue($serviceGroup) ?? ($filters['service_group'] ?? null);
         $filters['status'] = $this->pathFilterValue($status) ?? ($filters['status'] ?? null);
@@ -152,6 +153,12 @@ class ServiceManagementController extends ApiController
         );
     }
 
+    /**
+     * Hợp nhất và xác thực các điều kiện lọc chung (tìm kiếm, nhóm, trạng thái...).
+     *
+     * @param DateRangeFilterRequest $request Request chứa dữ liệu đầu vào.
+     * @return array Mảng chứa các quy tắc lọc đã được xác thực an toàn.
+     */
     private function validateFilters(DateRangeFilterRequest $request): array
     {
         return array_merge($request->getFiltersArray(), $request->validate([
@@ -164,17 +171,11 @@ class ServiceManagementController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Chuyen gia tri filter tren URL API ve filter Repository.
+     * Chuyển đổi và chuẩn hóa giá trị filter từ đường dẫn URL (Path) để truyền vào Repository.
+     * Ký tự "_" hoặc chuỗi rỗng sẽ được xử lý thành null để hỗ trợ DashboardEngine giữ nguyên query GET.
      *
-     * Input:
-     * - ?string $value: Gia tri path hoac "_" dai dien cho bo loc rong.
-     *
-     * Output:
-     * - Chuoi filter da trim hoac null.
-     *
-     * Ghi chu:
-     * - Dung de DashboardEngine giu nguyen cach goi GET voi query ngay hien co.
+     * @param string|null $value Giá trị trên đường dẫn URL.
+     * @return string|null Chuỗi filter đã được làm sạch (trim) hoặc null.
      */
     private function pathFilterValue(?string $value): ?string
     {
@@ -187,6 +188,12 @@ class ServiceManagementController extends ApiController
         return $value === '' ? null : $value;
     }
 
+    /**
+     * Xác thực các tham số bộ lọc liên quan đến chu kỳ thời gian (kỳ lọc, ngày cụ thể).
+     *
+     * @param DateRangeFilterRequest $request Request chứa dữ liệu chu kỳ.
+     * @return array Mảng chứa thông tin chu kỳ đã được xác thực.
+     */
     private function validatePeriod(DateRangeFilterRequest $request): array
     {
         return array_merge($request->getFiltersArray(), $request->validate([

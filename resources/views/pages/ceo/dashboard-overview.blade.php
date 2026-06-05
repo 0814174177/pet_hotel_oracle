@@ -26,6 +26,7 @@
     <x-global-control-panel
         data-dashboard-controls
         title="Tổng quan hoạt động"
+        :export-url="route('ceo.dashboard.export')"
     />
 
     <p class="dashboard-status" id="dashboardStatus" role="status" aria-live="polite">

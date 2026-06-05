@@ -3,6 +3,7 @@
 'lastUpdate' => null,
 'startDate' => null,
 'endDate' => null,
+'exportUrl' => null,
 ])
 
 {{-- Load CSS --}}

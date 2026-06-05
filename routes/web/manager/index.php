@@ -32,12 +32,14 @@ Route::get('/reports', function (ManagerBranchScopeService $branchScope) {
         'branchId' => $branchScope->currentBranchId(),
     ]);
 })->name('reports');
+Route::get('/reports/export', [ExportController::class, 'revenueReport'])->name('reports.export');
 
 Route::get('/inventory', function (ManagerBranchScopeService $branchScope) {
     return redirect()->route('manager.branches.inventory', [
         'branchId' => $branchScope->currentBranchId(),
     ]);
 })->name('inventory');
+Route::get('/inventory/export', [ExportController::class, 'inventory'])->name('inventory.export');
 
 Route::prefix('/branches/{branchId}')
     ->name('branches.')

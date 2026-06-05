@@ -98,6 +98,7 @@
 
     <x-global-control-panel
         title="Mạng lưới Chi nhánh"
+        :export-url="route('ceo.branches.export')"
     />
 
     <section class="branch-stats">

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])->name('index');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard/export', [ExportController::class, 'dashboard'])->name('dashboard.export');
 Route::get('/branches', [BranchController::class, 'index'])->name('branches');
 Route::get('/services', [ServiceController::class, 'index'])->name('service');
 Route::get('/vendors', [VendorController::class, 'index'])->name('vendors');

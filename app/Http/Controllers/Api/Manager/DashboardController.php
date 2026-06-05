@@ -8,31 +8,41 @@ use App\Repositories\Contracts\Manager\ManagerDashboardRepositoryInterface;
 use App\Services\Manager\ManagerBranchScopeService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Controller quản lý các API dành cho Bảng điều khiển (Dashboard) của cấp Quản lý (Manager).
+ * Cung cấp luồng truy xuất dữ liệu tự động theo chi nhánh quản lý hiện tại hoặc theo ID chi nhánh cụ thể.
+ */
 class DashboardController extends ApiController
 {
+    /**
+     * Khởi tạo DashboardController.
+     *
+     * @param ManagerDashboardRepositoryInterface $dashboardRepository Giao diện xử lý truy xuất dữ liệu Dashboard.
+     * @param ManagerBranchScopeService $branchScope Service kiểm tra quyền và phạm vi chi nhánh của Manager.
+     */
     public function __construct(
         protected ManagerDashboardRepositoryInterface $dashboardRepository,
         protected ManagerBranchScopeService $branchScope
     ) {
     }
 
+    /**
+     * Endpoint mặc định cho Dashboard. Tự động chuyển hướng xử lý sang overview.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc khoảng thời gian.
+     * @return JsonResponse
+     */
     public function index(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->overview($request);
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay KPI tong quan lich chi nhanh cho Manager theo chi nhanh cua user hien tai.
+     * Lấy dữ liệu KPI tổng quan cho Manager dựa trên chi nhánh của người dùng hiện tại.
+     * Ghi chú: Controller không chứa SQL và không trực tiếp tính toán KPI.
      *
-     * Input:
-     * - DateRangeFilterRequest tu dong xu ly start_date, end_date va ky truoc.
-     *
-     * Output:
-     * - JSON { success: true, data: ... } gom KPI lich chi nhanh.
-     *
-     * Ghi chu:
-     * - Controller khong dat SQL va khong tinh toan KPI.
+     * @param DateRangeFilterRequest $request Chứa tham số thời gian bắt đầu, kết thúc và kỳ trước.
+     * @return JsonResponse Trả về đối tượng JSON chứa dữ liệu KPI chi nhánh.
      */
     public function overview(DateRangeFilterRequest $request): JsonResponse
     {
@@ -45,18 +55,11 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay KPI tong quan lich chi nhanh cho Manager theo branchId tu route.
+     * Lấy dữ liệu KPI tổng quan cho Manager dựa trên ID chi nhánh cụ thể từ route.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route /branches/{branchId}/overview.
-     * - DateRangeFilterRequest tu dong xu ly start_date, end_date va ky truoc.
-     *
-     * Output:
-     * - JSON { success: true, data: ... } gom KPI lich chi nhanh.
-     *
-     * Ghi chu:
-     * - Controller chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Chứa tham số thời gian bắt đầu, kết thúc và kỳ trước.
+     * @param int|string $branchId ID của chi nhánh (VD: từ route /branches/{branchId}/overview).
+     * @return JsonResponse Trả về đối tượng JSON chứa dữ liệu KPI chi nhánh.
      */
     public function branchOverview(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -71,17 +74,10 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay canh bao ton kho cho Manager theo chi nhanh cua user hien tai.
+     * Lấy cảnh báo hàng tồn kho (số vật tư đã hết/sắp hết) dựa trên chi nhánh của người dùng hiện tại.
      *
-     * Input:
-     * - DateRangeFilterRequest giu luong filter dashboard chung.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: ... } } gom so vat tu het/sap het.
-     *
-     * Ghi chu:
-     * - Controller khong dat SQL va khong tinh severity.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @return JsonResponse Trả về đối tượng JSON chứa thông tin cảnh báo tồn kho.
      */
     public function inventoryWarning(DateRangeFilterRequest $request): JsonResponse
     {
@@ -94,18 +90,11 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay canh bao ton kho cho Manager theo branchId tu route.
+     * Lấy cảnh báo hàng tồn kho (số vật tư đã hết/sắp hết) dựa trên ID chi nhánh cụ thể.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest giu luong filter dashboard chung.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: ... } } gom so vat tu het/sap het.
-     *
-     * Ghi chu:
-     * - Controller chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa thông tin cảnh báo tồn kho.
      */
     public function branchInventoryWarning(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -120,17 +109,10 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay canh bao y te tam thoi cho Manager theo chi nhanh cua user hien tai.
+     * Lấy cảnh báo y tế tạm thời (số lượng thú cưng cần theo dõi) dựa trên chi nhánh của người dùng hiện tại.
      *
-     * Input:
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: ... } } gom so pet can theo doi.
-     *
-     * Ghi chu:
-     * - Controller khong dat SQL va khong tinh severity.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @return JsonResponse Trả về đối tượng JSON chứa thông tin cảnh báo y tế.
      */
     public function healthWarning(DateRangeFilterRequest $request): JsonResponse
     {
@@ -143,18 +125,11 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay canh bao y te tam thoi cho Manager theo branchId tu route.
+     * Lấy cảnh báo y tế tạm thời (số lượng thú cưng cần theo dõi) dựa trên ID chi nhánh cụ thể.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: ... } } gom so pet can theo doi.
-     *
-     * Ghi chu:
-     * - Controller chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa thông tin cảnh báo y tế.
      */
     public function branchHealthWarning(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -169,17 +144,10 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay canh bao rui ro tai chinh cho Manager theo chi nhanh cua user hien tai.
+     * Lấy cảnh báo rủi ro tài chính (số đơn hủy/hoàn và thất thoát) dựa trên chi nhánh của người dùng hiện tại.
      *
-     * Input:
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: ... } } gom so don huy/hoan va that thoat.
-     *
-     * Ghi chu:
-     * - Controller khong dat SQL va khong tinh severity.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @return JsonResponse Trả về đối tượng JSON chứa thông tin rủi ro tài chính.
      */
     public function financialRiskWarning(DateRangeFilterRequest $request): JsonResponse
     {
@@ -192,18 +160,11 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay canh bao rui ro tai chinh cho Manager theo branchId tu route.
+     * Lấy cảnh báo rủi ro tài chính (số đơn hủy/hoàn và thất thoát) dựa trên ID chi nhánh cụ thể.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: ... } } gom so don huy/hoan va that thoat.
-     *
-     * Ghi chu:
-     * - Controller chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa thông tin rủi ro tài chính.
      */
     public function branchFinancialRiskWarning(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -218,17 +179,10 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach booking huy sat gio cho Manager theo chi nhanh cua user hien tai.
+     * Lấy danh sách booking bị hủy sát giờ dựa trên chi nhánh của người dùng hiện tại.
      *
-     * Input:
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: { total_late_cancelled_bookings, items } } }.
-     *
-     * Ghi chu:
-     * - Controller khong dat SQL va khong tinh severity tung dong.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @return JsonResponse Trả về đối tượng JSON chứa số lượng và chi tiết các booking bị hủy.
      */
     public function lateCancelledBookings(DateRangeFilterRequest $request): JsonResponse
     {
@@ -241,18 +195,11 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach booking huy sat gio cho Manager theo branchId tu route.
+     * Lấy danh sách booking bị hủy sát giờ dựa trên ID chi nhánh cụ thể.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: { total_late_cancelled_bookings, items } } }.
-     *
-     * Ghi chu:
-     * - Controller chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa số lượng và chi tiết các booking bị hủy.
      */
     public function branchLateCancelledBookings(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -267,17 +214,10 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay top 5 dich vu co doanh thu cao nhat cho Manager theo chi nhanh cua user hien tai.
+     * Lấy danh sách Top 5 dịch vụ có doanh thu cao nhất dựa trên chi nhánh của người dùng hiện tại.
      *
-     * Input:
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: { items } } }.
-     *
-     * Ghi chu:
-     * - Controller khong dat SQL va khong tinh ranking.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @return JsonResponse Trả về đối tượng JSON chứa danh sách các dịch vụ đạt doanh thu cao.
      */
     public function topRevenueServices(DateRangeFilterRequest $request): JsonResponse
     {
@@ -290,18 +230,11 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay top 5 dich vu co doanh thu cao nhat cho Manager theo branchId tu route.
+     * Lấy danh sách Top 5 dịch vụ có doanh thu cao nhất dựa trên ID chi nhánh cụ thể.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: { items } } }.
-     *
-     * Ghi chu:
-     * - Controller chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa danh sách các dịch vụ đạt doanh thu cao.
      */
     public function branchTopRevenueServices(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -316,17 +249,10 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay co cau doanh thu Pet Hotel, Grooming & Spa va Khac theo chi nhanh user hien tai.
+     * Phân tích cơ cấu doanh thu (Pet Hotel, Grooming & Spa, Khác) dựa trên chi nhánh của người dùng hiện tại.
      *
-     * Input:
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: { items } } }.
-     *
-     * Ghi chu:
-     * - Controller khong dat SQL va khong tinh ty trong doanh thu.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @return JsonResponse Trả về đối tượng JSON chứa dữ liệu cơ cấu doanh thu.
      */
     public function revenueStructure(DateRangeFilterRequest $request): JsonResponse
     {
@@ -339,18 +265,11 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay co cau doanh thu Pet Hotel, Grooming & Spa va Khac theo branchId tu route.
+     * Phân tích cơ cấu doanh thu (Pet Hotel, Grooming & Spa, Khác) dựa trên ID chi nhánh cụ thể.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: { items } } }.
-     *
-     * Ghi chu:
-     * - Controller chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa dữ liệu cơ cấu doanh thu.
      */
     public function branchRevenueStructure(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -365,17 +284,10 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach hoa don chua thanh toan du cho Manager theo chi nhanh user hien tai.
+     * Lấy danh sách hóa đơn chưa thanh toán đủ (công nợ) dựa trên chi nhánh của người dùng hiện tại.
      *
-     * Input:
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: { total_unpaid_invoices, total_remaining_debt, items } } }.
-     *
-     * Ghi chu:
-     * - Controller khong dat SQL va khong tinh cong no.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @return JsonResponse Trả về đối tượng JSON chứa tổng nợ và danh sách các hóa đơn nợ.
      */
     public function unpaidInvoices(DateRangeFilterRequest $request): JsonResponse
     {
@@ -388,18 +300,11 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach hoa don chua thanh toan du cho Manager theo branchId tu route.
+     * Lấy danh sách hóa đơn chưa thanh toán đủ (công nợ) dựa trên ID chi nhánh cụ thể.
      *
-     * Input:
-     * - int|string $branchId: Ma chi nhanh lay tu route.
-     * - DateRangeFilterRequest cung cap start_date va end_date cua dashboard.
-     *
-     * Output:
-     * - JSON { success: true, data: { current: { total_unpaid_invoices, total_remaining_debt, items } } }.
-     *
-     * Ghi chu:
-     * - Controller chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian chung của Dashboard.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa tổng nợ và danh sách các hóa đơn nợ.
      */
     public function branchUnpaidInvoices(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -414,14 +319,11 @@ class DashboardController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Xac dinh chi nhanh hien tai cua Manager cho route overview cu.
+     * Trích xuất ID chi nhánh hiện hành của Manager.
+     * Trả về lỗi 403 (Abort) nếu Manager không có quyền hạn hợp lệ đối với chi nhánh.
      *
-     * Output:
-     * - branch_id cua employee hien tai; abort 403 neu Manager khong co scope hop le.
-     *
-     * Ghi chu:
-     * - Khong dung branch_id query cho luong dashboard chinh.
+     * @param DateRangeFilterRequest $request Dữ liệu Request.
+     * @return int ID của chi nhánh quản lý hiện tại.
      */
     private function currentBranchId(DateRangeFilterRequest $request): int
     {

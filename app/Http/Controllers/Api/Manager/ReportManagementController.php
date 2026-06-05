@@ -8,14 +8,31 @@ use App\Repositories\Contracts\Manager\BranchScopedRevenueReportRepositoryInterf
 use App\Services\Manager\ManagerBranchScopeService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Controller quản lý các API liên quan đến báo cáo phân tích doanh thu
+ * dành riêng cho cấp Quản lý (Manager) dựa trên phạm vi chi nhánh được phân quyền.
+ */
 class ReportManagementController extends ApiController
 {
+    /**
+     * Khởi tạo ReportManagementController.
+     *
+     * @param BranchScopedRevenueReportRepositoryInterface $branchRevenueReportRepository Repository xử lý dữ liệu báo cáo doanh thu.
+     * @param ManagerBranchScopeService $branchScope Service xử lý phân quyền và kiểm tra phạm vi chi nhánh.
+     */
     public function __construct(
         protected BranchScopedRevenueReportRepositoryInterface $branchRevenueReportRepository,
         protected ManagerBranchScopeService $branchScope
     ) {
     }
 
+    /**
+     * Endpoint truy xuất toàn bộ dữ liệu báo cáo doanh thu cho Dashboard.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @param int|string $branchId ID của chi nhánh (truyền từ route).
+     * @return JsonResponse Trả về đối tượng JSON chứa tổng hợp báo cáo.
+     */
     public function index(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
@@ -26,18 +43,13 @@ class ReportManagementController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay tien do muc tieu doanh thu thang cua chi nhanh Manager.
+     * Lấy tiến độ hoàn thành mục tiêu doanh thu (Target Progress) trong tháng của chi nhánh.
      *
-     * Input:
-     * - DateRangeFilterRequest $request: Bo loc start_date/end_date va ky truoc neu can.
-     * - int|string $branchId: Ma chi nhanh lay tu route.
+     * Ghi chú: Controller không chứa SQL, chỉ truyền `$branchId` và `filters` xuống Repository.
      *
-     * Output:
-     * - JSON { success: true, data: ... } gom revenue, target, progress va canh bao.
-     *
-     * Ghi chu:
-     * - Controller khong viet SQL, chi truyen branchId va filters xuong Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian (start_date, end_date và kỳ trước).
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa doanh thu thực tế, mục tiêu, tiến độ (%) và cảnh báo.
      */
     public function targetProgress(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -49,18 +61,13 @@ class ReportManagementController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay bieu do so sanh doanh thu theo ngay trong ky cua chi nhanh Manager.
+     * Lấy dữ liệu biểu đồ so sánh doanh thu theo từng ngày giữa kỳ này và kỳ trước của chi nhánh.
      *
-     * Input:
-     * - DateRangeFilterRequest $request: Bo loc start_date, end_date va prev_start_date.
-     * - int|string $branchId: Ma chi nhanh lay tu route.
+     * Ghi chú: Controller không chứa SQL, chỉ gọi Repository.
      *
-     * Output:
-     * - JSON { success: true, data: [...] } gom doanh thu tung ngay ky nay va ky truoc.
-     *
-     * Ghi chu:
-     * - Controller khong viet SQL, chi goi Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian (start_date, end_date, prev_start_date).
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa dãy doanh thu theo ngày của kỳ hiện tại và kỳ trước.
      */
     public function revenueComparison(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -72,18 +79,13 @@ class ReportManagementController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay Service Mix va co cau doanh thu theo nhom dich vu cua chi nhanh Manager.
+     * Phân tích cơ cấu doanh thu theo từng nhóm dịch vụ (Service Mix) tại chi nhánh.
      *
-     * Input:
-     * - DateRangeFilterRequest $request: Bo loc start_date va end_date.
-     * - int|string $branchId: Ma chi nhanh lay tu route.
+     * Ghi chú: Controller không chứa SQL, chỉ gọi Repository.
      *
-     * Output:
-     * - JSON { success: true, data: [...] } gom revenue_group, revenue, percent_of_total.
-     *
-     * Ghi chu:
-     * - Controller khong viet SQL, chi goi Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa tên nhóm dịch vụ, doanh thu và tỷ trọng (%).
      */
     public function serviceMix(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -95,18 +97,13 @@ class ReportManagementController extends ApiController
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay AOV, doanh thu va so don theo ky cua chi nhanh Manager.
+     * Thống kê Giá trị trung bình đơn hàng (AOV), tổng doanh thu và tổng số đơn hàng của chi nhánh.
      *
-     * Input:
-     * - DateRangeFilterRequest $request: Bo loc start_date, end_date va ky truoc.
-     * - int|string $branchId: Ma chi nhanh lay tu route.
+     * Ghi chú: Controller không chứa SQL, chỉ gọi Repository.
      *
-     * Output:
-     * - JSON { success: true, data: ... } gom current/previous AOV, order count va growth.
-     *
-     * Ghi chu:
-     * - Controller khong viet SQL, chi goi Repository.
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian hiện tại và kỳ trước.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa AOV, số lượng đơn và mức độ tăng trưởng (growth).
      */
     public function aovSummary(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
@@ -117,6 +114,13 @@ class ReportManagementController extends ApiController
         );
     }
 
+    /**
+     * Đánh giá và xếp hạng hiệu suất làm việc của nhân viên (Employee Performance) tại chi nhánh.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa danh sách nhân viên cùng doanh thu và số đơn họ xử lý.
+     */
     public function employeePerformance(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
@@ -126,6 +130,14 @@ class ReportManagementController extends ApiController
         );
     }
 
+    /**
+     * Phân tích tỷ lệ giữ chân khách hàng (Customer Retention) tại chi nhánh.
+     * Đánh giá tỷ lệ doanh thu/số đơn đến từ khách hàng mới so với khách hàng quay lại.
+     *
+     * @param DateRangeFilterRequest $request Chứa bộ lọc thời gian.
+     * @param int|string $branchId ID của chi nhánh.
+     * @return JsonResponse Trả về đối tượng JSON chứa phân tích dữ liệu khách hàng mới/quay lại.
+     */
     public function customerRetention(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
         $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
@@ -135,6 +147,12 @@ class ReportManagementController extends ApiController
         );
     }
 
+    /**
+     * Hợp nhất bộ lọc thời gian mặc định với các tham số điều kiện hiển thị mở rộng.
+     *
+     * @param DateRangeFilterRequest $request Request chứa dữ liệu đầu vào.
+     * @return array Trả về mảng chứa các tham số lọc đã được xác thực an toàn.
+     */
     private function filters(DateRangeFilterRequest $request): array
     {
         return array_merge($request->getFiltersArray(), $request->validate([
