@@ -26,12 +26,6 @@
     <x-global-control-panel
         data-dashboard-controls
         title="Tổng quan hoạt động"
-        :period="match (request('filter_type', 'month')) {
-            'day' => 'ngày',
-            'year' => 'năm',
-            default => 'tháng',
-        }"
-        lastUpdate="Đang tải dữ liệu..."
     />
 
     <p class="dashboard-status" id="dashboardStatus" role="status" aria-live="polite">

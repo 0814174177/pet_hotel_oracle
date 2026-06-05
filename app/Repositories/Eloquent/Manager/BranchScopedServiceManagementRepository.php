@@ -54,17 +54,19 @@ class BranchScopedServiceManagementRepository implements BranchScopedServiceMana
      */
     public function getRevenueProgress(int|string $branchId, array $period = []): array
     {
+        $branchId = (int) $branchId;
         $period = $this->normalizeFilters($period);
+        $targetServiceRevenue = (float) ($period['target_service_revenue'] ?? self::TEMPORARY_TARGET_SERVICE_REVENUE);
 
         $sql = <<<'SQL'
             WITH params AS (
                 SELECT
-                    :p_branch_id AS branch_id,
+                    TO_NUMBER(:p_branch_id) AS branch_id,
                     TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS start_date,
                     TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS end_date,
                     TRUNC(TO_DATE(:p_prev_start_date, 'YYYY-MM-DD')) AS prev_start_date,
                     TRUNC(TO_DATE(:p_prev_end_date, 'YYYY-MM-DD')) AS prev_end_date,
-                    :p_target_service_revenue AS target_service_revenue
+                    TO_NUMBER(:p_target_service_revenue) AS target_service_revenue
                 FROM dual
             ),
             current_revenue AS (
@@ -118,7 +120,7 @@ class BranchScopedServiceManagementRepository implements BranchScopedServiceMana
             'p_end_date' => $period['end_date'],
             'p_prev_start_date' => $period['prev_start_date'],
             'p_prev_end_date' => $period['prev_end_date'],
-            'p_target_service_revenue' => self::TEMPORARY_TARGET_SERVICE_REVENUE,
+            'p_target_service_revenue' => $targetServiceRevenue,
         ]), CASE_LOWER);
 
         $current = (float) ($row['service_revenue'] ?? 0);
@@ -172,12 +174,13 @@ class BranchScopedServiceManagementRepository implements BranchScopedServiceMana
      */
     public function getRevenueDropAlerts(int|string $branchId, array $period = []): array
     {
+        $branchId = (int) $branchId;
         $period = $this->normalizeFilters($period);
 
         $sql = <<<'SQL'
             WITH params AS (
                 SELECT
-                    :p_branch_id AS branch_id,
+                    TO_NUMBER(:p_branch_id) AS branch_id,
                     TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS start_date,
                     TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS end_date,
                     TRUNC(TO_DATE(:p_prev_start_date, 'YYYY-MM-DD')) AS prev_start_date,
@@ -334,12 +337,13 @@ class BranchScopedServiceManagementRepository implements BranchScopedServiceMana
      */
     public function getUpsellRate(int|string $branchId, array $period = []): array
     {
+        $branchId = (int) $branchId;
         $period = $this->normalizeFilters($period);
 
         $sql = <<<'SQL'
             WITH params AS (
                 SELECT
-                    :p_branch_id AS branch_id,
+                    TO_NUMBER(:p_branch_id) AS branch_id,
                     TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS start_date,
                     TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS end_date
                 FROM dual
@@ -425,12 +429,13 @@ class BranchScopedServiceManagementRepository implements BranchScopedServiceMana
      */
     public function getServiceList(int|string $branchId, array $filters = []): array
     {
+        $branchId = (int) $branchId;
         $filters = $this->normalizeFilters($filters);
 
         $sql = <<<'SQL'
             WITH params AS (
                 SELECT
-                    :p_branch_id AS branch_id,
+                    TO_NUMBER(:p_branch_id) AS branch_id,
                     TRUNC(TO_DATE(:p_start_date, 'YYYY-MM-DD')) AS start_date,
                     TRUNC(TO_DATE(:p_end_date, 'YYYY-MM-DD')) AS end_date,
                     TRUNC(TO_DATE(:p_prev_start_date, 'YYYY-MM-DD')) AS prev_start_date,

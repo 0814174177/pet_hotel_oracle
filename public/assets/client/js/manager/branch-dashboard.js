@@ -511,19 +511,63 @@
      */
     function updateTopRevenueServicesChart(items) {
         const canvas = document.getElementById("managerTopRevenueServicesChart");
-        const chart = canvas
-            && window.Chart
-            && typeof window.Chart.getChart === "function"
+        const labels = items.map((item) => (
+            item?.service_name || `DV-${item?.service_id || ""}`
+        ));
+        const values = items.map((item) => {
+            const revenue = Number(item?.service_revenue);
+
+            return Number.isFinite(revenue) ? revenue : 0;
+        });
+
+        if (!canvas || !window.Chart) {
+            return;
+        }
+
+        const chart = typeof window.Chart.getChart === "function"
             ? window.Chart.getChart(canvas)
             : null;
 
         if (!chart) {
+            new window.Chart(canvas, {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: "Doanh thu (VND)",
+                            data: values,
+                            backgroundColor: "#3B82F6",
+                            borderColor: "#3B82F6",
+                            borderRadius: 4,
+                            barThickness: 40,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label(context) {
+                                    return Kpi.formatCurrency(context.parsed.y);
+                                },
+                            },
+                        },
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true },
+                    },
+                },
+            });
+
             return;
         }
 
-        chart.data.labels = items.map((item) => (
-            item?.service_name || `DV-${item?.service_id || ""}`
-        ));
+        chart.data.labels = labels;
 
         if (!Array.isArray(chart.data.datasets) || chart.data.datasets.length === 0) {
             chart.data.datasets = [
@@ -539,11 +583,7 @@
         }
 
         chart.data.datasets[0].label = "Doanh thu (VNĐ)";
-        chart.data.datasets[0].data = items.map((item) => {
-            const revenue = Number(item?.service_revenue);
-
-            return Number.isFinite(revenue) ? revenue : 0;
-        });
+        chart.data.datasets[0].data = values;
         chart.update();
     }
 
@@ -653,23 +693,63 @@
      */
     function updateRevenueStructureChart(items) {
         const canvas = document.getElementById("managerRevenueStructureChart");
-        const chart = canvas
-            && window.Chart
-            && typeof window.Chart.getChart === "function"
+        const labels = items.map((item) => item?.revenue_group || "");
+        const values = items.map((item) => {
+            const revenue = Number(item?.revenue);
+
+            return Number.isFinite(revenue) ? revenue : 0;
+        });
+        const colors = ["#10B981", "#F59E0B", "#64748B"];
+
+        if (!canvas || !window.Chart) {
+            return;
+        }
+
+        const chart = typeof window.Chart.getChart === "function"
             ? window.Chart.getChart(canvas)
             : null;
 
         if (!chart) {
+            new window.Chart(canvas, {
+                type: "doughnut",
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            data: values,
+                            backgroundColor: colors,
+                            borderColor: "#ffffff",
+                            borderWidth: 3,
+                            spacing: 4,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: "bottom" },
+                        tooltip: {
+                            callbacks: {
+                                label(context) {
+                                    return `${context.label}: ${Kpi.formatCurrency(context.parsed)}`;
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
             return;
         }
 
-        chart.data.labels = items.map((item) => item?.revenue_group || "");
+        chart.data.labels = labels;
 
         if (!Array.isArray(chart.data.datasets) || chart.data.datasets.length === 0) {
             chart.data.datasets = [
                 {
                     data: [],
-                    backgroundColor: ["#10B981", "#F59E0B", "#64748B"],
+                    backgroundColor: colors,
                     borderColor: "#ffffff",
                     borderWidth: 3,
                     spacing: 4,
@@ -677,11 +757,8 @@
             ];
         }
 
-        chart.data.datasets[0].data = items.map((item) => {
-            const revenue = Number(item?.revenue);
-
-            return Number.isFinite(revenue) ? revenue : 0;
-        });
+        chart.data.datasets[0].data = values;
+        chart.data.datasets[0].backgroundColor = colors;
         chart.update();
     }
 

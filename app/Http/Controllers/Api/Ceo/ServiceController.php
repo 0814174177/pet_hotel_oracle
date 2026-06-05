@@ -16,24 +16,6 @@ class ServiceController extends ApiController
 
     /**
      * Mo ta chuc nang:
-     * Dong goi du lieu tra ve tu repository theo JSON response chuan cua dashboard.
-     *
-     * Input:
-     * - mixed $data: du lieu da duoc repository xu ly.
-     *
-     * Output:
-     * - JsonResponse co dang { success: true, data: ... }.
-     */
-    private function respondData(mixed $data): JsonResponse
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $data,
-        ]);
-    }
-
-    /**
-     * Mo ta chuc nang:
      * Lay KPI tong quan dich vu theo khoang thoi gian filter.
      *
      * Input:

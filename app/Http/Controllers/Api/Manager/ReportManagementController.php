@@ -2,25 +2,27 @@
 
 namespace App\Http\Controllers\Api\Manager;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Manager\BranchScopedRevenueReportRepositoryInterface;
+use App\Services\Manager\ManagerBranchScopeService;
 use Illuminate\Http\JsonResponse;
 
-class ReportManagementController extends Controller
+class ReportManagementController extends ApiController
 {
     public function __construct(
-        protected BranchScopedRevenueReportRepositoryInterface $branchRevenueReportRepository
+        protected BranchScopedRevenueReportRepositoryInterface $branchRevenueReportRepository,
+        protected ManagerBranchScopeService $branchScope
     ) {
     }
 
     public function index(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view this branch revenue report.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchRevenueReportRepository->getDashboard($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchRevenueReportRepository->getDashboard($branchId, $this->filters($request))
+        );
     }
 
     /**
@@ -39,11 +41,11 @@ class ReportManagementController extends Controller
      */
     public function targetProgress(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view revenue target progress for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchRevenueReportRepository->getTargetProgress($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchRevenueReportRepository->getTargetProgress($branchId, $this->filters($request))
+        );
     }
 
     /**
@@ -62,11 +64,11 @@ class ReportManagementController extends Controller
      */
     public function revenueComparison(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view revenue comparison data for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchRevenueReportRepository->getRevenueComparisonChart($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchRevenueReportRepository->getRevenueComparisonChart($branchId, $this->filters($request))
+        );
     }
 
     /**
@@ -85,11 +87,11 @@ class ReportManagementController extends Controller
      */
     public function serviceMix(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view service mix and AOV data for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchRevenueReportRepository->getServiceMix($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchRevenueReportRepository->getServiceMix($branchId, $this->filters($request))
+        );
     }
 
     /**
@@ -108,29 +110,29 @@ class ReportManagementController extends Controller
      */
     public function aovSummary(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view AOV summary data for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchRevenueReportRepository->getAovSummary($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchRevenueReportRepository->getAovSummary($branchId, $this->filters($request))
+        );
     }
 
     public function employeePerformance(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view employee performance data for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchRevenueReportRepository->getEmployeePerformance($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchRevenueReportRepository->getEmployeePerformance($branchId, $this->filters($request))
+        );
     }
 
     public function customerRetention(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view customer retention data for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchRevenueReportRepository->getCustomerRetention($branchId, $this->filters($request)),
-        ]);
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchRevenueReportRepository->getCustomerRetention($branchId, $this->filters($request))
+        );
     }
 
     private function filters(DateRangeFilterRequest $request): array

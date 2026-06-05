@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const root = document.getElementById("managerEmployeePage");
+    const root = document.getElementById("employeeManagementPage");
 
     if (!root) {
         return;
@@ -11,10 +11,14 @@
 
     const selectors = {
         statTotal: "[data-stat-total]",
+        statBranches: "[data-stat-branches]",
         statPositions: "[data-stat-positions]",
         statAvgSalary: "[data-stat-avg-salary]",
         searchInput: "[data-search-input]",
+        filterBranch: "[data-filter-branch]",
         filterPosition: "[data-filter-position]",
+        filterStatus: "[data-filter-status]",
+        refreshFilters: "[data-refresh-filters]",
         tableBody: "[data-employee-table-body]",
         tableCount: "[data-table-count]",
         emptyState: "[data-empty-state]",
@@ -42,7 +46,7 @@
     }
 
     function readEmployees() {
-        const dataNode = root.querySelector("#managerEmployeeData");
+        const dataNode = root.querySelector("#employeeManagementData");
 
         if (!dataNode) {
             return [];
@@ -53,12 +57,14 @@
 
             return Array.isArray(parsed) ? parsed.map(normalizeEmployee).filter((employee) => employee.name) : [];
         } catch (error) {
-            console.warn("Khong doc duoc du lieu nhan vien tu server.", error);
+            console.warn("Không đọc được dữ liệu nhân viên từ server.", error);
             return [];
         }
     }
 
     function normalizeEmployee(employee) {
+        const position = String(employee.position || "").toUpperCase();
+
         return {
             id: Number(employee.id) || 0,
             code: String(employee.code || ""),
@@ -69,8 +75,8 @@
                 id: employee.branch?.id === null || employee.branch?.id === undefined ? null : Number(employee.branch.id),
                 name: employee.branch?.name || "",
             },
-            position: String(employee.position || "").toUpperCase(),
-            positionLabel: employee.positionLabel || positionLabel(employee.position),
+            position,
+            positionLabel: employee.positionLabel || positionLabel(position),
             salary: Number(employee.salary) || 0,
             hireDate: employee.hireDate || "",
             birthday: employee.birthday || "",
@@ -86,13 +92,16 @@
     }
 
     function positionLabel(position) {
-        const normalized = String(position || "").toUpperCase();
         const labels = {
+            MANAGER: "Quản lý",
             RECEPTIONIST: "Lễ tân",
             GROOMER: "Groomer",
+            VET: "Bác sĩ thú y",
+            CLEANER: "Tạp vụ",
+            OTHER: "Khác",
         };
 
-        return labels[normalized] || "Khác";
+        return labels[String(position || "").toUpperCase()] || "Khác";
     }
 
     function escapeHtml(value) {
@@ -104,14 +113,15 @@
             .replace(/'/g, "&#039;");
     }
 
-    function initials(name) {
-        const parts = String(name).trim().split(/\s+/).filter(Boolean);
-
-        if (parts.length >= 2) {
-            return `${parts[parts.length - 2][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-        }
-
-        return String(name).slice(0, 2).toUpperCase();
+    function normalizeSearch(value) {
+        return String(value ?? "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/đ/g, "d")
+            .replace(/Đ/g, "D")
+            .toLowerCase()
+            .replace(/\s+/g, " ")
+            .trim();
     }
 
     function number(value) {
@@ -121,11 +131,7 @@
     function formatSalary(value) {
         const salary = Number(value) || 0;
 
-        if (!salary) {
-            return "0đ";
-        }
-
-        return `${number(salary)}đ`;
+        return salary ? `${number(salary)}đ` : "0đ";
     }
 
     function formatCompactSalary(value) {
@@ -152,6 +158,24 @@
         return day && month && year ? `${day}/${month}/${year}` : date;
     }
 
+    function employeeSearchText(employee) {
+        return normalizeSearch([
+            employee.name,
+            employee.code,
+            employee.phone,
+            employee.email,
+            employee.branch.name,
+            employee.position,
+            employee.positionLabel,
+            employee.statusLabel,
+            formatSalary(employee.salary),
+            formatDate(employee.hireDate),
+            formatDate(employee.birthday),
+            employee.experience,
+            employee.notes,
+        ].join(" "));
+    }
+
     function setText(selector, text) {
         const node = $(selector);
 
@@ -161,27 +185,36 @@
     }
 
     function updateStats() {
+        const branches = new Set(employees.map((employee) => employee.branch.id).filter((branchId) => branchId !== null));
         const positions = new Set(employees.map((employee) => employee.position).filter(Boolean));
-        const salaryList = employees
-            .map((employee) => employee.salary)
-            .filter((salary) => salary > 0);
+        const salaryList = employees.map((employee) => employee.salary).filter((salary) => salary > 0);
         const averageSalary = salaryList.length
             ? salaryList.reduce((sum, salary) => sum + salary, 0) / salaryList.length
             : 0;
 
         setText(selectors.statTotal, employees.length);
+        setText(selectors.statBranches, branches.size);
         setText(selectors.statPositions, positions.size);
         setText(selectors.statAvgSalary, formatCompactSalary(averageSalary));
     }
 
-    function renderRow(employee, index) {
-        const avatarClass = `manager-employee-avatar--${index % 5}`;
+    function shouldShowBranchColumn() {
+        return root.dataset.showBranchColumn !== "0";
+    }
+
+    function renderRow(employee) {
+        const branchCell = shouldShowBranchColumn()
+            ? `
+                <td>
+                    <span class="manager-employee-branch-tag">${escapeHtml(employee.branch.name || "—")}</span>
+                </td>
+            `
+            : "";
 
         return `
             <tr>
                 <td>
                     <div class="manager-employee-person-cell">
-                        <span class="manager-employee-avatar ${avatarClass}">${escapeHtml(initials(employee.name))}</span>
                         <div>
                             <div class="manager-employee-name">${escapeHtml(employee.name)}</div>
                             <div class="manager-employee-code">${escapeHtml(employee.code)}</div>
@@ -195,6 +228,7 @@
                 <td>
                     <span class="manager-employee-position-badge">${escapeHtml(employee.positionLabel)}</span>
                 </td>
+                ${branchCell}
                 <td>
                     <div class="manager-employee-salary">${formatSalary(employee.salary)}</div>
                     <div class="manager-employee-salary-sub">VND / tháng</div>
@@ -208,8 +242,8 @@
                 </td>
                 <td class="manager-employee-actions-col">
                     <div class="manager-employee-actions">
-                        <button type="button" class="manager-employee-action-btn" data-edit-action data-employee-id="${employee.id}" title="Sửa">✎</button>
-                        <button type="button" class="manager-employee-action-btn manager-employee-action-btn--resign" data-resign-action data-employee-id="${employee.id}" title="Cho nghỉ việc">−</button>
+                        <button type="button" class="manager-employee-action-btn" data-edit-action data-employee-id="${employee.id}">Sửa</button>
+                        <button type="button" class="manager-employee-action-btn manager-employee-action-btn--resign" data-resign-action data-employee-id="${employee.id}">Nghỉ</button>
                     </div>
                 </td>
             </tr>
@@ -238,22 +272,41 @@
     }
 
     function applyFilters() {
-        const query = ($(selectors.searchInput)?.value || "").trim().toLowerCase();
+        const query = normalizeSearch($(selectors.searchInput)?.value);
+        const branch = $(selectors.filterBranch)?.value || "";
         const position = $(selectors.filterPosition)?.value || "";
+        const status = $(selectors.filterStatus)?.value || "";
 
         const filtered = employees.filter((employee) => {
-            const matchesQuery = !query ||
-                employee.name.toLowerCase().includes(query) ||
-                employee.code.toLowerCase().includes(query) ||
-                employee.phone.toLowerCase().includes(query) ||
-                employee.email.toLowerCase().includes(query) ||
-                employee.positionLabel.toLowerCase().includes(query);
+            const matchesQuery = !query || employeeSearchText(employee).includes(query);
+            const matchesBranch = !branch || String(employee.branch.id) === branch;
             const matchesPosition = !position || employee.position === position;
+            const matchesStatus = !status || String(employee.status) === status;
 
-            return matchesQuery && matchesPosition;
+            return matchesQuery && matchesBranch && matchesPosition && matchesStatus;
         });
 
         renderTable(filtered);
+    }
+
+    function resetFilters() {
+        if ($(selectors.searchInput)) {
+            $(selectors.searchInput).value = "";
+        }
+
+        if ($(selectors.filterBranch)) {
+            $(selectors.filterBranch).value = "";
+        }
+
+        if ($(selectors.filterPosition)) {
+            $(selectors.filterPosition).value = "";
+        }
+
+        if ($(selectors.filterStatus)) {
+            $(selectors.filterStatus).value = "";
+        }
+
+        applyFilters();
     }
 
     function showToast(message) {
@@ -287,6 +340,7 @@
             password: "Mật khẩu",
             password_confirmation: "Xác nhận mật khẩu",
             phone: "Số điện thoại",
+            branch_id: "Chi nhánh",
             position: "Vị trí",
             salary: "Lương",
             hire_date: "Ngày vào làm",
@@ -436,6 +490,7 @@
         if (!preserveFormValues) {
             setField(form, "name", employee.name);
             setField(form, "phone", employee.phone);
+            setField(form, "branchId", employee.branch.id);
             setField(form, "position", employee.position);
             setField(form, "salary", employee.salary || "");
             setField(form, "hireDate", employee.hireDate);
@@ -528,7 +583,7 @@
             applyFilters();
             form.reset();
             closeCreateModal();
-            showToast(payload.message || "Thêm nhân viên thành công.");
+            showToast(payload.message || root.dataset.createSuccessMessage || "Thêm nhân viên thành công.");
         } catch (error) {
             showErrors(errorBox, error.payload || { message: "Không thể thêm nhân viên." });
         } finally {
@@ -555,7 +610,7 @@
             updateStats();
             applyFilters();
             closeEditModal();
-            showToast(payload.message || "Cập nhật thông tin nhân viên thành công.");
+            showToast(payload.message || root.dataset.editSuccessMessage || "Cập nhật thông tin nhân viên thành công.");
         } catch (error) {
             showErrors(errorBox, error.payload || { message: "Không thể cập nhật nhân viên." });
         } finally {
@@ -578,7 +633,7 @@
             updateStats();
             applyFilters();
             closeResignModal();
-            showToast(payload.message || "Đã cho nhân viên nghỉ việc.");
+            showToast(payload.message || root.dataset.resignSuccessMessage || "Đã cho nhân viên nghỉ việc.");
         } catch (error) {
             showToast(error.payload?.message || "Không thể cho nhân viên nghỉ việc.");
         } finally {
@@ -588,7 +643,10 @@
 
     function bindEvents() {
         $(selectors.searchInput)?.addEventListener("input", applyFilters);
+        $(selectors.filterBranch)?.addEventListener("change", applyFilters);
         $(selectors.filterPosition)?.addEventListener("change", applyFilters);
+        $(selectors.filterStatus)?.addEventListener("change", applyFilters);
+        $(selectors.refreshFilters)?.addEventListener("click", resetFilters);
         $(selectors.openCreateModal)?.addEventListener("click", openCreateModal);
         $(selectors.createForm)?.addEventListener("submit", handleCreateSubmit);
         $(selectors.editForm)?.addEventListener("submit", handleEditSubmit);

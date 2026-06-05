@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Web\Manager;
 
 use App\Http\Controllers\Web\WebController;
 use App\Models\Employee;
-use App\Models\User;
+use App\Repositories\Contracts\EmployeeManagementRepositoryInterface;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class EmployeeController extends WebController
@@ -20,18 +20,24 @@ class EmployeeController extends WebController
 
     private const BLOCKED_ROLES = ['CEO', 'ADMIN', 'MANAGER'];
 
+    public function __construct(private EmployeeManagementRepositoryInterface $employees)
+    {
+    }
+
     public function index(): View
     {
         $branchId = $this->currentManagerBranchId();
 
-        $employees = $this->baseBranchStaffQuery($branchId)
-            ->orderBy('full_name')
-            ->get()
-            ->map(fn (Employee $employee): array => $this->mapEmployeeForUi($employee))
-            ->values();
+        $employees = $this->employees->managerBranchEmployees(
+            $branchId,
+            self::ALLOWED_STAFF_ROLES,
+            self::BLOCKED_ROLES
+        );
 
-        return view('pages.manager.employee-management', [
+        return view('pages.shared.employee-management', [
             'employees' => $employees,
+            'branches' => collect(),
+            'employeePage' => $this->pageConfig(),
         ]);
     }
 
@@ -42,6 +48,7 @@ class EmployeeController extends WebController
         $request->merge([
             'email' => strtolower(trim((string) $request->input('email'))),
             'full_name' => trim((string) $request->input('full_name')),
+            'phone' => $this->normalizePhone($request->input('phone')),
             'position' => strtoupper((string) $request->input('position')),
         ]);
 
@@ -49,38 +56,17 @@ class EmployeeController extends WebController
             'full_name' => ['required', 'string', 'max:200'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'confirmed', 'min:6'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^(0[0-9]{9}|\+84[0-9]{9})$/', Rule::unique('employee', 'phone')],
             'position' => ['required', Rule::in(self::ALLOWED_STAFF_ROLES)],
-            'salary' => ['nullable', 'numeric', 'min:0'],
-            'hire_date' => ['nullable', 'date'],
-            'birthday' => ['nullable', 'date'],
+            'salary' => ['nullable', 'numeric', 'min:0', 'max:200000000'],
+            'hire_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'birthday' => ['nullable', 'date', 'before_or_equal:'.now()->subYears(16)->toDateString()],
             'experience' => ['nullable', 'string', 'max:50'],
-            'notes' => ['nullable', 'string'],
+            'notes' => ['nullable', 'string', 'max:1000'],
         ], $this->validationMessages());
+        $this->ensureEmployeeDatesAreLogical($validated);
 
-        $employee = DB::transaction(function () use ($validated, $branchId): Employee {
-            $user = User::create([
-                'name' => $validated['full_name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'role' => $validated['position'],
-                'is_active' => 1,
-            ]);
-
-            return Employee::create([
-                'user_id' => $user->id,
-                'branch_id' => $branchId,
-                'full_name' => $validated['full_name'],
-                'position' => $validated['position'],
-                'salary' => $validated['salary'] ?? 0,
-                'phone' => $validated['phone'] ?? null,
-                'hire_date' => $validated['hire_date'] ?? null,
-                'birthday' => $validated['birthday'] ?? null,
-                'experience' => $validated['experience'] ?? null,
-                'notes' => $validated['notes'] ?? null,
-                'status' => Employee::STATUS_WORKING,
-            ]);
-        })->load(['user', 'branch']);
+        $employee = $this->employees->createBranchStaff($validated, $branchId);
 
         $message = 'Thêm nhân viên thành công.';
 
@@ -88,7 +74,7 @@ class EmployeeController extends WebController
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'employee' => $this->mapEmployeeForUi($employee),
+                'employee' => $this->employees->mapEmployeeForUi($employee),
             ], 201);
         }
 
@@ -101,50 +87,38 @@ class EmployeeController extends WebController
 
         $request->merge([
             'full_name' => trim((string) $request->input('full_name')),
+            'phone' => $this->normalizePhone($request->input('phone')),
             'position' => strtoupper((string) $request->input('position')),
         ]);
 
         $validated = $request->validate([
             'full_name' => ['required', 'string', 'max:200'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => [
+                'nullable',
+                'string',
+                'max:20',
+                'regex:/^(0[0-9]{9}|\+84[0-9]{9})$/',
+                Rule::unique('employee', 'phone')->ignore($employee->employee_id, 'employee_id'),
+            ],
             'position' => ['required', Rule::in(self::ALLOWED_STAFF_ROLES)],
-            'salary' => ['nullable', 'numeric', 'min:0'],
-            'hire_date' => ['nullable', 'date'],
-            'birthday' => ['nullable', 'date'],
+            'salary' => ['nullable', 'numeric', 'min:0', 'max:200000000'],
+            'hire_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'birthday' => ['nullable', 'date', 'before_or_equal:'.now()->subYears(16)->toDateString()],
             'experience' => ['nullable', 'string', 'max:50'],
-            'notes' => ['nullable', 'string'],
+            'notes' => ['nullable', 'string', 'max:1000'],
             '_employee_form_mode' => ['nullable', 'string'],
             '_employee_id' => ['nullable', 'integer'],
         ], $this->validationMessages());
+        $this->ensureEmployeeDatesAreLogical($validated);
 
-        DB::transaction(function () use ($employee, $validated): void {
-            $employee->update([
-                'full_name' => $validated['full_name'],
-                'position' => $validated['position'],
-                'salary' => $validated['salary'] ?? null,
-                'phone' => $validated['phone'] ?? null,
-                'hire_date' => $validated['hire_date'] ?? null,
-                'birthday' => $validated['birthday'] ?? null,
-                'experience' => $validated['experience'] ?? null,
-                'notes' => $validated['notes'] ?? null,
-            ]);
-
-            if ($employee->user) {
-                $employee->user->update([
-                    'name' => $validated['full_name'],
-                    'role' => $validated['position'],
-                ]);
-            }
-        });
-
-        $employee->load(['user', 'branch']);
+        $employee = $this->employees->updateBranchStaff($employee, $validated);
         $message = 'Cập nhật thông tin nhân viên thành công.';
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'employee' => $this->mapEmployeeForUi($employee),
+                'employee' => $this->employees->mapEmployeeForUi($employee),
             ]);
         }
 
@@ -155,17 +129,7 @@ class EmployeeController extends WebController
     {
         $this->authorizeManagedEmployee($employee, true);
 
-        DB::transaction(function () use ($employee): void {
-            $employee->update([
-                'status' => Employee::STATUS_RESIGNED,
-            ]);
-
-            if ($employee->user) {
-                $employee->user->update([
-                    'is_active' => 0,
-                ]);
-            }
-        });
+        $this->employees->resign($employee);
 
         $message = 'Đã cho nhân viên nghỉ việc và vô hiệu hóa tài khoản đăng nhập.';
 
@@ -191,62 +155,89 @@ class EmployeeController extends WebController
         return (int) $branchId;
     }
 
-    private function baseBranchStaffQuery(int $branchId)
-    {
-        return Employee::query()
-            ->with(['user', 'branch'])
-            ->working()
-            ->where('branch_id', $branchId)
-            ->whereHas('user', function ($query): void {
-                $query->where('is_active', 1)
-                    ->whereNotIn('role', self::BLOCKED_ROLES)
-                    ->whereIn('role', self::ALLOWED_STAFF_ROLES);
-            });
-    }
-
     private function authorizeManagedEmployee(Employee $employee, bool $preventSelf = false): void
     {
         $branchId = $this->currentManagerBranchId();
-        $employee->loadMissing('user');
-        $role = strtoupper((string) $employee->user?->role);
-
-        $isAllowed = (int) $employee->branch_id === $branchId
-            && (int) $employee->status === Employee::STATUS_WORKING
-            && $employee->user
-            && (int) $employee->user->is_active === 1
-            && ! in_array($role, self::BLOCKED_ROLES, true)
-            && in_array($role, self::ALLOWED_STAFF_ROLES, true);
-
-        if ($preventSelf && (int) $employee->user_id === (int) auth()->id()) {
-            $isAllowed = false;
-        }
+        $isAllowed = $this->employees->isManageableBranchStaff(
+            $employee,
+            $branchId,
+            self::ALLOWED_STAFF_ROLES,
+            self::BLOCKED_ROLES,
+            auth()->id(),
+            $preventSelf
+        );
 
         if (! $isAllowed) {
             throw new HttpException(403, 'Bạn không có quyền thao tác nhân viên này.');
         }
     }
 
-    private function mapEmployeeForUi(Employee $employee): array
+    private function normalizePhone(mixed $phone): ?string
+    {
+        $phone = trim((string) $phone);
+
+        if ($phone === '') {
+            return null;
+        }
+
+        $phone = preg_replace('/[\s.\-()]/', '', $phone) ?: $phone;
+
+        return str_starts_with($phone, '84') ? '+'.$phone : $phone;
+    }
+
+    private function ensureEmployeeDatesAreLogical(array $validated): void
+    {
+        if (empty($validated['birthday']) || empty($validated['hire_date'])) {
+            return;
+        }
+
+        $minimumHireDate = Carbon::parse($validated['birthday'])->addYears(16);
+        $hireDate = Carbon::parse($validated['hire_date']);
+
+        if ($hireDate->lt($minimumHireDate)) {
+            throw ValidationException::withMessages([
+                'hire_date' => 'Ngày vào làm phải sau thời điểm nhân viên đủ 16 tuổi.',
+            ]);
+        }
+    }
+
+    private function pageConfig(): array
     {
         return [
-            'id' => (int) $employee->employee_id,
-            'code' => 'EMP-'.str_pad((string) $employee->employee_id, 3, '0', STR_PAD_LEFT),
-            'name' => $employee->full_name,
-            'phone' => $employee->phone,
-            'email' => $employee->user?->email,
-            'branch' => [
-                'id' => $employee->branch_id !== null ? (int) $employee->branch_id : null,
-                'name' => $employee->branch?->branch_name,
+            'layout' => 'layouts.manager',
+            'context' => 'manager',
+            'title' => 'Quản lý nhân viên',
+            'storeRoute' => route('manager.employees.store'),
+            'updateUrlTemplate' => route('manager.employees.update', ['employee' => '__EMPLOYEE_ID__']),
+            'resignUrlTemplate' => route('manager.employees.resign', ['employee' => '__EMPLOYEE_ID__']),
+            'description' => 'Quản lý nhân sự đang làm việc tại chi nhánh của bạn.',
+            'createButtonLabel' => 'Thêm nhân viên',
+            'createTitle' => 'Thêm nhân viên',
+            'createSubtitle' => 'Tạo tài khoản đăng nhập và hồ sơ cho nhân viên thuộc chi nhánh của bạn.',
+            'createSubmitLabel' => 'Tạo nhân viên',
+            'editTitle' => 'Sửa thông tin nhân viên',
+            'editSubtitle' => 'Không đổi email, mật khẩu, chi nhánh hoặc trạng thái.',
+            'resignTitle' => 'Cho nhân viên nghỉ việc',
+            'resignText' => 'Bạn có chắc muốn cho nhân viên này nghỉ việc không? Tài khoản đăng nhập của người này sẽ bị vô hiệu hóa và nhân viên sẽ ẩn khỏi danh sách.',
+            'resignSubmitLabel' => 'Xác nhận nghỉ việc',
+            'createSuccessMessage' => 'Thêm nhân viên thành công.',
+            'editSuccessMessage' => 'Cập nhật thông tin nhân viên thành công.',
+            'resignSuccessMessage' => 'Đã cho nhân viên nghỉ việc.',
+            'showBranchFilter' => false,
+            'showBranchColumn' => true,
+            'canChooseBranchOnCreate' => false,
+            'canEditBranch' => false,
+            'canChoosePositionOnCreate' => true,
+            'canEditPosition' => true,
+            'positions' => [
+                ['value' => 'RECEPTIONIST', 'label' => 'Lễ tân'],
+                ['value' => 'GROOMER', 'label' => 'Groomer'],
             ],
-            'position' => strtoupper((string) $employee->position),
-            'positionLabel' => $this->positionLabel($employee->position),
-            'salary' => $employee->salary !== null ? (float) $employee->salary : 0,
-            'hireDate' => $employee->hire_date?->format('Y-m-d'),
-            'birthday' => $employee->birthday?->format('Y-m-d'),
-            'experience' => $employee->experience,
-            'notes' => $employee->notes,
-            'status' => (int) $employee->status,
-            'statusLabel' => (int) $employee->status === Employee::STATUS_WORKING ? 'Đang làm' : 'Nghỉ việc',
+            'stats' => [
+                ['title' => 'Tổng nhân viên', 'detail' => 'Đang làm', 'attribute' => 'data-stat-total'],
+                ['title' => 'Số vị trí', 'detail' => 'Lễ tân / Groomer', 'attribute' => 'data-stat-positions'],
+                ['title' => 'Lương trung bình', 'detail' => 'VND / tháng', 'attribute' => 'data-stat-avg-salary'],
+            ],
         ];
     }
 
@@ -261,21 +252,19 @@ class EmployeeController extends WebController
             'password.required' => 'Vui lòng nhập mật khẩu.',
             'password.confirmed' => 'Xác nhận mật khẩu không khớp.',
             'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
+            'phone.regex' => 'Số điện thoại phải có 10 chữ số và bắt đầu bằng 0 hoặc +84.',
+            'phone.unique' => 'Số điện thoại này đã thuộc về nhân viên khác.',
             'position.required' => 'Vui lòng chọn vị trí.',
             'position.in' => 'Manager chỉ được tạo nhân viên Lễ tân hoặc Groomer.',
             'salary.min' => 'Lương không được âm.',
+            'salary.max' => 'Lương vượt quá giới hạn hợp lệ.',
             'hire_date.date' => 'Ngày vào làm không hợp lệ.',
+            'hire_date.before_or_equal' => 'Ngày vào làm không được lớn hơn ngày hiện tại.',
             'birthday.date' => 'Ngày sinh không hợp lệ.',
+            'birthday.before_or_equal' => 'Nhân viên phải đủ từ 16 tuổi trở lên.',
             'experience.max' => 'Kinh nghiệm không được vượt quá 50 ký tự.',
+            'notes.max' => 'Ghi chú không được vượt quá 1000 ký tự.',
         ];
     }
 
-    private function positionLabel(?string $position): string
-    {
-        return match (strtoupper((string) $position)) {
-            'RECEPTIONIST' => 'Lễ tân',
-            'GROOMER' => 'Groomer',
-            default => 'Khác',
-        };
-    }
 }

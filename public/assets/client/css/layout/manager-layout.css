@@ -80,6 +80,17 @@ body {
     font-size: 20px;
 }
 
+.manager-sidebar-logo-img {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+    display: block;
+    object-fit: contain;
+    background: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+}
+
 .manager-sidebar-logo-text {
     color: #ffffff;
     font-size: 18px;
@@ -124,7 +135,10 @@ body {
     text-decoration: none;
     font-size: 14px;
     font-weight: 700;
-    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .manager-sidebar-link:hover {
@@ -166,23 +180,40 @@ body {
 }
 
 .manager-sidebar-role {
-    align-items: center;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
+    min-height: 40px;
     display: flex;
-    gap: 10px;
-    min-height: 42px;
+    align-items: center;
+    gap: 8px;
     padding: 0 12px;
 }
 
+.manager-sidebar-role-copy {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.manager-sidebar-role-name,
+.manager-sidebar-role-branch {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.manager-sidebar-role-name {
+    color: #ffffff;
+}
+
+.manager-sidebar-role-branch {
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 600;
+}
+
 .manager-sidebar-role-icon {
-    align-items: center;
-    display: inline-flex;
     flex: 0 0 28px;
-    font-size: 17px;
-    justify-content: center;
     width: 28px;
+    text-align: center;
+    font-size: 18px;
 }
 
 .manager-logout-form {
@@ -191,26 +222,39 @@ body {
 }
 
 .manager-logout-btn {
-    align-items: center;
-    background: rgba(220, 38, 38, 0.12);
-    border: 1px solid rgba(248, 113, 113, 0.36);
-    border-radius: 12px;
-    color: #fecaca;
-    cursor: pointer;
-    display: flex;
-    font-size: 14px;
-    font-weight: 800;
-    gap: 12px;
     min-height: 44px;
-    padding: 0 12px;
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     width: 100%;
+    padding: 0 14px;
+    background-color: #ef4444;
+    color: #ffffff;
+    border: 1px solid #ef4444;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.1s ease;
 }
 
 .manager-logout-btn:hover {
-    background: rgba(220, 38, 38, 0.2);
-    border-color: rgba(248, 113, 113, 0.58);
-    color: #ffffff;
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+.manager-logout-btn:active {
+    transform: scale(0.98);
+}
+
+.manager-logout-icon {
+    flex: 0 0 18px;
+    font-size: 16px;
+    line-height: 1;
 }
 
 .manager-main-content {
@@ -225,98 +269,53 @@ body {
     max-width: 100%;
 }
 
-.manager-layout .global-control-panel {
-    align-items: flex-end;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
-    margin-bottom: 28px;
-    padding: 18px 20px;
-}
-
-.manager-layout .global-control-panel__title {
-    font-size: 26px;
-    letter-spacing: 0;
-}
-
-.manager-layout .global-control-panel__last-update {
-    color: #64748b;
-}
-
-.manager-layout .global-control-panel__period-group {
-    align-items: center;
-    gap: 12px;
-}
-
-.manager-layout .global-control-panel__period-label {
-    color: #475569;
-    font-weight: 700;
-    margin-right: 0;
-}
-
 .manager-layout .global-control-panel__date-picker-group {
-    align-items: center;
     display: flex;
+    align-items: center;
+    gap: 10px;
     flex-wrap: wrap;
-    gap: 8px;
 }
 
 .manager-layout .global-control-panel__date-input {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    color: #0f172a;
     min-height: 38px;
-    outline: none;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #334155;
     padding: 7px 10px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.manager-layout .global-control-panel__date-input:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-}
-
-.manager-layout .global-control-panel__date-separator {
-    color: #94a3b8;
-    font-weight: 700;
 }
 
 .manager-layout .global-control-panel__apply-btn,
-.manager-layout .manager-layout__refresh-btn {
-    align-items: center;
-    border-radius: 10px;
-    cursor: pointer;
-    display: inline-flex;
-    font-size: 13px;
-    font-weight: 800;
-    justify-content: center;
+.manager-layout .global-control-panel__refresh-btn {
     min-height: 38px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
     padding: 8px 14px;
-    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
-    white-space: nowrap;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
 }
 
 .manager-layout .global-control-panel__apply-btn {
-    background: #2563eb;
-    border: 1px solid #2563eb;
+    background: #0ea5e9;
+    border: 1px solid #0ea5e9;
     color: #ffffff;
 }
 
 .manager-layout .global-control-panel__apply-btn:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
-    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
+    background: #0284c7;
+    border-color: #0284c7;
 }
 
-.manager-layout .manager-layout__refresh-btn {
+.manager-layout .global-control-panel__refresh-btn {
     background: #ffffff;
     border: 1px solid #cbd5e1;
     color: #334155;
 }
 
-.manager-layout .manager-layout__refresh-btn:hover {
+.manager-layout .global-control-panel__refresh-btn:hover {
     background: #f8fafc;
     border-color: #94a3b8;
     color: #0f172a;
@@ -359,6 +358,14 @@ body {
     padding: 0;
 }
 
+.manager-layout--collapsed .manager-logout-form {
+    padding: 0;
+}
+
+.manager-layout--collapsed .manager-logout-btn {
+    padding: 0;
+}
+
 @media (max-width: 768px) {
     .manager-layout {
         --sidebar-width: 80px;
@@ -378,33 +385,5 @@ body {
     .manager-sidebar-link {
         justify-content: center;
         padding: 0;
-    }
-
-    .manager-sidebar-footer {
-        padding: 14px 10px 16px;
-    }
-
-    .manager-sidebar-role,
-    .manager-logout-btn {
-        justify-content: center;
-        padding: 0;
-    }
-
-    .manager-layout .global-control-panel {
-        align-items: flex-start;
-        flex-direction: column;
-        padding: 16px;
-    }
-
-    .manager-layout .global-control-panel__period-group,
-    .manager-layout .global-control-panel__date-picker-group {
-        align-items: stretch;
-        width: 100%;
-    }
-
-    .manager-layout .global-control-panel__date-input,
-    .manager-layout .global-control-panel__apply-btn,
-    .manager-layout .manager-layout__refresh-btn {
-        width: 100%;
     }
 }

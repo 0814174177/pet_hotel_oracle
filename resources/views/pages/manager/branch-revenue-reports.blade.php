@@ -9,152 +9,18 @@
 @section('content')
 
 @php
-    $managerBranchId = auth()->user()?->employee?->branch_id;
+    $managerUser = auth()->user();
+    $managerEmployee = $managerUser?->employee;
+    $managerBranchId = $managerBranchId ?? auth()->user()?->managerBranchId();
     abort_if(blank($managerBranchId), 403, 'Manager account is not assigned to a branch.');
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATA MẪU: GROWTH TRACKING
-    |--------------------------------------------------------------------------
-    */
-    $targetRevenue = 540;
-    $currentRevenue = 381;
-    $progress = min(($currentRevenue / $targetRevenue) * 100, 100);
-    $remaining = $targetRevenue - $currentRevenue;
-    $daysLeft = 8;
-    $dailyNeeded = $remaining / $daysLeft;
-
-    $revenueTrendData = [
-        ['label' => 'T2', 'thisWeek' => 18.5, 'lastWeek' => 15.2],
-        ['label' => 'T3', 'thisWeek' => 22.1, 'lastWeek' => 19.8],
-        ['label' => 'T4', 'thisWeek' => 19.3, 'lastWeek' => 21.0],
-        ['label' => 'T5', 'thisWeek' => 26.7, 'lastWeek' => 18.5],
-        ['label' => 'T6', 'thisWeek' => 31.2, 'lastWeek' => 24.3],
-        ['label' => 'T7', 'thisWeek' => 38.9, 'lastWeek' => 32.1],
-        ['label' => 'CN', 'thisWeek' => 42.0, 'lastWeek' => 35.6],
-    ];
-
-    $revenueLineConfigs = [
-        ['key' => 'thisWeek', 'name' => 'Kỳ này (tr)', 'color' => '#f59e0b'],
-        ['key' => 'lastWeek', 'name' => 'Cùng kỳ trước (tr)', 'color' => '#475569'],
-    ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATA MẪU: SERVICE MIX
-    |--------------------------------------------------------------------------
-    */
-    $serviceData = [
-        ['name' => 'Hotel Chó', 'value' => 38.2, 'color' => '#3b82f6', 'icon' => '🐕'],
-        ['name' => 'Hotel Mèo', 'value' => 22.1, 'color' => '#8b5cf6', 'icon' => '🐱'],
-        ['name' => 'Spa / Grooming', 'value' => 28.4, 'color' => '#f59e0b', 'icon' => '✂️'],
-        ['name' => 'Thú y / Khám', 'value' => 7.8, 'color' => '#10b981', 'icon' => '💊'],
-        ['name' => 'Phụ kiện / Shop', 'value' => 3.5, 'color' => '#64748b', 'icon' => '🛍️'],
-    ];
-
-    $serviceColors = array_column($serviceData, 'color');
-    $hotelShare = $serviceData[0]['value'] + $serviceData[1]['value'];
-    $spaShare = $serviceData[2]['value'];
-
-    $aovData = [
-        ['key' => 'current_aov', 'label' => 'Tháng này', 'value' => '485k', 'change' => '+12.4%', 'highlight' => true],
-        ['key' => 'previous_aov', 'label' => 'Tháng trước', 'value' => '431.5k', 'change' => null, 'highlight' => false],
-        ['key' => 'max_order_value', 'label' => 'Cao nhất/đơn', 'value' => '2.850k', 'change' => null, 'highlight' => false],
-        ['key' => 'current_orders', 'label' => 'Số đơn/tháng', 'value' => '786 đơn', 'change' => null, 'highlight' => false],
-    ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATA MẪU: STAFF PERFORMANCE
-    |--------------------------------------------------------------------------
-    */
-    $staffData = [
-        [
-            'name' => 'Nguyễn Minh Tuấn',
-            'role' => 'Thợ chính',
-            'revenue' => 48.5,
-            'orders' => 32,
-            'upsellRate' => 68,
-            'alert' => false,
-        ],
-        [
-            'name' => 'Phạm Thu Hà',
-            'role' => 'Thợ chính',
-            'revenue' => 44.1,
-            'orders' => 29,
-            'upsellRate' => 55,
-            'alert' => false,
-        ],
-        [
-            'name' => 'Lê Văn Hùng',
-            'role' => 'Thợ phụ',
-            'revenue' => 39.7,
-            'orders' => 41,
-            'upsellRate' => 71,
-            'alert' => true,
-        ],
-        [
-            'name' => 'Trần Thị Lan',
-            'role' => 'Lễ tân',
-            'revenue' => 31.2,
-            'orders' => 87,
-            'upsellRate' => 82,
-            'alert' => false,
-        ],
-        [
-            'name' => 'Võ Thanh Bình',
-            'role' => 'Thợ phụ',
-            'revenue' => 22.8,
-            'orders' => 19,
-            'upsellRate' => 42,
-            'alert' => false,
-        ],
-    ];
-
-    $topRevenue = max(array_column($staffData, 'revenue'));
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATA MẪU: CUSTOMER ANALYTICS
-    |--------------------------------------------------------------------------
-    */
-    $retentionData = [
-        ['month' => 'T12/24', 'rate' => 71.2],
-        ['month' => 'T1/25', 'rate' => 73.5],
-        ['month' => 'T2/25', 'rate' => 68.9],
-        ['month' => 'T3/25', 'rate' => 74.1],
-        ['month' => 'T4/25', 'rate' => 76.8],
-        ['month' => 'T5/25', 'rate' => 72.3],
-    ];
-
-    $retentionBarConfigs = [
-        ['key' => 'rate', 'name' => 'Tỷ lệ quay lại', 'color' => '#3B82F6'],
-    ];
-
-    $latestRetention = 72.3;
-    $prevRetention = 76.8;
-    $retentionTrend = $latestRetention - $prevRetention;
-
-    function roleClass($role) {
-        return match ($role) {
-            'Thợ chính' => 'role-badge role-badge--main',
-            'Thợ phụ' => 'role-badge role-badge--assistant',
-            'Lễ tân' => 'role-badge role-badge--reception',
-            default => 'role-badge',
-        };
-    }
-
-    function upsellClass($value) {
-        if ($value >= 70) {
-            return 'upsell-fill upsell-fill--good';
-        }
-
-        if ($value >= 50) {
-            return 'upsell-fill upsell-fill--warning';
-        }
-
-        return 'upsell-fill upsell-fill--danger';
-    }
+    $managerBranchName = $managerBranchName
+        ?? $managerEmployee?->branch?->branch_name
+        ?? 'Chi nhánh #'.$managerBranchId;
+    $managerName = $managerEmployee?->full_name
+        ?? $managerUser?->name
+        ?? $managerBranchName;
+    $managerPanelTitle = $managerPanelTitle
+        ?? $managerName.' - Branch Manager - '.$managerBranchName;
 @endphp
 
 <div
@@ -169,10 +35,7 @@
 >
 
     <x-global-control-panel
-        title="Chi nhánh Quận 1"
-        period="tháng"
-        lastUpdate="14:58 - Cập nhật thành công"
-        :export-url="route('manager.reports.export')"
+        :title="$managerPanelTitle"
     />
 
     <div class="branch-revenue-grid">
@@ -187,24 +50,24 @@
                     </div>
 
                     <h2>
-                        <span data-target-current>{{ number_format($currentRevenue, 0, ',', '.') }}</span>
-                        <small>/ <span data-target-month>{{ number_format($targetRevenue, 0, ',', '.') }}</span>tr</small>
+                        <span data-target-current>Đang tải...</span>
+                        <small>/ <span data-target-month>--</span>tr</small>
                     </h2>
                 </div>
 
                 <div
-                    class="{{ $progress >= 80 ? 'progress-badge progress-badge--good' : ($progress >= 50 ? 'progress-badge progress-badge--warning' : 'progress-badge progress-badge--danger') }}"
+                    class="progress-badge progress-badge--warning"
                     data-target-progress-badge
                 >
-                    <span data-target-progress>{{ number_format($progress, 1) }}%</span>
+                    <span data-target-progress>--</span>
                 </div>
             </div>
 
             <div class="progress-section">
                 <div class="progress-track">
                     <div
-                        class="{{ $progress >= 80 ? 'progress-fill progress-fill--good' : ($progress >= 50 ? 'progress-fill progress-fill--warning' : 'progress-fill progress-fill--danger') }}"
-                        style="width: {{ $progress }}%;"
+                        class="progress-fill progress-fill--warning"
+                        style="width: 0%;"
                         data-target-progress-fill
                     ></div>
                 </div>
@@ -212,13 +75,13 @@
                 <div class="progress-stats">
                     <span>
                         Còn thiếu:
-                        <strong data-target-remaining>{{ number_format($remaining, 0, ',', '.') }}tr</strong>
+                        <strong data-target-remaining>--</strong>
                     </span>
 
                     <span>
                         Cần/ngày:
-                        <strong class="orange" data-target-daily-needed>{{ number_format($dailyNeeded, 1) }}tr</strong>
-                        (<span data-target-days-left>{{ $daysLeft }}</span> ngày còn lại)
+                        <strong class="orange" data-target-daily-needed>--</strong>
+                        (<span data-target-days-left>--</span> ngày còn lại)
                     </span>
                 </div>
 
@@ -232,14 +95,7 @@
             </div>
 
             <div class="chart-area">
-                <x-chart.line
-                    id="managerRevenueComparisonChart"
-                    :data="$revenueTrendData"
-                    xAxisKey="label"
-                    :lineConfigs="$revenueLineConfigs"
-                    yAxisFormatter="raw"
-                    height="280px"
-                />
+                <canvas id="managerRevenueComparisonChart" aria-label="Biểu đồ so sánh doanh thu"></canvas>
             </div>
         </section>
 
@@ -258,42 +114,24 @@
             <div class="service-insight-row">
                 <div class="service-insight-card service-insight-card--hotel">
                     <div class="service-insight-label">🏨 Hotel</div>
-                    <strong data-hotel-share>{{ number_format($hotelShare, 1) }}%</strong>
+                    <strong data-hotel-share>Đang tải...</strong>
                     <small>Chó + Mèo</small>
                 </div>
 
                 <div class="service-insight-card service-insight-card--spa">
                     <div class="service-insight-label">✂️ Spa</div>
-                    <strong data-spa-share>{{ number_format($spaShare, 1) }}%</strong>
+                    <strong data-spa-share>Đang tải...</strong>
                     <small>Grooming</small>
                 </div>
             </div>
 
             <div class="service-chart-layout">
                 <div class="service-chart">
-                    <x-chart.pie
-                        id="managerServiceMixChart"
-                        :data="$serviceData"
-                        nameKey="name"
-                        dataKey="value"
-                        :colors="$serviceColors"
-                        height="260px"
-                    />
+                    <canvas id="managerServiceMixChart" aria-label="Biểu đồ cơ cấu dịch vụ"></canvas>
                 </div>
 
                 <div class="service-legend" data-service-mix-legend>
-                    @foreach ($serviceData as $service)
-                        <div class="service-legend-item">
-                            <div>
-                                <span style="background: {{ $service['color'] }};"></span>
-                                {{ $service['icon'] }} {{ $service['name'] }}
-                            </div>
-
-                            <strong style="color: {{ $service['color'] }};">
-                                {{ $service['value'] }}%
-                            </strong>
-                        </div>
-                    @endforeach
+                    <div class="service-legend-empty">Đang tải cơ cấu dịch vụ...</div>
                 </div>
             </div>
 
@@ -301,19 +139,26 @@
                 <h3>Giá trị đơn hàng trung bình (AOV)</h3>
 
                 <div class="aov-grid">
-                    @foreach ($aovData as $item)
-                        <div
-                            class="{{ $item['highlight'] ? 'aov-card aov-card--highlight' : 'aov-card' }}"
-                            data-aov-card="{{ $item['key'] }}"
-                        >
-                            <div class="aov-label">{{ $item['label'] }}</div>
-                            <div class="aov-value" data-aov-value="{{ $item['key'] }}">{{ $item['value'] }}</div>
+                    <div class="aov-card aov-card--highlight" data-aov-card="current_aov">
+                        <div class="aov-label">Kỳ này</div>
+                        <div class="aov-value" data-aov-value="current_aov">Đang tải...</div>
+                        <div class="aov-change" data-aov-change>Đang tải biến động...</div>
+                    </div>
 
-                            @if ($item['change'])
-                                <div class="aov-change" data-aov-change>▲ {{ $item['change'] }} so tháng trước</div>
-                            @endif
-                        </div>
-                    @endforeach
+                    <div class="aov-card" data-aov-card="previous_aov">
+                        <div class="aov-label">Kỳ trước</div>
+                        <div class="aov-value" data-aov-value="previous_aov">--</div>
+                    </div>
+
+                    <div class="aov-card" data-aov-card="max_order_value">
+                        <div class="aov-label">Cao nhất/đơn</div>
+                        <div class="aov-value" data-aov-value="max_order_value">--</div>
+                    </div>
+
+                    <div class="aov-card" data-aov-card="current_orders">
+                        <div class="aov-label">Số đơn trong kỳ</div>
+                        <div class="aov-value" data-aov-value="current_orders">--</div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -337,8 +182,8 @@
                 </div>
             </div>
 
-            <div class="staff-warning">
-                ⚠️ Phát hiện <strong>dấu hiệu bất thường</strong>. Kiểm tra ngay nhân viên được đánh dấu đỏ.
+            <div class="staff-warning" data-employee-performance-warning hidden>
+                <strong data-employee-performance-warning-text></strong>
             </div>
 
             <div class="staff-table-header">
@@ -347,45 +192,30 @@
                 <span>Upsell</span>
             </div>
 
-            <div class="staff-table-body">
-                @foreach ($staffData as $index => $staff)
-                    @php
-                        $revenuePercent = $topRevenue > 0 ? ($staff['revenue'] / $topRevenue) * 100 : 0;
-                    @endphp
-
-                    <div class="{{ $staff['alert'] ? 'staff-row staff-row--alert' : ($index === 0 ? 'staff-row staff-row--top' : 'staff-row') }}">
-                        <div class="staff-info">
-                            <div class="{{ $index === 0 ? 'staff-rank staff-rank--top' : 'staff-rank' }}">
-                                {{ $index + 1 }}
-
-                                @if ($staff['alert'])
-                                    <span class="staff-alert-dot"></span>
-                                @endif
-                            </div>
-
-                            <div>
-                                <div class="staff-name">{{ $staff['name'] }}</div>
-                                <div class="{{ roleClass($staff['role']) }}">
-                                    {{ $staff['role'] }}
-                                </div>
-                            </div>
-                        </div>
-
+            <div class="staff-table-body" data-employee-performance-body>
+                <div class="staff-row">
+                    <div class="staff-info">
+                        <div class="staff-rank">--</div>
                         <div>
-                            <div class="staff-revenue">{{ $staff['revenue'] }}tr</div>
-                            <div class="staff-revenue-track">
-                                <div style="width: {{ $revenuePercent }}%;"></div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="upsell-value">{{ $staff['upsellRate'] }}%</div>
-                            <div class="upsell-track">
-                                <div class="{{ upsellClass($staff['upsellRate']) }}" style="width: {{ $staff['upsellRate'] }}%;"></div>
-                            </div>
+                            <div class="staff-name">Đang tải dữ liệu nhân sự...</div>
+                            <div class="role-badge">--</div>
                         </div>
                     </div>
-                @endforeach
+
+                    <div>
+                        <div class="staff-revenue">--</div>
+                        <div class="staff-revenue-track">
+                            <div style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="upsell-value">--</div>
+                        <div class="upsell-track">
+                            <div class="upsell-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -406,36 +236,29 @@
                     <div class="customer-metric-label">Tỷ lệ quay lại</div>
 
                     <div class="customer-metric-row">
-                        <span class="{{ $retentionTrend >= 0 ? 'customer-rate customer-rate--positive' : 'customer-rate customer-rate--negative' }}">
-                            {{ $latestRetention }}%
+                        <span class="customer-rate" data-retention-rate>
+                            Đang tải...
                         </span>
 
-                        <span class="{{ $retentionTrend >= 0 ? 'customer-trend customer-trend--positive' : 'customer-trend customer-trend--negative' }}">
-                            {{ $retentionTrend >= 0 ? '▲' : '▼' }}
-                            {{ number_format(abs($retentionTrend), 1) }}%
+                        <span class="customer-trend" data-retention-trend>
+                            --
                         </span>
                     </div>
 
                     <div class="customer-chart">
-                        <x-chart.bar
-                            :data="$retentionData"
-                            xAxisKey="month"
-                            :barConfigs="$retentionBarConfigs"
-                            yAxisFormatter="raw"
-                            height="250px"
-                        />
+                        <canvas id="managerCustomerRetentionChart" aria-label="Biểu đồ tỷ lệ khách hàng quay lại"></canvas>
                     </div>
                 </div>
 
                 <div class="customer-stats-column">
                     <div class="customer-stat-card">
-                        <div>KH mới (Tháng này)</div>
-                        <strong>+ 214</strong>
+                        <div>KH mới trong kỳ</div>
+                        <strong data-new-customers>Đang tải...</strong>
                     </div>
 
                     <div class="customer-stat-card">
                         <div>KH trung thành</div>
-                        <strong class="secondary">572</strong>
+                        <strong class="secondary" data-loyal-customers>Đang tải...</strong>
                     </div>
                 </div>
             </div>

@@ -55,6 +55,11 @@
     }
 
     function updateLastRefresh() {
+        if (window.GlobalControlPanel?.updateLastRefresh) {
+            window.GlobalControlPanel.updateLastRefresh(root);
+            return;
+        }
+
         const node = root.querySelector(
             ".global-control-panel__last-update span:last-child",
         );

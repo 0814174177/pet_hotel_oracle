@@ -69,7 +69,7 @@
                 ? parsed.map(normalizeCoupon).filter((coupon) => coupon.code)
                 : [];
         } catch (error) {
-            console.warn("Không đọc được dữ liệu khuyến mãi từ server.", error);
+            console.warn("Không đọc được dữ liệu khuyến mãi từ máy chủ.", error);
             return [];
         }
     }
@@ -81,6 +81,17 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    function normalizeSearch(value) {
+        return String(value ?? "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/đ/g, "d")
+            .replace(/Đ/g, "D")
+            .toLowerCase()
+            .replace(/\s+/g, " ")
+            .trim();
     }
 
     function parseDateEndOfDay(dateString) {
@@ -154,7 +165,7 @@
             return "-";
         }
 
-        return `${number(amount)}đ`;
+        return `${number(amount)} đ`;
     }
 
     function formatValue(coupon) {
@@ -181,6 +192,21 @@
         const [year, month, day] = String(date).split("-");
 
         return day && month && year ? `${day}/${month}/${year}` : date;
+    }
+
+    function couponSearchText(coupon) {
+        return normalizeSearch([
+            coupon.code,
+            coupon.notes,
+            typeLabel(coupon.type),
+            couponStatusLabel(coupon),
+            formatValue(coupon),
+            formatMaxDiscount(coupon),
+            coupon.minOrder ? money(coupon.minOrder) : "",
+            coupon.maxUses ? `${number(coupon.usedCount)} ${number(coupon.maxUses)}` : number(coupon.usedCount),
+            formatDate(coupon.from),
+            formatDate(coupon.expired),
+        ].join(" "));
     }
 
     function usagePercent(coupon) {
@@ -210,7 +236,9 @@
         const status = couponStatus(coupon);
         const percent = usagePercent(coupon);
         const progressClass = percent >= 100 ? " manager-promotion-progress-fill--danger" : "";
-        const usage = coupon.maxUses ? `${number(coupon.usedCount)} / ${number(coupon.maxUses)}` : `${number(coupon.usedCount)} / ∞`;
+        const usage = coupon.maxUses
+            ? `${number(coupon.usedCount)} / ${number(coupon.maxUses)}`
+            : `${number(coupon.usedCount)} / Không giới hạn`;
 
         return `
             <tr>
@@ -263,14 +291,12 @@
     }
 
     function applyFilters() {
-        const query = ($(selectors.searchInput)?.value || "").trim().toLowerCase();
+        const query = normalizeSearch($(selectors.searchInput)?.value);
         const type = $(selectors.filterType)?.value || "";
         const status = $(selectors.filterStatus)?.value || "";
 
         const filtered = coupons.filter((coupon) => {
-            const matchesQuery = !query ||
-                coupon.code.toLowerCase().includes(query) ||
-                String(coupon.notes || "").toLowerCase().includes(query);
+            const matchesQuery = !query || couponSearchText(coupon).includes(query);
             const matchesType = !type || coupon.type === type;
             const matchesStatus = !status || couponStatus(coupon) === status;
 

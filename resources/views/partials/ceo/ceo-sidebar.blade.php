@@ -1,7 +1,7 @@
 <div class="ceo-sidebar-inner">
   <div class="ceo-sidebar-header">
     <div class="ceo-sidebar-logo">
-      <img src="{{ asset('images/logo&banner/logo.png') }}" alt="Pet Hotel Logo" class="ceo-sidebar-logo-img">
+      <img src="{{ asset('assets/client/images/logo&banner/logo.jpg') }}" alt="Pet Hotel Logo" class="ceo-sidebar-logo-img">
       <span class="ceo-sidebar-logo-text">Pet Hotel</span>
     </div>
 
@@ -42,6 +42,7 @@
   <form action="{{ route('authentication.logout') }}" method="POST" class="ceo-logout-form">
     @csrf
     <button type="submit" class="ceo-logout-btn">
+      <span class="ceo-logout-icon" aria-hidden="true">&#x23FB;</span>
       <span class="ceo-sidebar-link-text">Đăng xuất</span>
     </button>
   </form>

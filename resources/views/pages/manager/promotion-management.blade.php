@@ -1,6 +1,6 @@
 @extends('layouts.manager')
 
-@section('title', 'Khuyến mãi')
+@section('title', 'Quản lý khuyến mãi')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/client/css/manager/promotion-management.css') }}?v={{ time() }}">
@@ -14,57 +14,51 @@
 
     <header class="manager-promotion-header">
         <div>
-            <p class="manager-promotion-eyebrow">Khuyến mãi</p>
+            <p class="manager-promotion-eyebrow">Quản trị chi nhánh</p>
             <h1>Quản lý khuyến mãi</h1>
-            <p>Xem và theo dõi trạng thái các mã khuyến mãi trong hệ thống.</p>
+        </div>
+        <div class="manager-promotion-header-note">
+            Dữ liệu coupon hiện hành trong hệ thống
         </div>
     </header>
 
     <section class="manager-promotion-stats-grid" aria-label="Tổng quan khuyến mãi">
-        <article class="manager-promotion-stat-card">
-            <span class="manager-promotion-stat-icon manager-promotion-stat-icon--total">#</span>
-            <div>
-                <div class="manager-promotion-stat-label">Tổng số mã</div>
-                <div class="manager-promotion-stat-value" data-stat-total>0</div>
-                <div class="manager-promotion-stat-sub">Tất cả</div>
-            </div>
-        </article>
+        <x-kpi-card
+            title="Tổng số mã"
+            value="0"
+            detail="Tất cả coupon"
+            :value-attributes="['data-stat-total' => true]"
+        />
 
-        <article class="manager-promotion-stat-card">
-            <span class="manager-promotion-stat-icon manager-promotion-stat-icon--active">✓</span>
-            <div>
-                <div class="manager-promotion-stat-label">Đang hoạt động</div>
-                <div class="manager-promotion-stat-value" data-stat-active>0</div>
-                <div class="manager-promotion-stat-sub">Mã còn hiệu lực</div>
-            </div>
-        </article>
+        <x-kpi-card
+            title="Đang hoạt động"
+            value="0"
+            detail="Mã còn hiệu lực"
+            :value-attributes="['data-stat-active' => true]"
+        />
 
-        <article class="manager-promotion-stat-card">
-            <span class="manager-promotion-stat-icon manager-promotion-stat-icon--expired">!</span>
-            <div>
-                <div class="manager-promotion-stat-label">Hết hạn</div>
-                <div class="manager-promotion-stat-value" data-stat-expired>0</div>
-                <div class="manager-promotion-stat-sub">Đã qua hạn dùng</div>
-            </div>
-        </article>
+        <x-kpi-card
+            title="Hết hạn"
+            value="0"
+            detail="Đã qua hạn dùng"
+            :value-attributes="['data-stat-expired' => true]"
+        />
 
-        <article class="manager-promotion-stat-card">
-            <span class="manager-promotion-stat-icon manager-promotion-stat-icon--ended">×</span>
-            <div>
-                <div class="manager-promotion-stat-label">Đã kết thúc</div>
-                <div class="manager-promotion-stat-value" data-stat-ended>0</div>
-                <div class="manager-promotion-stat-sub">Đã ngưng kích hoạt</div>
-            </div>
-        </article>
+        <x-kpi-card
+            title="Đã kết thúc"
+            value="0"
+            detail="Đã ngừng kích hoạt"
+            :value-attributes="['data-stat-ended' => true]"
+        />
     </section>
 
     <section class="manager-promotion-filter-card" aria-label="Bộ lọc khuyến mãi">
-        <label class="manager-promotion-search-box">
-            <span class="manager-promotion-search-icon">⌕</span>
-            <input type="text" placeholder="Tìm mã coupon, ghi chú..." data-search-input>
+        <label class="manager-promotion-field manager-promotion-field--search">
+            <span>Tìm kiếm</span>
+            <input type="text" placeholder="Tìm mã coupon hoặc ghi chú" data-search-input>
         </label>
 
-        <label class="manager-promotion-filter-group">
+        <label class="manager-promotion-field">
             <span>Loại khuyến mãi</span>
             <select data-filter-type>
                 <option value="">Tất cả loại</option>
@@ -73,7 +67,7 @@
             </select>
         </label>
 
-        <label class="manager-promotion-filter-group">
+        <label class="manager-promotion-field">
             <span>Trạng thái</span>
             <select data-filter-status>
                 <option value="">Tất cả trạng thái</option>
@@ -115,8 +109,7 @@
         </div>
 
         <div class="manager-promotion-empty-state manager-promotion-hidden" data-empty-state>
-            <div class="manager-promotion-empty-icon">#</div>
-            <p>Không tìm thấy mã khuyến mãi nào phù hợp.</p>
+            <p>Không tìm thấy mã khuyến mãi phù hợp.</p>
         </div>
     </section>
 </div>

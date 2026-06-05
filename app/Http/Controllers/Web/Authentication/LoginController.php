@@ -45,10 +45,24 @@ class LoginController extends WebController
                 ], 422);
             }
 
-            if (! $user->is_active || ($user->isStaff() && $user->employee && ! $user->employee->isWorking())) {
+            if (! $user->is_active) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Tài khoản này đang bị khóa. Vui lòng liên hệ quản trị viên.'
+                ], 422);
+            }
+
+            if ($user->isManager() && $managerLoginError = $this->managerLoginError($user)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $managerLoginError,
+                ], 403);
+            }
+
+            if ($user->isStaff() && $user->employee && ! $user->employee->isWorking()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Tai khoan nay dang bi khoa. Vui long lien he quan tri vien.'
                 ], 422);
             }
 
@@ -98,8 +112,32 @@ class LoginController extends WebController
     {
         return match ($user->role) {
             'ADMIN', 'CEO' => '/ceo/dashboard',
-            'MANAGER', 'RECEPTIONIST', 'GROOMER' => '/manager/dashboard',
+            'MANAGER' => '/manager/branches/'.$user->managerBranchId().'/dashboard',
+            'RECEPTIONIST', 'GROOMER' => '/manager/dashboard',
             default => '/', // Khách hàng (CUSTOMER)
         };
+    }
+
+    private function managerLoginError(User $user): ?string
+    {
+        $employee = $user->employee;
+
+        if (! $employee) {
+            return 'Manager account is not linked to an employee profile.';
+        }
+
+        if (! $employee->isWorking()) {
+            return 'Manager employee profile is inactive.';
+        }
+
+        if (! $employee->isManagerPosition()) {
+            return 'Manager employee position is required.';
+        }
+
+        if ($user->managerBranchId() === null) {
+            return 'Manager account is not assigned to a branch.';
+        }
+
+        return null;
     }
 }

@@ -9,8 +9,18 @@
 @section('content')
 
 @php
-    $branchName = 'Chi nhánh Quận 1';
-    $managerBranchId = auth()->user()?->employee?->branch_id ?? 1;
+    $managerUser = auth()->user();
+    $managerEmployee = $managerUser?->employee;
+    $managerBranchId = $managerBranchId ?? auth()->user()?->managerBranchId();
+    abort_if(blank($managerBranchId), 403, 'Manager account is not assigned to a branch.');
+    $branchName = $managerBranchName
+        ?? $managerEmployee?->branch?->branch_name
+        ?? 'Chi nhánh #'.$managerBranchId;
+    $managerName = $managerEmployee?->full_name
+        ?? $managerUser?->name
+        ?? $branchName;
+    $managerPanelTitle = $managerPanelTitle
+        ?? $managerName.' - Branch Manager - '.$branchName;
     $serviceSearch = trim((string) request('search', ''));
     $serviceGroup = trim((string) request('service_group', ''));
     $serviceStatus = trim((string) request('status', ''));
@@ -74,9 +84,7 @@
 >
 
     <x-global-control-panel
-        :title="$branchName"
-        period="tháng"
-        lastUpdate="14:58 - Cập nhật thành công"
+        :title="$managerPanelTitle"
     />
 
     {{-- KPI STATS --}}
@@ -110,7 +118,7 @@
 
     <section class="branch-service-main">
         {{-- TOOLBAR --}}
-        <form method="GET" action="{{ route('manager.service') }}" class="branch-service-toolbar">
+        <form method="GET" action="{{ route('manager.branches.service', ['branchId' => $managerBranchId]) }}" class="branch-service-toolbar">
             <div class="branch-service-search">
                 <input
                     type="text"

@@ -2,38 +2,38 @@
 
 namespace App\Http\Controllers\Api\Manager;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Manager\BranchScopedServiceManagementRepositoryInterface;
+use App\Services\Manager\ManagerBranchScopeService;
 use Illuminate\Http\JsonResponse;
 
-class ServiceManagementController extends Controller
+class ServiceManagementController extends ApiController
 {
     public function __construct(
-        protected BranchScopedServiceManagementRepositoryInterface $branchServiceManagementRepository
+        protected BranchScopedServiceManagementRepositoryInterface $branchServiceManagementRepository,
+        protected ManagerBranchScopeService $branchScope
     ) {
     }
 
     public function index(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view service management data for this branch.
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
         $filters = $this->validateFilters($request);
 
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchServiceManagementRepository->getOverview($branchId, $filters),
-        ]);
+        return $this->respondData(
+            $this->branchServiceManagementRepository->getOverview($branchId, $filters)
+        );
     }
 
     public function kpi(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view KPI cards for this branch.
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
         $filters = $this->validatePeriod($request);
 
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchServiceManagementRepository->getKpiCards($branchId, $filters),
-        ]);
+        return $this->respondData(
+            $this->branchServiceManagementRepository->getKpiCards($branchId, $filters)
+        );
     }
 
     /**
@@ -53,14 +53,17 @@ class ServiceManagementController extends Controller
      */
     public function revenueProgress(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view service revenue progress for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchServiceManagementRepository->getRevenueProgress(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+        $filters = array_merge($request->getFiltersArray(), $request->validate([
+            'target_service_revenue' => ['nullable', 'numeric', 'min:0'],
+        ]));
+
+        return $this->respondData(
+            $this->branchServiceManagementRepository->getRevenueProgress(
                 $branchId,
-                $request->getFiltersArray()
-            ),
-        ]);
+                $filters
+            )
+        );
     }
 
     /**
@@ -79,14 +82,14 @@ class ServiceManagementController extends Controller
      */
     public function revenueDropAlerts(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view service revenue drop alerts for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchServiceManagementRepository->getRevenueDropAlerts(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchServiceManagementRepository->getRevenueDropAlerts(
                 $branchId,
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -106,14 +109,14 @@ class ServiceManagementController extends Controller
      */
     public function upsellRate(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        // TODO: Authorize that the current user can view upsell KPI for this branch.
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchServiceManagementRepository->getUpsellRate(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->branchServiceManagementRepository->getUpsellRate(
                 $branchId,
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -138,16 +141,15 @@ class ServiceManagementController extends Controller
         ?string $status = null
     ): JsonResponse
     {
-        // TODO: Authorize that the current user can view service list data for this branch.
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
         $filters = $this->validateFilters($request);
         $filters['search'] = $this->pathFilterValue($search) ?? ($filters['search'] ?? null);
         $filters['service_group'] = $this->pathFilterValue($serviceGroup) ?? ($filters['service_group'] ?? null);
         $filters['status'] = $this->pathFilterValue($status) ?? ($filters['status'] ?? null);
 
-        return response()->json([
-            'success' => true,
-            'data' => $this->branchServiceManagementRepository->getServiceList($branchId, $filters),
-        ]);
+        return $this->respondData(
+            $this->branchServiceManagementRepository->getServiceList($branchId, $filters)
+        );
     }
 
     private function validateFilters(DateRangeFilterRequest $request): array

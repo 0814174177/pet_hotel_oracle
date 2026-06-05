@@ -6,6 +6,7 @@
     'isPositive' => true,
     'period' => 'tháng',
     'icon' => null,
+    'valueAttributes' => [],
 ])
 
 @include('components.kpi_card', [
@@ -16,4 +17,5 @@
     'isPositive' => $isPositive,
     'period' => $period,
     'icon' => $icon,
+    'valueAttributes' => $valueAttributes,
 ])

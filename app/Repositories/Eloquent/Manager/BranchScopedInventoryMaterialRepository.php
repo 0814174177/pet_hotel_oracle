@@ -15,18 +15,18 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     private const TEMPORARY_MARGIN_ASSUMPTION = 0.65;
 
     /**
-     * Mo ta chuc nang:
-     * Lay tong hop KPI va danh sach vat tu ton kho cua chi nhanh hien tai.
+     * Mô tả chức năng:
+     * Lấy tổng hợp KPI và danh sách vật tư tồn kho của chi nhánh hiện tại.
      *
      * Input:
-     * - int|string $branchId: Ma chi nhanh can loc.
-     * - array $filters: Bo loc ngay va bo loc danh sach tu Controller.
+     * - int|string $branchId: Mã chi nhánh cần lọc.
+     * - array $filters: Bộ lọc ngày và bộ lọc danh sách từ Controller.
      *
      * Output:
-     * - Mang gom kpi va materials da chuan hoa cho frontend.
+     * - Mảng gồm kpi và materials đã chuẩn hóa cho frontend.
      *
-     * Ghi chu:
-     * - Chi tong hop API doc du lieu, khong xu ly thao tac ghi.
+     * Ghi chú:
+     * - Chỉ tổng hợp API đọc dữ liệu, không xử lý thao tác ghi.
      */
     public function getDashboard(int|string $branchId, array $filters = []): array
     {
@@ -37,18 +37,18 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay cac KPI anh chup ton kho hien tai cua chi nhanh.
+     * Mô tả chức năng:
+     * Lấy các KPI ảnh chụp tồn kho hiện tại của chi nhánh.
      *
      * Input:
-     * - int|string $branchId: Ma chi nhanh can loc.
-     * - array $filters: start_date va end_date tu DateRangeFilterRequest.
+     * - int|string $branchId: Mã chi nhánh cần lọc.
+     * - array $filters: start_date và end_date từ DateRangeFilterRequest.
      *
      * Output:
-     * - Danh sach KPI tong vat tu, het hang, sap het, von ton kho va margin tam tinh.
+     * - Danh sách KPI tổng vật tư, hết hàng, sắp hết, vốn tồn kho và margin tạm tính.
      *
-     * Ghi chu:
-     * - Schema chua co lich su ton kho nen KPI khong so sanh ky truoc.
+     * Ghi chú:
+     * - Schema chưa có lịch sử tồn kho nên KPI không so sánh kỳ trước.
      */
     public function getKpiCards(int|string $branchId, array $filters = []): array
     {
@@ -84,7 +84,7 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
             $this->kpiCard(
                 'margin-assumption',
                 (float) $snapshot['margin_percent_assumption'],
-                'Gia dinh tam thoi',
+                'Giả định tạm thời',
                 $period,
                 'percent'
             ),
@@ -92,21 +92,21 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay KPI tong quan ton kho vat tu cua chi nhanh Manager.
+     * Mô tả chức năng:
+     * Lấy KPI tổng quan tồn kho vật tư của chi nhánh Manager.
      *
      * Input:
-     * - int|string $branchId: Ma chi nhanh can loc.
-     * - array $filters: Bo loc ngay tu DateRangeFilterRequest, duoc normalize de giu contract API.
+     * - int|string $branchId: Mã chi nhánh cần lọc.
+     * - array $filters: Bộ lọc ngày từ DateRangeFilterRequest, được normalize để giữ contract API.
      *
      * Output:
-     * - Mang gom total_materials, out_of_stock_count, low_stock_count,
-     *   inventory_value, margin_percent_assumption, inventory_warning,
-     *   warning_level, material_type_comparison va cards.
+     * - Mảng gồm total_materials, out_of_stock_count, low_stock_count,
+     * inventory_value, margin_percent_assumption, inventory_warning,
+     * warning_level, material_type_comparison và cards.
      *
-     * Ghi chu:
-     * - SQL Oracle nam trong Repository, bind p_branch_id va p_margin_assumption.
-     * - KPI ton kho la anh chup hien tai cua chi nhanh, filter ngay chi dung cho period hien thi.
+     * Ghi chú:
+     * - SQL Oracle nằm trong Repository, bind p_branch_id và p_margin_assumption.
+     * - KPI tồn kho là ảnh chụp hiện tại của chi nhánh, filter ngày chỉ dùng cho period hiển thị.
      */
     public function getInventoryKpi(int|string $branchId, array $filters = []): array
     {
@@ -121,7 +121,7 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
             $this->kpiCard(
                 'total-materials',
                 (int) $snapshot['total_materials'],
-                'Vat tu dang hoat dong',
+                'Vật tư đang hoạt động',
                 $period,
                 'number',
                 [
@@ -133,26 +133,26 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
             $this->kpiCard(
                 'out-of-stock-materials',
                 $outOfStockCount,
-                'Can nhap bo sung ngay',
+                'Cần nhập bổ sung ngay',
                 $period
             ),
             $this->kpiCard(
                 'low-stock-materials',
                 $lowStockCount,
-                'Bang hoac duoi nguong nhap lai',
+                'Bằng hoặc dưới ngưỡng nhập lại',
                 $period
             ),
             $this->kpiCard(
                 'inventory-capital-value',
                 (float) $snapshot['inventory_value'],
-                'Gia tri ton theo don gia vat tu',
+                'Giá trị tồn theo đơn giá vật tư',
                 $period,
                 'currency'
             ),
             $this->kpiCard(
                 'margin-assumption',
                 (float) $snapshot['margin_percent_assumption'],
-                'Gia dinh tam thoi',
+                'Giả định tạm thời',
                 $period,
                 'percent'
             ),
@@ -173,20 +173,20 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * So sanh so loai vat tu dang hoat dong cua chi nhanh voi ky truoc.
+     * Mô tả chức năng:
+     * So sánh số loại vật tư đang hoạt động của chi nhánh với kỳ trước.
      *
      * Input:
-     * - int|string $branchId: Ma chi nhanh can loc.
-     * - array $filters: start_date, end_date, prev_start_date, prev_end_date tu DateRangeFilterRequest.
+     * - int|string $branchId: Mã chi nhánh cần lọc.
+     * - array $filters: start_date, end_date, prev_start_date, prev_end_date từ DateRangeFilterRequest.
      *
      * Output:
      * - total_this_period, total_previous_period, delta_materials,
-     *   change_percent va trend.
+     * change_percent và trend.
      *
-     * Ghi chu:
-     * - SQL Oracle bind p_branch_id, p_end_date va p_prev_end_date.
-     * - Vat tu cua chi nhanh duoc xac dinh qua branch_inventory.
+     * Ghi chú:
+     * - SQL Oracle bind p_branch_id, p_end_date và p_prev_end_date.
+     * - Vật tư của chi nhánh được xác định qua branch_inventory.
      */
     public function getMaterialTypeComparison(int|string $branchId, array $filters = []): array
     {
@@ -247,8 +247,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay tong so loai vat tu dang duoc quan ly tai chi nhanh.
+     * Mô tả chức năng:
+     * Lấy tổng số loại vật tư đang được quản lý tại chi nhánh.
      */
     public function getTotalMaterialCount(int|string $branchId, array $filters = []): array
     {
@@ -261,8 +261,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay so loai vat tu da het hang tai chi nhanh.
+     * Mô tả chức năng:
+     * Lấy số loại vật tư đã hết hàng tại chi nhánh.
      */
     public function getOutOfStockCount(int|string $branchId, array $filters = []): array
     {
@@ -275,19 +275,19 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach vat tu het hang can nhap ngay theo chi nhanh.
+     * Mô tả chức năng:
+     * Lấy danh sách vật tư hết hàng cần nhập ngay theo chi nhánh.
      *
      * Input:
-     * - int|string $branchId: Ma chi nhanh can loc.
-     * - array $filters: Bo loc ngay tu DashboardEngine, giu contract API.
+     * - int|string $branchId: Mã chi nhánh cần lọc.
+     * - array $filters: Bộ lọc ngày từ DashboardEngine, giữ contract API.
      *
      * Output:
-     * - Danh sach vat tu het hang voi warning_text va status_level danger.
+     * - Danh sách vật tư hết hàng với warning_text và status_level danger.
      *
-     * Ghi chu:
-     * - SQL Oracle dat trong Repository va bind p_branch_id.
-     * - Bat buoc loc bi.branch_id = :p_branch_id va p.is_active = 1.
+     * Ghi chú:
+     * - SQL Oracle đặt trong Repository và bind p_branch_id.
+     * - Bắt buộc lọc bi.branch_id = :p_branch_id và p.is_active = 1.
      */
     public function getOutOfStockMaterials(int|string $branchId, array $filters = []): array
     {
@@ -332,19 +332,19 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach vat tu con hang nhung bang hoac duoi nguong nhap lai.
+     * Mô tả chức năng:
+     * Lấy danh sách vật tư còn hàng nhưng bằng hoặc dưới ngưỡng nhập lại.
      *
      * Input:
-     * - int|string $branchId: Ma chi nhanh can loc.
-     * - array $filters: Bo loc ngay tu DashboardEngine, giu contract API.
+     * - int|string $branchId: Mã chi nhánh cần lọc.
+     * - array $filters: Bộ lọc ngày từ DashboardEngine, giữ contract API.
      *
      * Output:
-     * - Danh sach vat tu sap het voi warning_text va status_level warning.
+     * - Danh sách vật tư sắp hết với warning_text và status_level warning.
      *
-     * Ghi chu:
-     * - SQL Oracle dat trong Repository va bind p_branch_id.
-     * - Bat buoc loc bi.branch_id = :p_branch_id va p.is_active = 1.
+     * Ghi chú:
+     * - SQL Oracle đặt trong Repository và bind p_branch_id.
+     * - Bắt buộc lọc bi.branch_id = :p_branch_id và p.is_active = 1.
      */
     public function getLowStockMaterials(int|string $branchId, array $filters = []): array
     {
@@ -390,8 +390,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay so loai vat tu con hang nhung bang hoac duoi nguong nhap lai.
+     * Mô tả chức năng:
+     * Lấy số loại vật tư còn hàng nhưng bằng hoặc dưới ngưỡng nhập lại.
      */
     public function getLowStockCount(int|string $branchId, array $filters = []): array
     {
@@ -404,8 +404,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay gia tri von ton kho hien tai theo don gia vat tu.
+     * Mô tả chức năng:
+     * Lấy giá trị vốn tồn kho hiện tại theo đơn giá vật tư.
      */
     public function getInventoryCapitalValue(int|string $branchId, array $filters = []): array
     {
@@ -418,19 +418,19 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay von ton kho hien tai theo nhom vat tu cua chi nhanh.
+     * Mô tả chức năng:
+     * Lấy vốn tồn kho hiện tại theo nhóm vật tư của chi nhánh.
      *
      * Input:
-     * - int|string $branchId: Ma chi nhanh can loc.
-     * - array $filters: Bo loc ngay tu DashboardEngine, giu contract API.
+     * - int|string $branchId: Mã chi nhánh cần lọc.
+     * - array $filters: Bộ lọc ngày từ DashboardEngine, giữ contract API.
      *
      * Output:
-     * - Danh sach nhom vat tu voi material_count, total_quantity va inventory_value.
+     * - Danh sách nhóm vật tư với material_count, total_quantity và inventory_value.
      *
-     * Ghi chu:
-     * - SQL Oracle dat trong Repository va bind p_branch_id.
-     * - Gia tri ton kho tinh bang quantity_in_stock * item_price.
+     * Ghi chú:
+     * - SQL Oracle đặt trong Repository và bind p_branch_id.
+     * - Giá trị tồn kho tính bằng quantity_in_stock * item_price.
      */
     public function getInventoryValueByCategory(int|string $branchId, array $filters = []): array
     {
@@ -466,18 +466,18 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach vat tu ton kho cua chi nhanh hien tai.
+     * Mô tả chức năng:
+     * Lấy danh sách vật tư tồn kho của chi nhánh hiện tại.
      *
      * Input:
-     * - int|string $branchId: Ma chi nhanh can loc.
-     * - array $filters: start_date, end_date, search, group va status.
+     * - int|string $branchId: Mã chi nhánh cần lọc.
+     * - array $filters: start_date, end_date, search, group và status.
      *
      * Output:
-     * - Danh sach vat tu voi key ro nghia cho bang quan tri.
+     * - Danh sách vật tư với key rõ nghĩa cho bảng quản trị.
      *
-     * Ghi chu:
-     * - Giu contract cu bang cach chuyen sang getMaterialsByBranch.
+     * Ghi chú:
+     * - Giữ contract cũ bằng cách chuyển sang getMaterialsByBranch.
      */
     public function getMaterialList(int|string $branchId, array $filters = []): array
     {
@@ -485,20 +485,20 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Lay danh sach vat tu theo chi nhanh de render table Manager inventory.
+     * Mô tả chức năng:
+     * Lấy danh sách vật tư theo chi nhánh để render table Manager inventory.
      *
      * Input:
-     * - int|string $branchId: Ma chi nhanh can loc.
-     * - array $filters: start_date, end_date, search, group va status.
+     * - int|string $branchId: Mã chi nhánh cần lọc.
+     * - array $filters: start_date, end_date, search, group và status.
      *
      * Output:
-     * - Danh sach vat tu voi product_id, material_code, stock_status,
-     *   warning_text, stock_vs_threshold va status_level.
+     * - Danh sách vật tư với product_id, material_code, stock_status,
+     * warning_text, stock_vs_threshold và status_level.
      *
-     * Ghi chu:
-     * - SQL Oracle dat trong Repository va bind p_branch_id.
-     * - Vat tu cua chi nhanh bat buoc loc bang bi.branch_id = :p_branch_id.
+     * Ghi chú:
+     * - SQL Oracle đặt trong Repository và bind p_branch_id.
+     * - Vật tư của chi nhánh bắt buộc lọc bằng bi.branch_id = :p_branch_id.
      */
     public function getMaterialsByBranch(int|string $branchId, array $filters = []): array
     {
@@ -594,8 +594,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Chuan hoa ky bao cao ve start_date va end_date dang YYYY-MM-DD.
+     * Mô tả chức năng:
+     * Chuẩn hóa kỳ báo cáo về start_date và end_date dạng YYYY-MM-DD.
      */
     public function resolvePeriodRange(array $filters = []): array
     {
@@ -608,8 +608,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Xac dinh trang thai hien thi cua vat tu tu ton hien tai va nguong nhap lai.
+     * Mô tả chức năng:
+     * Xác định trạng thái hiển thị của vật tư từ tồn hiện tại và ngưỡng nhập lại.
      */
     public function resolveMaterialStatus(
         float|int|null $currentStock,
@@ -628,18 +628,18 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Truy van mot lan de lay anh chup KPI ton kho cua chi nhanh.
+     * Mô tả chức năng:
+     * Truy vấn một lần để lấy ảnh chụp KPI tồn kho của chi nhánh.
      *
      * Input:
-     * - int|string $branchId: Ma chi nhanh can loc.
-     * - array $filters: start_date va end_date can normalize truoc khi bind.
+     * - int|string $branchId: Mã chi nhánh cần lọc.
+     * - array $filters: start_date và end_date cần normalize trước khi bind.
      *
      * Output:
-     * - Mang so lieu KPI va ky bao cao da chuan hoa.
+     * - Mảng số liệu KPI và kỳ báo cáo đã chuẩn hóa.
      *
-     * Ghi chu:
-     * - SQL Oracle dat trong Repository va bind branch/date/margin day du.
+     * Ghi chú:
+     * - SQL Oracle đặt trong Repository và bind branch/date/margin đầy đủ.
      */
     private function getKpiSnapshot(int|string $branchId, array $filters = []): array
     {
@@ -676,14 +676,14 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
                         WHEN p.product_id IS NOT NULL
                          AND NVL(bi.quantity_in_stock, 0) = 0 THEN 1
                         ELSE 0
-                    END), 0) > 0 THEN 'CANH BAO DO: CO VAT TU HET HANG - CAN NHAP NGAY'
+                    END), 0) > 0 THEN 'CẢNH BÁO ĐỎ: CÓ VẬT TƯ HẾT HÀNG - CẦN NHẬP NGAY'
                     WHEN NVL(SUM(CASE
                         WHEN p.product_id IS NOT NULL
                          AND NVL(bi.quantity_in_stock, 0) > 0
                          AND NVL(bi.quantity_in_stock, 0) <= NVL(bi.reorder_point, 0) THEN 1
                         ELSE 0
-                    END), 0) > 0 THEN 'CANH BAO VANG: CO VAT TU SAP HET'
-                    ELSE 'AN TOAN'
+                    END), 0) > 0 THEN 'CẢNH BÁO VÀNG: CÓ VẬT TƯ SẮP HẾT'
+                    ELSE 'AN TOÀN'
                 END AS inventory_warning,
                 TO_CHAR(prm.start_date, 'YYYY-MM-DD') AS report_start_date,
                 TO_CHAR(prm.end_date, 'YYYY-MM-DD') AS report_end_date
@@ -713,7 +713,7 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
             'low_stock_count' => $lowStockCount,
             'inventory_value' => $inventoryValue,
             'margin_percent_assumption' => (float) ($row['margin_percent_assumption'] ?? self::TEMPORARY_MARGIN_ASSUMPTION * 100),
-            'inventory_warning' => (string) ($row['inventory_warning'] ?? 'AN TOAN'),
+            'inventory_warning' => (string) ($row['inventory_warning'] ?? 'AN TOÀN'),
             'out_of_stock_materials' => $outOfStockCount,
             'low_stock_materials' => $lowStockCount,
             'inventory_capital_value' => $inventoryValue,
@@ -725,8 +725,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Tao cau truc KPI thong nhat cho DashboardKpiAdapter.
+     * Mô tả chức năng:
+     * Tạo cấu trúc KPI thống nhất cho DashboardKpiAdapter.
      */
     private function kpiCard(
         string $key,
@@ -747,16 +747,16 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Tinh phan tram thay doi cua so loai vat tu so voi ky truoc.
+     * Mô tả chức năng:
+     * Tính phần trăm thay đổi của số loại vật tư so với kỳ trước.
      *
      * Input:
-     * - int $deltaMaterials: Chenh lech so loai vat tu.
-     * - int $totalThisPeriod: Tong so loai vat tu ky hien tai.
-     * - int $totalPreviousPeriod: Tong so loai vat tu ky truoc.
+     * - int $deltaMaterials: Chênh lệch số loại vật tư.
+     * - int $totalThisPeriod: Tổng số loại vật tư kỳ hiện tại.
+     * - int $totalPreviousPeriod: Tổng số loại vật tư kỳ trước.
      *
      * Output:
-     * - Phan tram thay doi da lam tron 2 chu so.
+     * - Phần trăm thay đổi đã làm tròn 2 chữ số.
      */
     private function comparisonChangePercent(
         int $deltaMaterials,
@@ -771,14 +771,14 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Suy ra xu huong tang/giam/khong doi tu chenh lech so loai vat tu.
+     * Mô tả chức năng:
+     * Suy ra xu hướng tăng/giảm/không đổi từ chênh lệch số loại vật tư.
      *
      * Input:
-     * - int $delta: Chenh lech so luong.
+     * - int $delta: Chênh lệch số lượng.
      *
      * Output:
-     * - up, down hoac neutral.
+     * - up, down hoặc neutral.
      */
     private function trend(int $delta): string
     {
@@ -794,15 +794,15 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Xac dinh muc canh bao tong quan cua ton kho chi nhanh.
+     * Mô tả chức năng:
+     * Xác định mức cảnh báo tổng quan của tồn kho chi nhánh.
      *
      * Input:
-     * - int $outOfStockCount: So vat tu het hang.
-     * - int $lowStockCount: So vat tu sap het.
+     * - int $outOfStockCount: Số vật tư hết hàng.
+     * - int $lowStockCount: Số vật tư sắp hết.
      *
      * Output:
-     * - danger, warning hoac safe.
+     * - danger, warning hoặc safe.
      */
     private function inventoryWarningLevel(int $outOfStockCount, int $lowStockCount): string
     {
@@ -818,8 +818,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Normalize filter ngay va filter chuoi truoc khi bind Oracle.
+     * Mô tả chức năng:
+     * Normalize filter ngày và filter chuỗi trước khi bind Oracle.
      */
     private function normalizeFilters(array $filters = []): array
     {
@@ -841,8 +841,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Tao ky mac dinh la thang hien tai khi frontend chua chon ngay.
+     * Mô tả chức năng:
+     * Tạo kỳ mặc định là tháng hiện tại khi frontend chưa chọn ngày.
      */
     private function currentMonthFilters(): array
     {
@@ -855,15 +855,15 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Tinh ky truoc co cung do dai voi ky hien tai.
+     * Mô tả chức năng:
+     * Tính kỳ trước có cùng độ dài với kỳ hiện tại.
      *
      * Input:
-     * - string $startDate: Ngay bat dau ky hien tai dang YYYY-MM-DD.
-     * - string $endDate: Ngay ket thuc ky hien tai dang YYYY-MM-DD.
+     * - string $startDate: Ngày bắt đầu kỳ hiện tại dạng YYYY-MM-DD.
+     * - string $endDate: Ngày kết thúc kỳ hiện tại dạng YYYY-MM-DD.
      *
      * Output:
-     * - prev_start_date va prev_end_date dang YYYY-MM-DD.
+     * - prev_start_date và prev_end_date dạng YYYY-MM-DD.
      */
     private function previousPeriodFilters(string $startDate, string $endDate): array
     {
@@ -879,8 +879,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Chuyen Carbon/string/null ve chuoi ngay YYYY-MM-DD de bind Oracle.
+     * Mô tả chức năng:
+     * Chuyển Carbon/string/null về chuỗi ngày YYYY-MM-DD để bind Oracle.
      */
     private function dateString(mixed $value): ?string
     {
@@ -903,8 +903,8 @@ class BranchScopedInventoryMaterialRepository implements BranchScopedInventoryMa
     }
 
     /**
-     * Mo ta chuc nang:
-     * Chuan hoa filter text rong thanh null truoc khi bind Oracle.
+     * Mô tả chức năng:
+     * Chuẩn hóa filter text rỗng thành null trước khi bind Oracle.
      */
     private function nullableString(mixed $value): ?string
     {

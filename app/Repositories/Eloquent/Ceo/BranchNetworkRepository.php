@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Employee;
 use App\Repositories\Contracts\Ceo\BranchNetworkRepositoryInterface;
 use DateTimeInterface;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -106,29 +107,254 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
 
     public function getBranchNetworkList(array $filters = []): array
     {
-        $revenues = $this->revenueByBranch($filters);
+        $start = filled($filters['start_date'] ?? null)
+            ? \Illuminate\Support\Carbon::parse($filters['start_date'])->startOfDay()
+            : now(config('app.timezone'))->startOfMonth();
+        $end = filled($filters['end_date'] ?? null)
+            ? \Illuminate\Support\Carbon::parse($filters['end_date'])->startOfDay()->addDay()
+            : now(config('app.timezone'))->addMonthNoOverflow()->startOfMonth();
 
-        $branches = Branch::query()
-            ->with([
-                'employees' => fn ($query) => $query
-                    ->working()
-                    ->where('position', 'MANAGER')
-                    ->with('user')
-                    ->orderBy('employee_id'),
-            ])
-            ->withCount([
-                'rooms',
-                'bookings',
-                'employees' => fn ($query) => $query->working(),
-                'rooms as used_rooms' => fn ($query) => $query->whereIn('status', self::ROOM_USED_STATUSES),
-            ])
-            ->orderBy('branch_name')
-            ->get()
-            ->map(fn (Branch $branch): array => $this->formatBranch($branch, $revenues));
+        $sql = <<<'SQL'
+            WITH tham_so AS (
+                SELECT
+                    TO_DATE(:ngay_bat_dau, 'YYYY-MM-DD') AS ngay_bat_dau,
+                    TO_DATE(:ngay_ket_thuc, 'YYYY-MM-DD') AS ngay_ket_thuc
+                FROM dual
+            ),
+            doanh_thu_chi_nhanh AS (
+                SELECT
+                    b.branch_id,
+                    SUM(NVL(o.grand_total, 0)) AS doanh_thu
+                FROM branch b
+                CROSS JOIN tham_so ts
+                LEFT JOIN orders o
+                    ON o.branch_id = b.branch_id
+                   AND o.status IN ('PAID', 'COMPLETED')
+                   AND o.paid_at >= ts.ngay_bat_dau
+                   AND o.paid_at <  ts.ngay_ket_thuc
+                GROUP BY b.branch_id
+            ),
+            doanh_thu_trung_binh AS (
+                SELECT
+                    AVG(NVL(dt.doanh_thu, 0)) AS doanh_thu_tb_chuoi
+                FROM branch b
+                LEFT JOIN doanh_thu_chi_nhanh dt
+                    ON dt.branch_id = b.branch_id
+                WHERE b.is_active = 1
+            ),
+            phong_theo_chi_nhanh AS (
+                SELECT
+                    branch_id,
+                    COUNT(*) AS tong_phong,
+                    SUM(CASE WHEN status = 'MAINTENANCE' THEN 1 ELSE 0 END) AS phong_bao_tri,
+                    SUM(CASE WHEN status <> 'MAINTENANCE' THEN 1 ELSE 0 END) AS phong_co_the_ban
+                FROM room
+                GROUP BY branch_id
+            ),
+            phong_duoc_dat AS (
+                SELECT
+                    r.branch_id,
+                    COUNT(DISTINCT r.room_id) AS so_phong_duoc_dat,
+                    SUM(
+                        GREATEST(
+                            0,
+                            LEAST(CAST(bk.checkout_expected_at AS DATE), ts.ngay_ket_thuc)
+                            -
+                            GREATEST(CAST(bk.checkin_expected_at AS DATE), ts.ngay_bat_dau)
+                        )
+                    ) AS booked_room_days
+                FROM room r
+                JOIN booking_room br
+                    ON br.room_id = r.room_id
+                JOIN booking bk
+                    ON bk.booking_id = br.booking_id
+                CROSS JOIN tham_so ts
+                WHERE bk.status IN ('CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'COMPLETED')
+                  AND CAST(bk.checkin_expected_at AS DATE) <  ts.ngay_ket_thuc
+                  AND CAST(bk.checkout_expected_at AS DATE) > ts.ngay_bat_dau
+                  AND r.status <> 'MAINTENANCE'
+                GROUP BY r.branch_id
+            ),
+            quan_ly AS (
+                SELECT
+                    e.branch_id,
+                    MAX(e.full_name) KEEP (
+                        DENSE_RANK FIRST ORDER BY e.employee_id
+                    ) AS ten_quan_ly,
+                    MAX(e.phone) KEEP (
+                        DENSE_RANK FIRST ORDER BY e.employee_id
+                    ) AS sdt_quan_ly
+                FROM employee e
+                JOIN users u
+                    ON u.id = e.user_id
+                WHERE e.status = 1
+                  AND u.is_active = 1
+                  AND u.role = 'MANAGER'
+                  AND e.position = 'MANAGER'
+                GROUP BY e.branch_id
+            ),
+            so_booking AS (
+                SELECT
+                    bk.branch_id,
+                    COUNT(*) AS bookings_count
+                FROM booking bk
+                CROSS JOIN tham_so ts
+                WHERE CAST(bk.checkin_expected_at AS DATE) <  ts.ngay_ket_thuc
+                  AND CAST(bk.checkout_expected_at AS DATE) > ts.ngay_bat_dau
+                GROUP BY bk.branch_id
+            ),
+            so_nhan_vien AS (
+                SELECT
+                    branch_id,
+                    COUNT(*) AS employees_count
+                FROM employee
+                WHERE status = 1
+                GROUP BY branch_id
+            ),
+            du_lieu AS (
+                SELECT
+                    b.branch_id,
+                    b.branch_name,
+                    b.address,
+                    b.is_active,
+                    NVL(dt.doanh_thu, 0) AS doanh_thu,
+                    NVL(ptcn.tong_phong, 0) AS tong_phong,
+                    NVL(ptcn.phong_bao_tri, 0) AS phong_bao_tri,
+                    NVL(ptcn.phong_co_the_ban, 0) AS phong_co_the_ban,
+                    NVL(pdd.so_phong_duoc_dat, 0) AS so_phong_duoc_dat,
+                    NVL(pdd.booked_room_days, 0) AS booked_room_days,
+                    NVL(
+                        ROUND(
+                            NVL(pdd.booked_room_days, 0)
+                            / NULLIF(
+                                NVL(ptcn.phong_co_the_ban, 0)
+                                * (ts.ngay_ket_thuc - ts.ngay_bat_dau),
+                                0
+                            ) * 100,
+                            1
+                        ),
+                        0
+                    ) AS ty_le_lap_day,
+                    NVL(
+                        ROUND(
+                            NVL(ptcn.phong_bao_tri, 0)
+                            / NULLIF(NVL(ptcn.tong_phong, 0), 0) * 100,
+                            1
+                        ),
+                        0
+                    ) AS ty_le_bao_tri,
+                    ql.ten_quan_ly,
+                    ql.sdt_quan_ly,
+                    NVL((SELECT doanh_thu_tb_chuoi FROM doanh_thu_trung_binh), 0) AS doanh_thu_tb_chuoi,
+                    NVL(sb.bookings_count, 0) AS bookings_count,
+                    NVL(snv.employees_count, 0) AS employees_count
+                FROM branch b
+                CROSS JOIN tham_so ts
+                LEFT JOIN doanh_thu_chi_nhanh dt
+                    ON dt.branch_id = b.branch_id
+                LEFT JOIN phong_theo_chi_nhanh ptcn
+                    ON ptcn.branch_id = b.branch_id
+                LEFT JOIN phong_duoc_dat pdd
+                    ON pdd.branch_id = b.branch_id
+                LEFT JOIN quan_ly ql
+                    ON ql.branch_id = b.branch_id
+                LEFT JOIN so_booking sb
+                    ON sb.branch_id = b.branch_id
+                LEFT JOIN so_nhan_vien snv
+                    ON snv.branch_id = b.branch_id
+            )
+            SELECT
+                branch_id,
+                branch_name,
+                'CN-' || branch_id AS branch_code,
+                address,
+                is_active,
+                doanh_thu AS revenue,
+                tong_phong AS total_rooms,
+                phong_bao_tri AS maintenance_rooms,
+                phong_co_the_ban AS sellable_rooms,
+                so_phong_duoc_dat AS used_rooms,
+                booked_room_days,
+                ty_le_lap_day AS occupancy_rate,
+                ty_le_bao_tri AS maintenance_rate,
+                ten_quan_ly AS manager_name,
+                sdt_quan_ly AS manager_phone,
+                bookings_count,
+                employees_count,
+                doanh_thu_tb_chuoi AS average_chain_revenue,
+                CASE
+                    WHEN is_active = 0 THEN 'Ngưng hoạt động'
+                    WHEN ty_le_bao_tri > 40 THEN 'Bảo trì nặng'
+                    WHEN ty_le_bao_tri > 25 THEN 'Bảo trì'
+                    ELSE 'Hoạt động'
+                END AS status_label,
+                CASE
+                    WHEN is_active = 0 THEN 'Cảnh báo đỏ - chi nhánh đang ngưng hoạt động'
+                    WHEN ty_le_bao_tri > 40 THEN 'Cảnh báo đỏ - tỷ lệ phòng bảo trì trên 40%'
+                    WHEN ty_le_bao_tri > 25 THEN 'Cảnh báo vàng - tỷ lệ phòng bảo trì trên 25%'
+                    WHEN ty_le_lap_day < 30 THEN 'Cảnh báo đỏ - lấp đầy dưới 30%, cần thanh tra vận hành'
+                    WHEN ty_le_lap_day < 50 THEN 'Cảnh báo vàng - lấp đầy dưới 50%, cần kiểm tra vận hành/marketing'
+                    WHEN doanh_thu_tb_chuoi > 0
+                     AND doanh_thu < doanh_thu_tb_chuoi * 0.5
+                        THEN 'Cảnh báo đỏ - doanh thu thấp hơn 50% trung bình chuỗi'
+                    WHEN doanh_thu_tb_chuoi > 0
+                     AND doanh_thu < doanh_thu_tb_chuoi * 0.7
+                        THEN 'Cảnh báo vàng - doanh thu thấp hơn 70% trung bình chuỗi'
+                    ELSE 'Ổn định'
+                END AS warning
+            FROM du_lieu
+            ORDER BY doanh_thu DESC
+            SQL;
+
+        $branches = collect(DB::select($sql, [
+            'ngay_bat_dau' => $start->toDateString(),
+            'ngay_ket_thuc' => $end->toDateString(),
+        ]))->map(function (object $row): array {
+            $branch = new Branch();
+            $branch->forceFill([
+                'branch_name' => (string) ($this->rowValue($row, 'branch_name') ?? ''),
+                'address' => (string) ($this->rowValue($row, 'address') ?? ''),
+            ]);
+
+            $isActive = (int) ($this->rowValue($row, 'is_active') ?? 0) === self::ACTIVE_BRANCH_VALUE;
+
+            return [
+                'branch_id' => (int) ($this->rowValue($row, 'branch_id') ?? 0),
+                'branch_code' => (string) ($this->rowValue($row, 'branch_code') ?? ''),
+                'branch_name' => (string) ($this->rowValue($row, 'branch_name') ?? ''),
+                'region' => $this->regionFrom($branch),
+                'revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'revenue') ?? 0)),
+                'occupancy_rate' => $this->cleanNumber((float) ($this->rowValue($row, 'occupancy_rate') ?? 0)),
+                'maintenance_rate' => $this->cleanNumber((float) ($this->rowValue($row, 'maintenance_rate') ?? 0)),
+                'used_rooms' => (int) ($this->rowValue($row, 'used_rooms') ?? 0),
+                'total_rooms' => (int) ($this->rowValue($row, 'total_rooms') ?? 0),
+                'rooms_count' => (int) ($this->rowValue($row, 'total_rooms') ?? 0),
+                'maintenance_rooms' => (int) ($this->rowValue($row, 'maintenance_rooms') ?? 0),
+                'sellable_rooms' => (int) ($this->rowValue($row, 'sellable_rooms') ?? 0),
+                'booked_room_days' => $this->cleanNumber((float) ($this->rowValue($row, 'booked_room_days') ?? 0)),
+                'manager_name' => $this->rowValue($row, 'manager_name'),
+                'manager_phone' => $this->rowValue($row, 'manager_phone'),
+                'status' => $isActive ? 'active' : 'inactive',
+                'status_label' => (string) ($this->rowValue($row, 'status_label') ?? ''),
+                'warning' => (string) ($this->rowValue($row, 'warning') ?? ''),
+                'average_chain_revenue' => $this->cleanNumber((float) ($this->rowValue($row, 'average_chain_revenue') ?? 0)),
+                'bookings_count' => (int) ($this->rowValue($row, 'bookings_count') ?? 0),
+                'employees_count' => (int) ($this->rowValue($row, 'employees_count') ?? 0),
+                'address' => (string) ($this->rowValue($row, 'address') ?? ''),
+            ];
+        });
+
+        $sortFilters = filled($filters['sort_by'] ?? null)
+            ? $filters
+            : [
+                ...$filters,
+                'sort_by' => 'revenue',
+                'sort_direction' => 'desc',
+            ];
 
         return $this->sortBranches(
             $this->applyFilters($branches, $filters),
-            $filters
+            $sortFilters
         )
             ->values()
             ->all();
@@ -232,7 +458,19 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
             ->when(filled($filters['status'] ?? null), function (Collection $items) use ($filters): Collection {
                 $status = $this->normalizeStatus((string) $filters['status']);
 
-                return $items->filter(fn (array $branch): bool => $branch['status'] === $status);
+                return $items->filter(function (array $branch) use ($status): bool {
+                    $statusLabel = $this->searchable((string) ($branch['status_label'] ?? ''));
+                    $isMaintenance = Str::contains($statusLabel, 'bao tri');
+                    $isInactive = $branch['status'] === 'inactive'
+                        || Str::contains($statusLabel, ['ngung', 'tam ngung']);
+
+                    return match ($status) {
+                        'active' => $branch['status'] === 'active' && ! $isMaintenance,
+                        'inactive' => $isInactive,
+                        'maintenance' => $isMaintenance,
+                        default => $branch['status'] === $status || Str::contains($statusLabel, $status),
+                    };
+                });
             })
             ->when(is_numeric($filters['min_revenue'] ?? null), function (Collection $items) use ($filters): Collection {
                 return $items->filter(fn (array $branch): bool => (float) $branch['revenue'] >= (float) $filters['min_revenue']);
@@ -329,7 +567,8 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
     {
         return match ($this->searchable($status)) {
             '1', 'true', 'active', 'enabled', 'dang hoat dong', 'hoat dong' => 'active',
-            '0', 'false', 'inactive', 'disabled', 'ngung hoat dong', 'tam ngung', 'bao tri' => 'inactive',
+            '0', 'false', 'inactive', 'disabled', 'ngung hoat dong', 'tam ngung' => 'inactive',
+            'maintenance', 'bao tri', 'bao tri nang' => 'maintenance',
             default => $this->searchable($status),
         };
     }
@@ -353,7 +592,7 @@ class BranchNetworkRepository implements BranchNetworkRepositoryInterface
         return $row->{$key} ?? $row->{strtoupper($key)} ?? null;
     }
 
-    private function applyDateFilters($query, string $column, array $filters): void
+    private function applyDateFilters(QueryBuilder $query, string $column, array $filters): void
     {
         if (! empty($filters['start_date'])) {
             $query->where($column, '>=', $this->dateValue($filters['start_date']));

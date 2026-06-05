@@ -16,34 +16,30 @@ class BranchController extends ApiController
 
     public function activeCount(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->branches->getActiveBranchCount($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->branches->getActiveBranchCount($this->filters($request))
+        );
     }
 
     public function highestRevenue(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->branches->getHighestRevenueBranch($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->branches->getHighestRevenueBranch($this->filters($request))
+        );
     }
 
     public function lowestOccupancy(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->branches->getLowestOccupancyBranch($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->branches->getLowestOccupancyBranch($this->filters($request))
+        );
     }
 
     public function index(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->branches->getBranchNetworkList($this->filters($request)),
-        ]);
+        return $this->respondData(
+            $this->branches->getBranchNetworkList($this->filters($request))
+        );
     }
 
     private function filters(DateRangeFilterRequest $request): array

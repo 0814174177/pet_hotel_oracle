@@ -14,14 +14,6 @@ class DashboardController extends ApiController
     ) {
     }
 
-    private function respondData(mixed $data): JsonResponse
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $data,
-        ]);
-    }
-
     public function currentHotelOccupancy(DateRangeFilterRequest $request): JsonResponse
     {
         return $this->respondData(

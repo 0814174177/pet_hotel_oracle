@@ -20,6 +20,7 @@ use App\Repositories\Contracts\BookingRepositoryInterface;
 use App\Services\PublicBranchService;
 use Carbon\Carbon;
 use Exception;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -569,7 +570,10 @@ class BookingRepository implements BookingRepositoryInterface
         });
     }
 
-    private function assertPetsFitRoomType($pets, Room $room): void
+    /**
+     * @param  EloquentCollection<int, Pet>  $pets
+     */
+    private function assertPetsFitRoomType(EloquentCollection $pets, Room $room): void
     {
         $typeRoom = $room->typeRoom;
 

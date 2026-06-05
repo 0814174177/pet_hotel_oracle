@@ -111,6 +111,17 @@
             .replace(/'/g, "&#039;");
     }
 
+    function normalizeSearch(value) {
+        return String(value ?? "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/đ/g, "d")
+            .replace(/Đ/g, "D")
+            .toLowerCase()
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
     function formatDate(date) {
         if (!date) {
             return "—";
@@ -193,6 +204,10 @@
         return new Intl.NumberFormat("vi-VN").format(Number(value) || 0);
     }
 
+    function typeLabel(type) {
+        return type === "PERCENT" ? "Phần trăm" : "Cố định";
+    }
+
     function formatValue(coupon) {
         if (coupon.type === "PERCENT") {
             return `${coupon.value}%`;
@@ -207,6 +222,21 @@
         }
 
         return `${number(coupon.maxDiscount)}đ`;
+    }
+
+    function couponSearchText(coupon) {
+        return normalizeSearch([
+            coupon.code,
+            coupon.notes,
+            typeLabel(coupon.type),
+            couponStatusLabel(coupon),
+            formatValue(coupon),
+            formatMaxDiscount(coupon),
+            coupon.minOrder ? `${number(coupon.minOrder)}đ` : "",
+            coupon.maxUses ? `${number(coupon.usedCount)} ${number(coupon.maxUses)}` : number(coupon.usedCount),
+            formatDate(coupon.from),
+            formatDate(coupon.expired),
+        ].join(" "));
     }
 
     function usagePercent(coupon) {
@@ -249,7 +279,7 @@
         const status = couponStatus(coupon);
         const inactive = status !== "active";
         const expiringSoon = isExpiringSoon(coupon.expired);
-        const expiredLabel = status === "expired" ? " ⚠️" : expiringSoon ? " 🔔" : "";
+        const expiredLabel = status === "expired" ? " - Hết hạn" : expiringSoon ? " - Sắp hết hạn" : "";
         const statusBadge = inactive
             ? `<div><span class="ceo-promotion-badge-status ceo-promotion-badge-status--${status}">${couponStatusLabel(coupon)}</span></div>`
             : "";
@@ -274,7 +304,7 @@
                 </td>
                 <td>
                     <span class="ceo-promotion-badge ${coupon.type === "PERCENT" ? "ceo-promotion-badge--percent" : "ceo-promotion-badge--fixed"}">
-                        ${coupon.type === "PERCENT" ? "% Phần trăm" : "Cố định"}
+                        ${coupon.type === "PERCENT" ? "% " : ""}${escapeHtml(typeLabel(coupon.type))}
                     </span>
                 </td>
                 <td><strong>${formatValue(coupon)}</strong></td>
@@ -325,13 +355,11 @@
     }
 
     function applyFilters() {
-        const query = ($(selectors.searchInput)?.value || "").toLowerCase();
+        const query = normalizeSearch($(selectors.searchInput)?.value);
         const type = $(selectors.filterType)?.value || "";
         const status = $(selectors.filterStatus)?.value || "";
         const filtered = coupons.filter((coupon) => {
-            const matchesQuery = !query ||
-                coupon.code.toLowerCase().includes(query) ||
-                String(coupon.notes || "").toLowerCase().includes(query);
+            const matchesQuery = !query || couponSearchText(coupon).includes(query);
             const matchesType = !type || coupon.type === type;
             const matchesStatus = status === "" || couponStatus(coupon) === status;
 

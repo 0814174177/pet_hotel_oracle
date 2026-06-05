@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Api\Manager;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Repositories\Contracts\Manager\ManagerDashboardRepositoryInterface;
+use App\Services\Manager\ManagerBranchScopeService;
 use Illuminate\Http\JsonResponse;
 
 class DashboardController extends ApiController
 {
     public function __construct(
-        protected ManagerDashboardRepositoryInterface $dashboardRepository
+        protected ManagerDashboardRepositoryInterface $dashboardRepository,
+        protected ManagerBranchScopeService $branchScope
     ) {
     }
 
@@ -39,10 +41,7 @@ class DashboardController extends ApiController
             $request->getFiltersArray()
         );
 
-        return response()->json([
-            'success' => true,
-            'data' => $data,
-        ]);
+        return $this->respondData($data);
     }
 
     /**
@@ -61,13 +60,14 @@ class DashboardController extends ApiController
      */
     public function branchOverview(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getOverview(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->dashboardRepository->getOverview(
                 $branchId,
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -85,13 +85,12 @@ class DashboardController extends ApiController
      */
     public function inventoryWarning(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getInventoryWarning(
+        return $this->respondData(
+            $this->dashboardRepository->getInventoryWarning(
                 $this->currentBranchId($request),
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -110,13 +109,14 @@ class DashboardController extends ApiController
      */
     public function branchInventoryWarning(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getInventoryWarning(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->dashboardRepository->getInventoryWarning(
                 $branchId,
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -134,13 +134,12 @@ class DashboardController extends ApiController
      */
     public function healthWarning(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getHealthWarning(
+        return $this->respondData(
+            $this->dashboardRepository->getHealthWarning(
                 $this->currentBranchId($request),
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -159,13 +158,14 @@ class DashboardController extends ApiController
      */
     public function branchHealthWarning(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getHealthWarning(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->dashboardRepository->getHealthWarning(
                 $branchId,
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -183,13 +183,12 @@ class DashboardController extends ApiController
      */
     public function financialRiskWarning(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getFinancialRiskWarning(
+        return $this->respondData(
+            $this->dashboardRepository->getFinancialRiskWarning(
                 $this->currentBranchId($request),
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -208,13 +207,14 @@ class DashboardController extends ApiController
      */
     public function branchFinancialRiskWarning(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getFinancialRiskWarning(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->dashboardRepository->getFinancialRiskWarning(
                 $branchId,
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -232,13 +232,12 @@ class DashboardController extends ApiController
      */
     public function lateCancelledBookings(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getLateCancelledBookings(
+        return $this->respondData(
+            $this->dashboardRepository->getLateCancelledBookings(
                 $this->currentBranchId($request),
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -257,13 +256,14 @@ class DashboardController extends ApiController
      */
     public function branchLateCancelledBookings(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getLateCancelledBookings(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->dashboardRepository->getLateCancelledBookings(
                 $branchId,
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -281,13 +281,12 @@ class DashboardController extends ApiController
      */
     public function topRevenueServices(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getTopRevenueServices(
+        return $this->respondData(
+            $this->dashboardRepository->getTopRevenueServices(
                 $this->currentBranchId($request),
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -306,13 +305,14 @@ class DashboardController extends ApiController
      */
     public function branchTopRevenueServices(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getTopRevenueServices(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->dashboardRepository->getTopRevenueServices(
                 $branchId,
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -330,13 +330,12 @@ class DashboardController extends ApiController
      */
     public function revenueStructure(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getRevenueStructure(
+        return $this->respondData(
+            $this->dashboardRepository->getRevenueStructure(
                 $this->currentBranchId($request),
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -355,13 +354,14 @@ class DashboardController extends ApiController
      */
     public function branchRevenueStructure(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getRevenueStructure(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->dashboardRepository->getRevenueStructure(
                 $branchId,
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -379,13 +379,12 @@ class DashboardController extends ApiController
      */
     public function unpaidInvoices(DateRangeFilterRequest $request): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getUnpaidInvoices(
+        return $this->respondData(
+            $this->dashboardRepository->getUnpaidInvoices(
                 $this->currentBranchId($request),
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
@@ -404,30 +403,28 @@ class DashboardController extends ApiController
      */
     public function branchUnpaidInvoices(DateRangeFilterRequest $request, int|string $branchId): JsonResponse
     {
-        return response()->json([
-            'success' => true,
-            'data' => $this->dashboardRepository->getUnpaidInvoices(
+        $branchId = $this->branchScope->ensureCanAccessBranch((int) $branchId);
+
+        return $this->respondData(
+            $this->dashboardRepository->getUnpaidInvoices(
                 $branchId,
                 $request->getFiltersArray()
-            ),
-        ]);
+            )
+        );
     }
 
     /**
      * Mo ta chuc nang:
      * Xac dinh chi nhanh hien tai cua Manager cho route overview cu.
      *
-     * Input:
-     * - DateRangeFilterRequest co user dang dang nhap.
-     *
      * Output:
-     * - branch_id cua employee hien tai hoac 0 neu khong co de SQL khong lay toan he thong.
+     * - branch_id cua employee hien tai; abort 403 neu Manager khong co scope hop le.
      *
      * Ghi chu:
      * - Khong dung branch_id query cho luong dashboard chinh.
      */
-    private function currentBranchId(DateRangeFilterRequest $request): int|string
+    private function currentBranchId(DateRangeFilterRequest $request): int
     {
-        return $request->user()?->employee?->branch_id ?? 0;
+        return $this->branchScope->currentBranchId();
     }
 }

@@ -239,7 +239,7 @@
 .manager-employee-table {
     background: #ffffff;
     border-collapse: collapse;
-    min-width: 1080px;
+    min-width: 1180px;
     width: 100%;
 }
 
@@ -359,6 +359,16 @@
     color: #3730a3;
 }
 
+.manager-employee-branch-tag {
+    color: #475569;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    max-width: 180px;
+    white-space: normal;
+}
+
 .manager-employee-status-badge--working {
     background: #dcfce7;
     color: #166534;
@@ -406,13 +416,15 @@
     color: #475569;
     cursor: pointer;
     display: inline-flex;
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 800;
-    height: 30px;
+    height: 32px;
     justify-content: center;
     line-height: 1;
+    min-width: 50px;
+    padding: 0 10px;
     transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-    width: 30px;
+    width: auto;
 }
 
 .manager-employee-action-btn:hover {
@@ -711,5 +723,119 @@
     .manager-employee-btn-secondary,
     .manager-employee-btn-danger {
         width: 100%;
+    }
+}
+
+.manager-employee-page {
+    background: #f5f7fb;
+    padding: 24px;
+}
+
+.manager-employee-header {
+    margin-bottom: 18px;
+}
+
+.manager-employee-header h1 {
+    font-size: 26px;
+    letter-spacing: 0;
+}
+
+.manager-employee-stat-card,
+.manager-employee-table-card,
+.manager-employee-search-box,
+.manager-employee-filter-select,
+.manager-employee-btn-primary,
+.manager-employee-btn-secondary,
+.manager-employee-btn-danger,
+.manager-employee-action-btn,
+.manager-employee-modal,
+.manager-employee-modal-close,
+.manager-employee-form-errors,
+.manager-employee-form-group input,
+.manager-employee-form-group select,
+.manager-employee-form-group textarea,
+.manager-employee-position-badge,
+.manager-employee-status-badge,
+.manager-employee-toast {
+    border-radius: 0;
+}
+
+.manager-employee-stat-card,
+.manager-employee-table-card {
+    border-color: #d8dee8;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.manager-employee-stat-card {
+    border-left: 4px solid #2563eb;
+}
+
+.manager-employee-stat-icon {
+    border-radius: 0;
+    height: 42px;
+    width: 42px;
+}
+
+.manager-employee-table-header,
+.manager-employee-modal-head {
+    background: #f8fafc;
+    border-color: #d8dee8;
+}
+
+.manager-employee-table thead th {
+    background: #eef2f7;
+    border-color: #d8dee8;
+}
+
+.manager-employee-table tbody tr {
+    border-color: #e7ecf3;
+}
+
+.manager-employee-avatar {
+    border: 1px solid #cbd5e1;
+    border-radius: 0;
+    height: 42px;
+    overflow: hidden;
+    width: 42px;
+}
+
+.manager-employee-avatar img {
+    display: block;
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+}
+
+.manager-employee-avatar img + .manager-employee-avatar-text {
+    display: none;
+}
+
+.manager-employee-modal {
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 24px 54px rgba(15, 23, 42, 0.25);
+}
+
+.manager-employee-overlay {
+    background: rgba(15, 23, 42, 0.52);
+}
+
+.manager-employee-form-section-title {
+    color: #475569;
+    letter-spacing: 0;
+}
+
+.manager-employee-btn-primary:hover,
+.manager-employee-btn-danger:hover {
+    box-shadow: none;
+}
+
+.manager-employee-empty-icon,
+.manager-employee-search-icon {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .manager-employee-page {
+        padding: 20px;
     }
 }

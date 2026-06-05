@@ -6,15 +6,24 @@ use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Shared\DateRangeFilterRequest;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\Manager\ManagerBranchScopeService;
 use Illuminate\Http\JsonResponse;
 
 class ReportController extends ApiController
 {
+    public function __construct(
+        protected ManagerBranchScopeService $branchScope
+    ) {
+    }
+
     public function index(DateRangeFilterRequest $request): JsonResponse
     {
         $filters = $request->getFiltersArray();
-        $payments = Payment::where('status', 'SUCCESS');
+        $branchId = $this->branchScope->currentBranchId();
+        $payments = Payment::where('status', 'SUCCESS')
+            ->whereHas('order', fn ($query) => $query->where('branch_id', $branchId));
         $orders = Order::with(['branch', 'payment'])
+            ->where('branch_id', $branchId)
             ->orderByDesc('created_at')
             ->limit(50);
 
@@ -28,12 +37,11 @@ class ReportController extends ApiController
             $orders->where('created_at', '<=', $filters['end_date']);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => [
+        return $this->respondData(
+            [
                 'paid_revenue' => $payments->sum('amount'),
                 'orders' => $orders->get(),
-            ],
-        ]);
+            ]
+        );
     }
 }

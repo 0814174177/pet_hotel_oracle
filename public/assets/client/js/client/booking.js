@@ -1038,7 +1038,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const button = petItem.querySelector(".pet-service-btn");
             button.textContent = selected.length
                 ? `${selected.length} dịch vụ`
-                : "+ Thêm dịch vụ";
+                : "Thêm dịch vụ";
         }
 
         closeModals();

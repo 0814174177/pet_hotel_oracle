@@ -6,6 +6,7 @@
     'isPositive' => true,
     'period' => 'tháng',
     'icon' => null,
+    'valueAttributes' => [],
 ])
 
 @php
@@ -13,6 +14,7 @@
     $positiveValue = $positiveValue ?? (bool) $isPositive;
     $hasTrend = filled($trend);
     $hasDetail = filled($detail);
+    $valueAttributeBag = new \Illuminate\View\ComponentAttributeBag($valueAttributes);
 @endphp
 
 @once
@@ -25,7 +27,7 @@
     <div class="kpi-card">
         <div class="kpi-card__content">
             <p class="kpi-card__title">{{ $title }}</p>
-            <h3 class="kpi-card__value" data-kpi-value>{{ $value }}</h3>
+            <h3 {{ $valueAttributeBag->merge(['class' => 'kpi-card__value', 'data-kpi-value' => true]) }}>{{ $value }}</h3>
 
             @if ($hasTrend)
                 <p class="kpi-card__trend {{ $positiveValue ? 'kpi-card__trend--positive' : 'kpi-card__trend--negative' }}" data-kpi-trend>

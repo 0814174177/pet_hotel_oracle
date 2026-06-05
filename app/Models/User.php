@@ -72,6 +72,13 @@ class User extends Authenticatable
         return $this->role === 'MANAGER';
     }
 
+    public function managerBranchId(): ?int
+    {
+        $branchId = $this->employee?->branch_id;
+
+        return $branchId === null ? null : (int) $branchId;
+    }
+
     public function isReceptionist(): bool
     {
         return $this->role === 'RECEPTIONIST';

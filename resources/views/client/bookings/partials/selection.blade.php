@@ -180,15 +180,14 @@
             <p class="pet-status">
               {{ $petInRoom ? ($pet['room_status_message'] ?? 'Thú cưng này đang ở trong phòng khác.') : 'Chọn bé để kiểm tra điều kiện phòng.' }}
             </p>
-            <button type="button" class="pet-service-btn" disabled>+ Thêm dịch vụ</button>
+            <button type="button" class="pet-service-btn" disabled>Thêm dịch vụ</button>
           </div>
         </div>
         @endforeach
 
         <button type="button" class="add-pet-btn-v2" id="addPetBtn"
           data-add-pet-url="{{ route('profile.pets.create') }}">
-          <span>+</span>
-          + Thêm thú cưng mới
+          Thêm thú cưng mới
         </button>
       </div>
     </div>

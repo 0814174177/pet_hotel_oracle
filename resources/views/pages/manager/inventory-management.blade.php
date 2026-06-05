@@ -9,9 +9,20 @@
 
 @php
     $period = 'tháng';
-    $managerBranchId = auth()->user()?->employee?->branch_id;
+    $managerUser = auth()->user();
+    $managerEmployee = $managerUser?->employee;
+    $managerBranchId = $managerBranchId ?? auth()->user()?->managerBranchId();
 
     abort_if($managerBranchId === null, 403, 'Manager branch is required.');
+
+    $managerBranchName = $managerBranchName
+        ?? $managerEmployee?->branch?->branch_name
+        ?? 'Chi nhánh #'.$managerBranchId;
+    $managerName = $managerEmployee?->full_name
+        ?? $managerUser?->name
+        ?? $managerBranchName;
+    $managerPanelTitle = $managerPanelTitle
+        ?? $managerName.' - Branch Manager - '.$managerBranchName;
 @endphp
 
 <div
@@ -25,10 +36,7 @@
 >
 
     <x-global-control-panel
-        title="Quản trị Danh mục Vật tư"
-        period="tháng"
-        lastUpdate="14:58 - Cập nhật thành công"
-        :export-url="route('manager.inventory.export')"
+        :title="$managerPanelTitle"
     />
 
     {{-- KPI SECTION --}}
